@@ -10,6 +10,7 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::oleaut32::*;
 }
 const SHIMS: [Shim; 0usize] = [];

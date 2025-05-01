@@ -10,6 +10,7 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::version::*;
     pub unsafe fn GetFileVersionInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
@@ -18,8 +19,8 @@ mod wrappers {
             let dwHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let dwLen = <u32>::from_stack(mem, stack_args + 8u32);
             let lpData = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("version") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("version") {
+                trace::Record::new(
                     winapi::version::GetFileVersionInfoA_pos,
                     "version",
                     "GetFileVersionInfoA",
@@ -47,8 +48,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("version") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("version") {
+                trace::Record::new(
                     winapi::version::GetFileVersionInfoSizeA_pos,
                     "version",
                     "GetFileVersionInfoSizeA",
@@ -75,8 +76,8 @@ mod wrappers {
             let lpSubBlock = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lplpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let puLen = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("version") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("version") {
+                trace::Record::new(
                     winapi::version::VerQueryValueA_pos,
                     "version",
                     "VerQueryValueA",

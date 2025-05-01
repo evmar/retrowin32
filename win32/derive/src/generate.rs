@@ -67,8 +67,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             })
             .collect::<Vec<_>>();
         fetch_args.extend(quote! {
-            let __trace_record = if crate::winapi::trace::enabled(#trace_module_name) {
-                crate::winapi::trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
+            let __trace_record = if trace::enabled(#trace_module_name) {
+                trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
             } else {
                 None
             };
@@ -149,6 +149,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
         mod wrappers {
             use ::memory::Extensions;
             use crate::{System, calling_convention::*, machine::Machine, winapi::{self, *}};
+            use win32_system::trace;
             use winapi::#module::*;  // for types
             #(#wrappers)*
         }

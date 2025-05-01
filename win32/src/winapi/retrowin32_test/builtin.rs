@@ -10,6 +10,7 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::retrowin32_test::*;
     pub unsafe fn retrowin32_test_callback1(
         sys: &mut dyn System,
@@ -19,8 +20,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let data = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("retrowin32_test") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("retrowin32_test") {
+                trace::Record::new(
                     winapi::retrowin32_test::retrowin32_test_callback1_pos,
                     "retrowin32_test",
                     "retrowin32_test_callback1",

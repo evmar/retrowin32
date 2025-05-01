@@ -10,6 +10,7 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::wininet::*;
     pub unsafe fn InternetOpenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
@@ -19,8 +20,8 @@ mod wrappers {
             let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let lpszProxyBypass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("wininet") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("wininet") {
+                trace::Record::new(
                     winapi::wininet::InternetOpenA_pos,
                     "wininet",
                     "InternetOpenA",

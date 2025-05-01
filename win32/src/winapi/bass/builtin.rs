@@ -10,13 +10,14 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::bass::*;
     pub unsafe fn BASS_ChannelGetPosition(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let mode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_ChannelGetPosition_pos,
                     "bass",
                     "BASS_ChannelGetPosition",
@@ -37,8 +38,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_Free_pos,
                     "bass",
                     "BASS_Free",
@@ -62,8 +63,8 @@ mod wrappers {
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_Init_pos,
                     "bass",
                     "BASS_Init",
@@ -93,8 +94,8 @@ mod wrappers {
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
             let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_MusicLoad_pos,
                     "bass",
                     "BASS_MusicLoad",
@@ -121,8 +122,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_MusicPlay_pos,
                     "bass",
                     "BASS_MusicPlay",
@@ -144,8 +145,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(
                     winapi::bass::BASS_MusicSetPositionScaler_pos,
                     "bass",
                     "BASS_MusicSetPositionScaler",
@@ -165,14 +166,8 @@ mod wrappers {
     pub unsafe fn BASS_Start(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("bass") {
-                crate::winapi::trace::Record::new(
-                    winapi::bass::BASS_Start_pos,
-                    "bass",
-                    "BASS_Start",
-                    &[],
-                )
-                .enter()
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(winapi::bass::BASS_Start_pos, "bass", "BASS_Start", &[]).enter()
             } else {
                 None
             };

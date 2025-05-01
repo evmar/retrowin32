@@ -19,7 +19,6 @@ mod oleaut32;
 mod printf;
 mod retrowin32_test;
 mod shlwapi;
-pub mod trace;
 mod ucrtbase;
 pub mod user32;
 mod vcruntime140;

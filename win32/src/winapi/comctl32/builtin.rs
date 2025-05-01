@@ -10,13 +10,14 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::comctl32::*;
     pub unsafe fn _TrackMouseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("comctl32") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("comctl32") {
+                trace::Record::new(
                     winapi::comctl32::_TrackMouseEvent_pos,
                     "comctl32",
                     "_TrackMouseEvent",
@@ -36,8 +37,8 @@ mod wrappers {
     pub unsafe fn InitCommonControls(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("comctl32") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("comctl32") {
+                trace::Record::new(
                     winapi::comctl32::InitCommonControls_pos,
                     "comctl32",
                     "InitCommonControls",

@@ -10,13 +10,14 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::kernel32::*;
     pub unsafe fn AcquireSRWLockExclusive(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
+                trace::Record::new(
                     winapi::kernel32::AcquireSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "AcquireSRWLockExclusive",
@@ -37,8 +38,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
+                trace::Record::new(
                     winapi::kernel32::AcquireSRWLockShared_pos,
                     "kernel32/sync/srw_lock",
                     "AcquireSRWLockShared",
@@ -60,8 +61,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let first = <u32>::from_stack(mem, stack_args + 0u32);
             let handler = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::AddVectoredExceptionHandler_pos,
                     "kernel32/misc",
                     "AddVectoredExceptionHandler",
@@ -83,8 +84,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let dwFreq = <u32>::from_stack(mem, stack_args + 0u32);
             let dwDuration = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::Beep_pos,
                     "kernel32/misc",
                     "Beep",
@@ -105,8 +106,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hObject = <HFILE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::CloseHandle_pos,
                     "kernel32/misc",
                     "CloseHandle",
@@ -133,8 +134,8 @@ mod wrappers {
             let cchCount1 = <i32>::from_stack(mem, stack_args + 12u32);
             let lpString2 = <u32>::from_stack(mem, stack_args + 16u32);
             let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::CompareStringA_pos,
                     "kernel32/misc",
                     "CompareStringA",
@@ -169,8 +170,8 @@ mod wrappers {
             let cchCount1 = <i32>::from_stack(mem, stack_args + 12u32);
             let lpString2 = <u32>::from_stack(mem, stack_args + 16u32);
             let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::CompareStringW_pos,
                     "kernel32/misc",
                     "CompareStringW",
@@ -201,8 +202,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::CreateDirectoryA_pos,
                     "kernel32/file/fs",
                     "CreateDirectoryA",
@@ -232,8 +233,8 @@ mod wrappers {
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpSecurityAttributes =
                 <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::CreateDirectoryW_pos,
                     "kernel32/file/fs",
                     "CreateDirectoryW",
@@ -260,8 +261,8 @@ mod wrappers {
             let bManualReset = <bool>::from_stack(mem, stack_args + 4u32);
             let bInitialState = <bool>::from_stack(mem, stack_args + 8u32);
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/event") {
+                trace::Record::new(
                     winapi::kernel32::CreateEventA_pos,
                     "kernel32/sync/event",
                     "CreateEventA",
@@ -301,8 +302,8 @@ mod wrappers {
             let dwFlagsAndAttributes =
                 <Result<FlagsAndAttributes, u32>>::from_stack(mem, stack_args + 20u32);
             let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::CreateFileA_pos,
                     "kernel32/file/file",
                     "CreateFileA",
@@ -346,8 +347,8 @@ mod wrappers {
             let dwMaximumSizeHigh = <u32>::from_stack(mem, stack_args + 12u32);
             let dwMaximumSizeLow = <u32>::from_stack(mem, stack_args + 16u32);
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/mapping") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/mapping") {
+                trace::Record::new(
                     winapi::kernel32::CreateFileMappingA_pos,
                     "kernel32/file/mapping",
                     "CreateFileMappingA",
@@ -391,8 +392,8 @@ mod wrappers {
             let dwFlagsAndAttributes =
                 <Result<FlagsAndAttributes, u32>>::from_stack(mem, stack_args + 20u32);
             let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::CreateFileW_pos,
                     "kernel32/file/file",
                     "CreateFileW",
@@ -433,8 +434,8 @@ mod wrappers {
                 <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 0u32);
             let bInitialOwner = <bool>::from_stack(mem, stack_args + 4u32);
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/mutex") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/mutex") {
+                trace::Record::new(
                     winapi::kernel32::CreateMutexA_pos,
                     "kernel32/sync/mutex",
                     "CreateMutexA",
@@ -464,8 +465,8 @@ mod wrappers {
             let lpPipeAttributes =
                 <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 8u32);
             let nSize = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/pipe") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/pipe") {
+                trace::Record::new(
                     winapi::kernel32::CreatePipe_pos,
                     "kernel32/pipe",
                     "CreatePipe",
@@ -504,8 +505,8 @@ mod wrappers {
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 32u32);
             let lpProcessInformation =
                 <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/process") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/process") {
+                trace::Record::new(
                     winapi::kernel32::CreateProcessA_pos,
                     "kernel32/process",
                     "CreateProcessA",
@@ -561,8 +562,8 @@ mod wrappers {
             let lpStartupInfo = <Option<&mut STARTUPINFOW>>::from_stack(mem, stack_args + 32u32);
             let lpProcessInformation =
                 <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/process") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/process") {
+                trace::Record::new(
                     winapi::kernel32::CreateProcessW_pos,
                     "kernel32/process",
                     "CreateProcessW",
@@ -614,8 +615,8 @@ mod wrappers {
             let lpParameter = <u32>::from_stack(mem, stack_args + 12u32);
             let dwCreationFlags = <u32>::from_stack(mem, stack_args + 16u32);
             let lpThreadId = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::CreateThread_pos,
                     "kernel32/thread",
                     "CreateThread",
@@ -655,8 +656,8 @@ mod wrappers {
     pub unsafe fn DebugBreak(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::DebugBreak_pos,
                     "kernel32/misc",
                     "DebugBreak",
@@ -677,8 +678,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::DecodePointer_pos,
                     "kernel32/misc",
                     "DecodePointer",
@@ -699,9 +700,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::DeleteCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "DeleteCriticalSection",
@@ -722,8 +722,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::DeleteFileA_pos,
                     "kernel32/file/fs",
                     "DeleteFileA",
@@ -745,8 +745,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::DeleteFileW_pos,
                     "kernel32/file/fs",
                     "DeleteFileW",
@@ -767,8 +767,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::DisableThreadLibraryCalls_pos,
                     "kernel32/dll",
                     "DisableThreadLibraryCalls",
@@ -795,8 +795,8 @@ mod wrappers {
             let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 16u32);
             let bInheritHandle = <bool>::from_stack(mem, stack_args + 20u32);
             let dwOptions = <u32>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::DuplicateHandle_pos,
                     "kernel32/misc",
                     "DuplicateHandle",
@@ -834,8 +834,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::EncodePointer_pos,
                     "kernel32/misc",
                     "EncodePointer",
@@ -856,9 +856,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::EnterCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "EnterCriticalSection",
@@ -880,8 +879,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpLocaleEnumProc = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::EnumSystemLocalesA_pos,
                     "kernel32/nls",
                     "EnumSystemLocalesA",
@@ -905,8 +904,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let uExitCode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::ExitProcess_pos,
                     "kernel32/misc",
                     "ExitProcess",
@@ -928,8 +927,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let dwExitCode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::ExitThread_pos,
                     "kernel32/thread",
                     "ExitThread",
@@ -953,8 +952,8 @@ mod wrappers {
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
             let lpFatDate = <Option<&mut u16>>::from_stack(mem, stack_args + 4u32);
             let lpFatTime = <Option<&mut u16>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::FileTimeToDosDateTime_pos,
                     "kernel32/time",
                     "FileTimeToDosDateTime",
@@ -981,8 +980,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
             let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::FileTimeToLocalFileTime_pos,
                     "kernel32/time",
                     "FileTimeToLocalFileTime",
@@ -1008,8 +1007,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::FileTimeToSystemTime_pos,
                     "kernel32/time",
                     "FileTimeToSystemTime",
@@ -1034,8 +1033,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/find") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/find") {
+                trace::Record::new(
                     winapi::kernel32::FindClose_pos,
                     "kernel32/file/find",
                     "FindClose",
@@ -1059,8 +1058,8 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpFindFileData =
                 <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/find") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/find") {
+                trace::Record::new(
                     winapi::kernel32::FindFirstFileA_pos,
                     "kernel32/file/find",
                     "FindFirstFileA",
@@ -1090,8 +1089,8 @@ mod wrappers {
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpFindFileData =
                 <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/find") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/find") {
+                trace::Record::new(
                     winapi::kernel32::FindFirstFileW_pos,
                     "kernel32/file/find",
                     "FindFirstFileW",
@@ -1117,8 +1116,8 @@ mod wrappers {
             let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
             let lpFindFileData =
                 <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/find") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/find") {
+                trace::Record::new(
                     winapi::kernel32::FindNextFileA_pos,
                     "kernel32/file/find",
                     "FindNextFileA",
@@ -1148,8 +1147,8 @@ mod wrappers {
             let hFindFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lpFindFileData =
                 <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/find") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/find") {
+                trace::Record::new(
                     winapi::kernel32::FindNextFileW_pos,
                     "kernel32/file/find",
                     "FindNextFileW",
@@ -1175,8 +1174,8 @@ mod wrappers {
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let lpName = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
             let lpType = <ResourceKey<&str>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
                     winapi::kernel32::FindResourceA_pos,
                     "kernel32/resource",
                     "FindResourceA",
@@ -1208,8 +1207,8 @@ mod wrappers {
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let lpName = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 4u32);
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
                     winapi::kernel32::FindResourceW_pos,
                     "kernel32/resource",
                     "FindResourceW",
@@ -1239,8 +1238,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::FlushFileBuffers_pos,
                     "kernel32/file/file",
                     "FlushFileBuffers",
@@ -1268,8 +1267,8 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 16u32);
             let nSize = <u32>::from_stack(mem, stack_args + 20u32);
             let args = <u32>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::FormatMessageA_pos,
                     "kernel32/misc",
                     "FormatMessageA",
@@ -1313,8 +1312,8 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 16u32);
             let nSize = <u32>::from_stack(mem, stack_args + 20u32);
             let args = <u32>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::FormatMessageW_pos,
                     "kernel32/misc",
                     "FormatMessageW",
@@ -1352,8 +1351,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::FreeEnvironmentStringsA_pos,
                     "kernel32/env",
                     "FreeEnvironmentStringsA",
@@ -1377,8 +1376,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::FreeEnvironmentStringsW_pos,
                     "kernel32/env",
                     "FreeEnvironmentStringsW",
@@ -1402,8 +1401,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::FreeLibrary_pos,
                     "kernel32/dll",
                     "FreeLibrary",
@@ -1423,14 +1422,9 @@ mod wrappers {
     pub unsafe fn GetACP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
-                    winapi::kernel32::GetACP_pos,
-                    "kernel32/nls",
-                    "GetACP",
-                    &[],
-                )
-                .enter()
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(winapi::kernel32::GetACP_pos, "kernel32/nls", "GetACP", &[])
+                    .enter()
             } else {
                 None
             };
@@ -1446,8 +1440,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let _CodePage = <u32>::from_stack(mem, stack_args + 0u32);
             let _lpCPInfo = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetCPInfo_pos,
                     "kernel32/nls",
                     "GetCPInfo",
@@ -1467,8 +1461,8 @@ mod wrappers {
     pub unsafe fn GetCommandLineA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/command_line") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/command_line") {
+                trace::Record::new(
                     winapi::kernel32::GetCommandLineA_pos,
                     "kernel32/command_line",
                     "GetCommandLineA",
@@ -1488,8 +1482,8 @@ mod wrappers {
     pub unsafe fn GetCommandLineW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/command_line") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/command_line") {
+                trace::Record::new(
                     winapi::kernel32::GetCommandLineW_pos,
                     "kernel32/command_line",
                     "GetCommandLineW",
@@ -1511,8 +1505,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hConsoleHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lpMode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::GetConsoleMode_pos,
                     "kernel32/console",
                     "GetConsoleMode",
@@ -1532,8 +1526,8 @@ mod wrappers {
     pub unsafe fn GetConsoleOutputCP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetConsoleOutputCP_pos,
                     "kernel32/nls",
                     "GetConsoleOutputCP",
@@ -1556,8 +1550,8 @@ mod wrappers {
             let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let lpConsoleScreenBufferInfo =
                 <Option<&mut CONSOLE_SCREEN_BUFFER_INFO>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::GetConsoleScreenBufferInfo_pos,
                     "kernel32/console",
                     "GetConsoleScreenBufferInfo",
@@ -1586,8 +1580,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentDirectoryA_pos,
                     "kernel32/file/fs",
                     "GetCurrentDirectoryA",
@@ -1613,8 +1607,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentDirectoryW_pos,
                     "kernel32/file/fs",
                     "GetCurrentDirectoryW",
@@ -1638,8 +1632,8 @@ mod wrappers {
     pub unsafe fn GetCurrentProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/process") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/process") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentProcess_pos,
                     "kernel32/process",
                     "GetCurrentProcess",
@@ -1659,8 +1653,8 @@ mod wrappers {
     pub unsafe fn GetCurrentProcessId(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentProcessId_pos,
                     "kernel32/misc",
                     "GetCurrentProcessId",
@@ -1680,8 +1674,8 @@ mod wrappers {
     pub unsafe fn GetCurrentThread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentThread_pos,
                     "kernel32/thread",
                     "GetCurrentThread",
@@ -1701,8 +1695,8 @@ mod wrappers {
     pub unsafe fn GetCurrentThreadId(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::GetCurrentThreadId_pos,
                     "kernel32/thread",
                     "GetCurrentThreadId",
@@ -1728,8 +1722,8 @@ mod wrappers {
             let lpBytesPerSector = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let lpNumberOfFreeClusters = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpTotalNumberOfClusters = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetDiskFreeSpaceA_pos,
                     "kernel32/file/misc",
                     "GetDiskFreeSpaceA",
@@ -1763,8 +1757,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetDriveTypeA_pos,
                     "kernel32/file/misc",
                     "GetDriveTypeA",
@@ -1785,8 +1779,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpRootPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetDriveTypeW_pos,
                     "kernel32/file/misc",
                     "GetDriveTypeW",
@@ -1806,8 +1800,8 @@ mod wrappers {
     pub unsafe fn GetEnvironmentStrings(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::GetEnvironmentStrings_pos,
                     "kernel32/env",
                     "GetEnvironmentStrings",
@@ -1828,8 +1822,8 @@ mod wrappers {
     pub unsafe fn GetEnvironmentStringsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::GetEnvironmentStringsW_pos,
                     "kernel32/env",
                     "GetEnvironmentStringsW",
@@ -1852,8 +1846,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let buf = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::GetEnvironmentVariableA_pos,
                     "kernel32/env",
                     "GetEnvironmentVariableA",
@@ -1875,8 +1869,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let name = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let buf = <ArrayOut<u16>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::GetEnvironmentVariableW_pos,
                     "kernel32/env",
                     "GetEnvironmentVariableW",
@@ -1898,8 +1892,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hProcess = <HPROCESS>::from_stack(mem, stack_args + 0u32);
             let lpExitCode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/process") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/process") {
+                trace::Record::new(
                     winapi::kernel32::GetExitCodeProcess_pos,
                     "kernel32/process",
                     "GetExitCodeProcess",
@@ -1920,8 +1914,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileAttributesA_pos,
                     "kernel32/file/metadata",
                     "GetFileAttributesA",
@@ -1945,8 +1939,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileAttributesW_pos,
                     "kernel32/file/metadata",
                     "GetFileAttributesW",
@@ -1969,8 +1963,8 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lpFileInformation =
                 <Option<&mut BY_HANDLE_FILE_INFORMATION>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileInformationByHandle_pos,
                     "kernel32/file/metadata",
                     "GetFileInformationByHandle",
@@ -1996,8 +1990,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lpFileSizeHigh = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileSize_pos,
                     "kernel32/file/metadata",
                     "GetFileSize",
@@ -2025,8 +2019,8 @@ mod wrappers {
             let lpCreationTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
             let lpLastAccessTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 8u32);
             let lpLastWriteTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileTime_pos,
                     "kernel32/file/metadata",
                     "GetFileTime",
@@ -2058,8 +2052,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::GetFileType_pos,
                     "kernel32/file/metadata",
                     "GetFileType",
@@ -2084,8 +2078,8 @@ mod wrappers {
             let nBufferLength = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let lpFilePart = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/path") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/path") {
+                trace::Record::new(
                     winapi::kernel32::GetFullPathNameA_pos,
                     "kernel32/file/path",
                     "GetFullPathNameA",
@@ -2120,8 +2114,8 @@ mod wrappers {
             let nBufferLength = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let lpFilePart = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/path") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/path") {
+                trace::Record::new(
                     winapi::kernel32::GetFullPathNameW_pos,
                     "kernel32/file/path",
                     "GetFullPathNameW",
@@ -2152,8 +2146,8 @@ mod wrappers {
     pub unsafe fn GetLastError(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetLastError_pos,
                     "kernel32/misc",
                     "GetLastError",
@@ -2174,8 +2168,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::GetLocalTime_pos,
                     "kernel32/time",
                     "GetLocalTime",
@@ -2200,8 +2194,8 @@ mod wrappers {
             let LCType = <u32>::from_stack(mem, stack_args + 4u32);
             let lpLCData = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let cchData = <i32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetLocaleInfoA_pos,
                     "kernel32/nls",
                     "GetLocaleInfoA",
@@ -2230,8 +2224,8 @@ mod wrappers {
             let LCType = <u32>::from_stack(mem, stack_args + 4u32);
             let lpLCData = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
             let cchData = <i32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetLocaleInfoW_pos,
                     "kernel32/nls",
                     "GetLocaleInfoW",
@@ -2256,8 +2250,8 @@ mod wrappers {
     pub unsafe fn GetLogicalDrives(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetLogicalDrives_pos,
                     "kernel32/file/misc",
                     "GetLogicalDrives",
@@ -2279,8 +2273,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let filename = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetModuleFileNameA_pos,
                     "kernel32/dll",
                     "GetModuleFileNameA",
@@ -2307,8 +2301,8 @@ mod wrappers {
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let lpFilename = <u32>::from_stack(mem, stack_args + 4u32);
             let nSize = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetModuleFileNameW_pos,
                     "kernel32/dll",
                     "GetModuleFileNameW",
@@ -2338,8 +2332,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpModuleName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetModuleHandleA_pos,
                     "kernel32/dll",
                     "GetModuleHandleA",
@@ -2365,8 +2359,8 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
             let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let hModule = <Option<&mut HMODULE>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetModuleHandleExW_pos,
                     "kernel32/dll",
                     "GetModuleHandleExW",
@@ -2396,8 +2390,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetModuleHandleW_pos,
                     "kernel32/dll",
                     "GetModuleHandleW",
@@ -2425,8 +2419,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let lpNumberOfEvents = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::GetNumberOfConsoleInputEvents_pos,
                     "kernel32/console",
                     "GetNumberOfConsoleInputEvents",
@@ -2453,8 +2447,8 @@ mod wrappers {
     pub unsafe fn GetOEMCP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetOEMCP_pos,
                     "kernel32/nls",
                     "GetOEMCP",
@@ -2478,8 +2472,8 @@ mod wrappers {
             let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let nDefault = <u32>::from_stack(mem, stack_args + 8u32);
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::GetPrivateProfileIntW_pos,
                     "kernel32/ini",
                     "GetPrivateProfileIntW",
@@ -2512,8 +2506,8 @@ mod wrappers {
             let lpReturnedString = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let nSize = <u32>::from_stack(mem, stack_args + 16u32);
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::GetPrivateProfileStringA_pos,
                     "kernel32/ini",
                     "GetPrivateProfileStringA",
@@ -2553,8 +2547,8 @@ mod wrappers {
             let lpDefault = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
             let lpReturnedString = <ArrayOut<u16>>::from_stack(mem, stack_args + 12u32);
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::GetPrivateProfileStringW_pos,
                     "kernel32/ini",
                     "GetPrivateProfileStringW",
@@ -2589,8 +2583,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let lpProcName = <GetProcAddressArg>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetProcAddress_pos,
                     "kernel32/dll",
                     "GetProcAddress",
@@ -2614,8 +2608,8 @@ mod wrappers {
     pub unsafe fn GetProcessHeap(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GetProcessHeap_pos,
                     "kernel32/memory",
                     "GetProcessHeap",
@@ -2638,8 +2632,8 @@ mod wrappers {
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let nDefault = <i32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::GetProfileIntW_pos,
                     "kernel32/ini",
                     "GetProfileIntW",
@@ -2667,8 +2661,8 @@ mod wrappers {
             let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let lpDefault = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
             let lpReturnedString = <ArrayOut<u16>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::GetProfileStringW_pos,
                     "kernel32/ini",
                     "GetProfileStringW",
@@ -2700,8 +2694,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetStartupInfoA_pos,
                     "kernel32/dll",
                     "GetStartupInfoA",
@@ -2722,8 +2716,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::GetStartupInfoW_pos,
                     "kernel32/dll",
                     "GetStartupInfoW",
@@ -2747,8 +2741,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/std") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/std") {
+                trace::Record::new(
                     winapi::kernel32::GetStdHandle_pos,
                     "kernel32/file/std",
                     "GetStdHandle",
@@ -2773,8 +2767,8 @@ mod wrappers {
             let lpSrcStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cchSrc = <i32>::from_stack(mem, stack_args + 12u32);
             let lpCharType = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetStringTypeA_pos,
                     "kernel32/nls",
                     "GetStringTypeA",
@@ -2806,8 +2800,8 @@ mod wrappers {
             let lpSrcStr = <u32>::from_stack(mem, stack_args + 4u32);
             let cchSrc = <i32>::from_stack(mem, stack_args + 8u32);
             let lpCharType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetStringTypeW_pos,
                     "kernel32/nls",
                     "GetStringTypeW",
@@ -2835,8 +2829,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
             let uSize = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetSystemDirectoryA_pos,
                     "kernel32/misc",
                     "GetSystemDirectoryA",
@@ -2861,8 +2855,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::GetSystemTime_pos,
                     "kernel32/time",
                     "GetSystemTime",
@@ -2887,8 +2881,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpSystemTimeAsFileTime =
                 <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::GetSystemTimeAsFileTime_pos,
                     "kernel32/time",
                     "GetSystemTimeAsFileTime",
@@ -2911,8 +2905,8 @@ mod wrappers {
     pub unsafe fn GetThreadLocale(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetThreadLocale_pos,
                     "kernel32/nls",
                     "GetThreadLocale",
@@ -2933,8 +2927,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::GetThreadPriority_pos,
                     "kernel32/thread",
                     "GetThreadPriority",
@@ -2954,8 +2948,8 @@ mod wrappers {
     pub unsafe fn GetTickCount(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::GetTickCount_pos,
                     "kernel32/time",
                     "GetTickCount",
@@ -2977,8 +2971,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpTimeZoneInformation =
                 <Option<&mut TIME_ZONE_INFORMATION>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::GetTimeZoneInformation_pos,
                     "kernel32/time",
                     "GetTimeZoneInformation",
@@ -2998,8 +2992,8 @@ mod wrappers {
     pub unsafe fn GetUserDefaultLCID(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::GetUserDefaultLCID_pos,
                     "kernel32/nls",
                     "GetUserDefaultLCID",
@@ -3019,8 +3013,8 @@ mod wrappers {
     pub unsafe fn GetUserDefaultUILanguage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetUserDefaultUILanguage_pos,
                     "kernel32/misc",
                     "GetUserDefaultUILanguage",
@@ -3040,8 +3034,8 @@ mod wrappers {
     pub unsafe fn GetVersion(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetVersion_pos,
                     "kernel32/misc",
                     "GetVersion",
@@ -3063,8 +3057,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpVersionInformation =
                 <Option<&mut OSVERSIONINFO>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetVersionExA_pos,
                     "kernel32/misc",
                     "GetVersionExA",
@@ -3086,8 +3080,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
             let uSize = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GetWindowsDirectoryA_pos,
                     "kernel32/misc",
                     "GetWindowsDirectoryA",
@@ -3112,8 +3106,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::GlobalAddAtomA_pos,
                     "kernel32/misc",
                     "GlobalAddAtomA",
@@ -3135,8 +3129,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
             let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalAlloc_pos,
                     "kernel32/memory",
                     "GlobalAlloc",
@@ -3161,8 +3155,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalFlags_pos,
                     "kernel32/memory",
                     "GlobalFlags",
@@ -3183,8 +3177,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalFree_pos,
                     "kernel32/memory",
                     "GlobalFree",
@@ -3205,8 +3199,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let pMem = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalHandle_pos,
                     "kernel32/memory",
                     "GlobalHandle",
@@ -3227,8 +3221,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalLock_pos,
                     "kernel32/memory",
                     "GlobalLock",
@@ -3251,8 +3245,8 @@ mod wrappers {
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
             let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
             let uFlags = <GMEM>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalReAlloc_pos,
                     "kernel32/memory",
                     "GlobalReAlloc",
@@ -3278,8 +3272,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::GlobalUnlock_pos,
                     "kernel32/memory",
                     "GlobalUnlock",
@@ -3302,8 +3296,8 @@ mod wrappers {
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <Result<HeapAllocFlags, u32>>::from_stack(mem, stack_args + 4u32);
             let dwBytes = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapAlloc_pos,
                     "kernel32/memory",
                     "HeapAlloc",
@@ -3334,8 +3328,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapCompact_pos,
                     "kernel32/memory",
                     "HeapCompact",
@@ -3358,8 +3352,8 @@ mod wrappers {
             let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(mem, stack_args + 0u32);
             let dwInitialSize = <u32>::from_stack(mem, stack_args + 4u32);
             let dwMaximumSize = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapCreate_pos,
                     "kernel32/memory",
                     "HeapCreate",
@@ -3389,8 +3383,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapDestroy_pos,
                     "kernel32/memory",
                     "HeapDestroy",
@@ -3413,8 +3407,8 @@ mod wrappers {
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapFree_pos,
                     "kernel32/memory",
                     "HeapFree",
@@ -3443,8 +3437,8 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
             let dwBytes = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapReAlloc_pos,
                     "kernel32/memory",
                     "HeapReAlloc",
@@ -3479,8 +3473,8 @@ mod wrappers {
             let HeapInformationClass = <u32>::from_stack(mem, stack_args + 4u32);
             let HeapInformation = <u32>::from_stack(mem, stack_args + 8u32);
             let HeapInformationLength = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapSetInformation_pos,
                     "kernel32/memory",
                     "HeapSetInformation",
@@ -3514,8 +3508,8 @@ mod wrappers {
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapSize_pos,
                     "kernel32/memory",
                     "HeapSize",
@@ -3543,8 +3537,8 @@ mod wrappers {
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapValidate_pos,
                     "kernel32/memory",
                     "HeapValidate",
@@ -3566,8 +3560,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let lpEntry = <Option<&mut PROCESS_HEAP_ENTRY>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::HeapWalk_pos,
                     "kernel32/memory",
                     "HeapWalk",
@@ -3591,8 +3585,8 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let fPending = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/once") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/once") {
+                trace::Record::new(
                     winapi::kernel32::InitOnceBeginInitialize_pos,
                     "kernel32/sync/once",
                     "InitOnceBeginInitialize",
@@ -3622,8 +3616,8 @@ mod wrappers {
             let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let lpContext = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/once") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/once") {
+                trace::Record::new(
                     winapi::kernel32::InitOnceComplete_pos,
                     "kernel32/sync/once",
                     "InitOnceComplete",
@@ -3648,9 +3642,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::InitializeCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSection",
@@ -3675,9 +3668,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::InitializeCriticalSectionAndSpinCount_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSectionAndSpinCount",
@@ -3707,9 +3699,8 @@ mod wrappers {
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
             let flags = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::InitializeCriticalSectionEx_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSectionEx",
@@ -3739,8 +3730,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::InitializeSListHead_pos,
                     "kernel32/misc",
                     "InitializeSListHead",
@@ -3761,8 +3752,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/interlocked") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/interlocked") {
+                trace::Record::new(
                     winapi::kernel32::InterlockedDecrement_pos,
                     "kernel32/sync/interlocked",
                     "InterlockedDecrement",
@@ -3783,8 +3774,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/interlocked") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/interlocked") {
+                trace::Record::new(
                     winapi::kernel32::InterlockedIncrement_pos,
                     "kernel32/sync/interlocked",
                     "InterlockedIncrement",
@@ -3805,8 +3796,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpfn = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::IsBadCodePtr_pos,
                     "kernel32/memory",
                     "IsBadCodePtr",
@@ -3828,8 +3819,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lp = <u32>::from_stack(mem, stack_args + 0u32);
             let ucb = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::IsBadReadPtr_pos,
                     "kernel32/memory",
                     "IsBadReadPtr",
@@ -3851,8 +3842,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lp = <u32>::from_stack(mem, stack_args + 0u32);
             let ucb = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::IsBadWritePtr_pos,
                     "kernel32/memory",
                     "IsBadWritePtr",
@@ -3873,8 +3864,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::IsDBCSLeadByte_pos,
                     "kernel32/nls",
                     "IsDBCSLeadByte",
@@ -3896,8 +3887,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
             let _CodePage = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::IsDBCSLeadByteEx_pos,
                     "kernel32/nls",
                     "IsDBCSLeadByteEx",
@@ -3917,8 +3908,8 @@ mod wrappers {
     pub unsafe fn IsDebuggerPresent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::IsDebuggerPresent_pos,
                     "kernel32/misc",
                     "IsDebuggerPresent",
@@ -3939,8 +3930,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let feature = <Result<ProcessorFeature, u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::IsProcessorFeaturePresent_pos,
                     "kernel32/misc",
                     "IsProcessorFeaturePresent",
@@ -3961,8 +3952,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let CodePage = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::IsValidCodePage_pos,
                     "kernel32/nls",
                     "IsValidCodePage",
@@ -3984,8 +3975,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::IsValidLocale_pos,
                     "kernel32/nls",
                     "IsValidLocale",
@@ -4010,8 +4001,8 @@ mod wrappers {
             let lpSrcStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cchSrc = <i32>::from_stack(mem, stack_args + 12u32);
             let lpDestStr = <ArrayOut<u8>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::LCMapStringA_pos,
                     "kernel32/nls",
                     "LCMapStringA",
@@ -4044,8 +4035,8 @@ mod wrappers {
             let lpSrcStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cchSrc = <i32>::from_stack(mem, stack_args + 12u32);
             let lpDestStr = <ArrayOut<u16>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::LCMapStringW_pos,
                     "kernel32/nls",
                     "LCMapStringW",
@@ -4074,9 +4065,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section")
-            {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
+                trace::Record::new(
                     winapi::kernel32::LeaveCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "LeaveCriticalSection",
@@ -4100,8 +4090,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::LoadLibraryA_pos,
                     "kernel32/dll",
                     "LoadLibraryA",
@@ -4131,8 +4121,8 @@ mod wrappers {
             let lpLibFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let hFile = <HFILE>::from_stack(mem, stack_args + 4u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::LoadLibraryExW_pos,
                     "kernel32/dll",
                     "LoadLibraryExW",
@@ -4165,8 +4155,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/dll") {
+                trace::Record::new(
                     winapi::kernel32::LoadLibraryW_pos,
                     "kernel32/dll",
                     "LoadLibraryW",
@@ -4192,8 +4182,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
                     winapi::kernel32::LoadResource_pos,
                     "kernel32/resource",
                     "LoadResource",
@@ -4219,8 +4209,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
             let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::LocalAlloc_pos,
                     "kernel32/memory",
                     "LocalAlloc",
@@ -4246,8 +4236,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
             let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::LocalFileTimeToFileTime_pos,
                     "kernel32/time",
                     "LocalFileTimeToFileTime",
@@ -4272,8 +4262,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::LocalFree_pos,
                     "kernel32/memory",
                     "LocalFree",
@@ -4298,8 +4288,8 @@ mod wrappers {
             let dwFileOffsetHigh = <u32>::from_stack(mem, stack_args + 8u32);
             let nNumberOfBytesToLockLow = <u32>::from_stack(mem, stack_args + 12u32);
             let nNumberOfBytesToLockHigh = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::LockFile_pos,
                     "kernel32/file/file",
                     "LockFile",
@@ -4333,8 +4323,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hResData = <HRSRC>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
                     winapi::kernel32::LockResource_pos,
                     "kernel32/resource",
                     "LockResource",
@@ -4357,8 +4347,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpExistingFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpNewFileName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::MoveFileA_pos,
                     "kernel32/file/fs",
                     "MoveFileA",
@@ -4383,8 +4373,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpExistingFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpNewFileName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::MoveFileW_pos,
                     "kernel32/file/fs",
                     "MoveFileW",
@@ -4410,8 +4400,8 @@ mod wrappers {
             let nNumber = <i32>::from_stack(mem, stack_args + 0u32);
             let nNumerator = <i32>::from_stack(mem, stack_args + 4u32);
             let nDenominator = <i32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::MulDiv_pos,
                     "kernel32/misc",
                     "MulDiv",
@@ -4440,8 +4430,8 @@ mod wrappers {
             let lpMultiByteStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cbMultiByte = <i32>::from_stack(mem, stack_args + 12u32);
             let lpWideCharStr = <Option<ArrayOut<u16>>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::MultiByteToWideChar_pos,
                     "kernel32/nls",
                     "MultiByteToWideChar",
@@ -4477,8 +4467,8 @@ mod wrappers {
             let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 0u32);
             let bInheritHandle = <bool>::from_stack(mem, stack_args + 4u32);
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/mutex") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/mutex") {
+                trace::Record::new(
                     winapi::kernel32::OpenMutexA_pos,
                     "kernel32/sync/mutex",
                     "OpenMutexA",
@@ -4503,8 +4493,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let msg = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::OutputDebugStringA_pos,
                     "kernel32/misc",
                     "OutputDebugStringA",
@@ -4528,8 +4518,8 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
             let nLength = <u32>::from_stack(mem, stack_args + 8u32);
             let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::PeekConsoleInputA_pos,
                     "kernel32/console",
                     "PeekConsoleInputA",
@@ -4566,8 +4556,8 @@ mod wrappers {
             let lpBytesRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpTotalBytesAvail = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
             let lpBytesLeftThisMessage = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/pipe") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/pipe") {
+                trace::Record::new(
                     winapi::kernel32::PeekNamedPipe_pos,
                     "kernel32/pipe",
                     "PeekNamedPipe",
@@ -4603,8 +4593,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/event") {
+                trace::Record::new(
                     winapi::kernel32::PulseEvent_pos,
                     "kernel32/sync/event",
                     "PulseEvent",
@@ -4626,8 +4616,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpPerformanceCount =
                 <Option<&mut LARGE_INTEGER>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::QueryPerformanceCounter_pos,
                     "kernel32/time",
                     "QueryPerformanceCounter",
@@ -4651,8 +4641,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpFrequency = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::QueryPerformanceFrequency_pos,
                     "kernel32/time",
                     "QueryPerformanceFrequency",
@@ -4679,8 +4669,8 @@ mod wrappers {
             let dwExceptionFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let nNumberOfArguments = <u32>::from_stack(mem, stack_args + 8u32);
             let lpArguments = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::RaiseException_pos,
                     "kernel32/misc",
                     "RaiseException",
@@ -4717,8 +4707,8 @@ mod wrappers {
             let lpNumberOfCharsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let pInputControl =
                 <Option<&mut CONSOLE_READCONSOLE_CONTROL>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::ReadConsoleA_pos,
                     "kernel32/console",
                     "ReadConsoleA",
@@ -4755,8 +4745,8 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
             let nLength = <u32>::from_stack(mem, stack_args + 8u32);
             let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::ReadConsoleInputA_pos,
                     "kernel32/console",
                     "ReadConsoleInputA",
@@ -4791,8 +4781,8 @@ mod wrappers {
             let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
             let lpNumberOfBytesRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpOverlapped = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::ReadFile_pos,
                     "kernel32/file/file",
                     "ReadFile",
@@ -4824,8 +4814,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
+                trace::Record::new(
                     winapi::kernel32::ReleaseSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "ReleaseSRWLockExclusive",
@@ -4846,8 +4836,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
+                trace::Record::new(
                     winapi::kernel32::ReleaseSRWLockShared_pos,
                     "kernel32/sync/srw_lock",
                     "ReleaseSRWLockShared",
@@ -4868,8 +4858,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::RemoveDirectoryA_pos,
                     "kernel32/file/fs",
                     "RemoveDirectoryA",
@@ -4893,8 +4883,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::RemoveDirectoryW_pos,
                     "kernel32/file/fs",
                     "RemoveDirectoryW",
@@ -4915,8 +4905,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/event") {
+                trace::Record::new(
                     winapi::kernel32::ResetEvent_pos,
                     "kernel32/sync/event",
                     "ResetEvent",
@@ -4937,8 +4927,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::ResumeThread_pos,
                     "kernel32/thread",
                     "ResumeThread",
@@ -4962,8 +4952,8 @@ mod wrappers {
             let TargetIp = <u32>::from_stack(mem, stack_args + 4u32);
             let ExceptionRecord = <u32>::from_stack(mem, stack_args + 8u32);
             let ReturnValue = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::RtlUnwind_pos,
                     "kernel32/misc",
                     "RtlUnwind",
@@ -4996,8 +4986,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let _handlerRoutine = <DWORD>::from_stack(mem, stack_args + 0u32);
             let _add = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::SetConsoleCtrlHandler_pos,
                     "kernel32/console",
                     "SetConsoleCtrlHandler",
@@ -5019,8 +5009,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hConsoleHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let dwMode = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::SetConsoleMode_pos,
                     "kernel32/console",
                     "SetConsoleMode",
@@ -5041,8 +5031,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::SetCurrentDirectoryA_pos,
                     "kernel32/file/fs",
                     "SetCurrentDirectoryA",
@@ -5063,8 +5053,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/fs") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/fs") {
+                trace::Record::new(
                     winapi::kernel32::SetCurrentDirectoryW_pos,
                     "kernel32/file/fs",
                     "SetCurrentDirectoryW",
@@ -5085,8 +5075,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::SetEndOfFile_pos,
                     "kernel32/file/file",
                     "SetEndOfFile",
@@ -5109,8 +5099,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let value = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::SetEnvironmentVariableA_pos,
                     "kernel32/env",
                     "SetEnvironmentVariableA",
@@ -5132,8 +5122,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpValue = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/env") {
+                trace::Record::new(
                     winapi::kernel32::SetEnvironmentVariableW_pos,
                     "kernel32/env",
                     "SetEnvironmentVariableW",
@@ -5154,8 +5144,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let uMode = <SEM>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::SetErrorMode_pos,
                     "kernel32/misc",
                     "SetErrorMode",
@@ -5176,8 +5166,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/event") {
+                trace::Record::new(
                     winapi::kernel32::SetEvent_pos,
                     "kernel32/sync/event",
                     "SetEvent",
@@ -5199,8 +5189,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::SetFileAttributesA_pos,
                     "kernel32/file/metadata",
                     "SetFileAttributesA",
@@ -5229,8 +5219,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::SetFileAttributesW_pos,
                     "kernel32/file/metadata",
                     "SetFileAttributesW",
@@ -5257,8 +5247,8 @@ mod wrappers {
             let lDistanceToMove = <i32>::from_stack(mem, stack_args + 4u32);
             let lpDistanceToMoveHigh = <Option<&mut i32>>::from_stack(mem, stack_args + 8u32);
             let dwMoveMethod = <Result<FILE, u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::SetFilePointer_pos,
                     "kernel32/file/metadata",
                     "SetFilePointer",
@@ -5293,8 +5283,8 @@ mod wrappers {
             let lpCreationTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 4u32);
             let lpLastAccessTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 8u32);
             let lpLastWriteTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/metadata") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/metadata") {
+                trace::Record::new(
                     winapi::kernel32::SetFileTime_pos,
                     "kernel32/file/metadata",
                     "SetFileTime",
@@ -5326,8 +5316,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let uNumber = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::SetHandleCount_pos,
                     "kernel32/misc",
                     "SetHandleCount",
@@ -5348,8 +5338,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let dwErrCode = <Result<ERROR, u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::SetLastError_pos,
                     "kernel32/misc",
                     "SetLastError",
@@ -5371,8 +5361,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::SetLocalTime_pos,
                     "kernel32/time",
                     "SetLocalTime",
@@ -5394,8 +5384,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hProcess = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let dwPriorityClass = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::SetPriorityClass_pos,
                     "kernel32/misc",
                     "SetPriorityClass",
@@ -5420,8 +5410,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
             let hHandle = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/std") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/std") {
+                trace::Record::new(
                     winapi::kernel32::SetStdHandle_pos,
                     "kernel32/file/std",
                     "SetStdHandle",
@@ -5443,8 +5433,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
             let lpThreadDescription = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::SetThreadDescription_pos,
                     "kernel32/thread",
                     "SetThreadDescription",
@@ -5469,8 +5459,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
             let nPriority = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::SetThreadPriority_pos,
                     "kernel32/thread",
                     "SetThreadPriority",
@@ -5491,8 +5481,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let StackSizeInBytes = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::SetThreadStackGuarantee_pos,
                     "kernel32/thread",
                     "SetThreadStackGuarantee",
@@ -5513,8 +5503,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::SetUnhandledExceptionFilter_pos,
                     "kernel32/misc",
                     "SetUnhandledExceptionFilter",
@@ -5537,8 +5527,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
                     winapi::kernel32::SizeofResource_pos,
                     "kernel32/resource",
                     "SizeofResource",
@@ -5566,8 +5556,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::Sleep_pos,
                     "kernel32/time",
                     "Sleep",
@@ -5596,8 +5586,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
             let bAlertable = <bool>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::SleepEx_pos,
                     "kernel32/time",
                     "SleepEx",
@@ -5626,8 +5616,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
             let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/time") {
+                trace::Record::new(
                     winapi::kernel32::SystemTimeToFileTime_pos,
                     "kernel32/time",
                     "SystemTimeToFileTime",
@@ -5653,8 +5643,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hProcess = <u32>::from_stack(mem, stack_args + 0u32);
             let uExitCode = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::TerminateProcess_pos,
                     "kernel32/misc",
                     "TerminateProcess",
@@ -5676,8 +5666,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
             let dwExitCode = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::TerminateThread_pos,
                     "kernel32/thread",
                     "TerminateThread",
@@ -5697,8 +5687,8 @@ mod wrappers {
     pub unsafe fn TlsAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::TlsAlloc_pos,
                     "kernel32/thread",
                     "TlsAlloc",
@@ -5719,8 +5709,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::TlsFree_pos,
                     "kernel32/thread",
                     "TlsFree",
@@ -5742,8 +5732,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::TlsGetValue_pos,
                     "kernel32/thread",
                     "TlsGetValue",
@@ -5766,8 +5756,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
             let lpTlsValue = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/thread") {
+                trace::Record::new(
                     winapi::kernel32::TlsSetValue_pos,
                     "kernel32/thread",
                     "TlsSetValue",
@@ -5792,8 +5782,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
+                trace::Record::new(
                     winapi::kernel32::TryAcquireSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "TryAcquireSRWLockExclusive",
@@ -5814,8 +5804,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let _exceptionInfo = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/misc") {
+                trace::Record::new(
                     winapi::kernel32::UnhandledExceptionFilter_pos,
                     "kernel32/misc",
                     "UnhandledExceptionFilter",
@@ -5840,8 +5830,8 @@ mod wrappers {
             let dwFileOffsetHigh = <u32>::from_stack(mem, stack_args + 8u32);
             let nNumberOfBytesToUnlockLow = <u32>::from_stack(mem, stack_args + 12u32);
             let nNumberOfBytesToUnlockHigh = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::UnlockFile_pos,
                     "kernel32/file/file",
                     "UnlockFile",
@@ -5878,8 +5868,8 @@ mod wrappers {
             let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
             let flAllocationType = <Result<MEM, u32>>::from_stack(mem, stack_args + 8u32);
             let flProtec = <Result<PAGE, u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::VirtualAlloc_pos,
                     "kernel32/memory",
                     "VirtualAlloc",
@@ -5913,8 +5903,8 @@ mod wrappers {
             let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
             let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
             let dwFreeType = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::VirtualFree_pos,
                     "kernel32/memory",
                     "VirtualFree",
@@ -5942,8 +5932,8 @@ mod wrappers {
             let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
             let flNewProtect = <u32>::from_stack(mem, stack_args + 8u32);
             let lpflOldProtect = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::VirtualProtect_pos,
                     "kernel32/memory",
                     "VirtualProtect",
@@ -5978,8 +5968,8 @@ mod wrappers {
             let lpBuffer =
                 <Option<&mut MEMORY_BASIC_INFORMATION>>::from_stack(mem, stack_args + 4u32);
             let dwLength = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
                     winapi::kernel32::VirtualQuery_pos,
                     "kernel32/memory",
                     "VirtualQuery",
@@ -6010,8 +6000,8 @@ mod wrappers {
             let lpHandles = <u32>::from_stack(mem, stack_args + 4u32);
             let bWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/wait") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/wait") {
+                trace::Record::new(
                     winapi::kernel32::WaitForMultipleObjects_pos,
                     "kernel32/sync/wait",
                     "WaitForMultipleObjects",
@@ -6052,8 +6042,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/wait") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/sync/wait") {
+                trace::Record::new(
                     winapi::kernel32::WaitForSingleObject_pos,
                     "kernel32/sync/wait",
                     "WaitForSingleObject",
@@ -6086,8 +6076,8 @@ mod wrappers {
             let cbMultiByte = <i32>::from_stack(mem, stack_args + 20u32);
             let lpDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 24u32);
             let lpUsedDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/nls") {
+                trace::Record::new(
                     winapi::kernel32::WideCharToMultiByte_pos,
                     "kernel32/nls",
                     "WideCharToMultiByte",
@@ -6130,8 +6120,8 @@ mod wrappers {
             let lpBuffer = <Array<u8>>::from_stack(mem, stack_args + 4u32);
             let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpReserved = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::WriteConsoleA_pos,
                     "kernel32/console",
                     "WriteConsoleA",
@@ -6166,8 +6156,8 @@ mod wrappers {
             let lpBuffer = <Array<u16>>::from_stack(mem, stack_args + 4u32);
             let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let _lpReserved = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/console") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/console") {
+                trace::Record::new(
                     winapi::kernel32::WriteConsoleW_pos,
                     "kernel32/console",
                     "WriteConsoleW",
@@ -6202,8 +6192,8 @@ mod wrappers {
             let lpBuffer = <Array<u8>>::from_stack(mem, stack_args + 4u32);
             let lpNumberOfBytesWritten = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpOverlapped = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
                     winapi::kernel32::WriteFile_pos,
                     "kernel32/file/file",
                     "WriteFile",
@@ -6238,8 +6228,8 @@ mod wrappers {
             let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::WritePrivateProfileStringA_pos,
                     "kernel32/ini",
                     "WritePrivateProfileStringA",
@@ -6269,8 +6259,8 @@ mod wrappers {
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
                     winapi::kernel32::WriteProfileStringW_pos,
                     "kernel32/ini",
                     "WriteProfileStringW",
@@ -6295,8 +6285,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file16") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file16") {
+                trace::Record::new(
                     winapi::kernel32::_lclose_pos,
                     "kernel32/file/file16",
                     "_lclose",
@@ -6319,8 +6309,8 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lOffset = <i32>::from_stack(mem, stack_args + 4u32);
             let iOrigin = <i32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file16") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file16") {
+                trace::Record::new(
                     winapi::kernel32::_llseek_pos,
                     "kernel32/file/file16",
                     "_llseek",
@@ -6346,8 +6336,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let iReadWrite = <i32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file16") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file16") {
+                trace::Record::new(
                     winapi::kernel32::_lopen_pos,
                     "kernel32/file/file16",
                     "_lopen",
@@ -6369,8 +6359,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file16") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/file/file16") {
+                trace::Record::new(
                     winapi::kernel32::_lread_pos,
                     "kernel32/file/file16",
                     "_lread",
@@ -6392,8 +6382,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
                     winapi::kernel32::lstrcmpiA_pos,
                     "kernel32/libc",
                     "lstrcmpiA",
@@ -6415,8 +6405,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
                     winapi::kernel32::lstrcpyA_pos,
                     "kernel32/libc",
                     "lstrcpyA",
@@ -6442,8 +6432,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
             let lpString2 = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
                     winapi::kernel32::lstrcpyW_pos,
                     "kernel32/libc",
                     "lstrcpyW",
@@ -6468,8 +6458,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
                     winapi::kernel32::lstrlenA_pos,
                     "kernel32/libc",
                     "lstrlenA",
@@ -6490,8 +6480,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
                     winapi::kernel32::lstrlenW_pos,
                     "kernel32/libc",
                     "lstrlenW",
@@ -6515,8 +6505,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/init") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/init") {
+                trace::Record::new(
                     winapi::kernel32::retrowin32_main_pos,
                     "kernel32/init",
                     "retrowin32_main",
@@ -6545,8 +6535,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
             let param = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("kernel32/init") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("kernel32/init") {
+                trace::Record::new(
                     winapi::kernel32::retrowin32_thread_main_pos,
                     "kernel32/init",
                     "retrowin32_thread_main",

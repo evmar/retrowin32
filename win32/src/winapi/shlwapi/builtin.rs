@@ -10,13 +10,14 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::shlwapi::*;
     pub unsafe fn PathRemoveFileSpecA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("shlwapi") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("shlwapi") {
+                trace::Record::new(
                     winapi::shlwapi::PathRemoveFileSpecA_pos,
                     "shlwapi",
                     "PathRemoveFileSpecA",

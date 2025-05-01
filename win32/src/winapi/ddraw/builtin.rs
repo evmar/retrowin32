@@ -10,6 +10,7 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::ddraw::*;
     pub unsafe fn DirectDrawCreate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
@@ -17,8 +18,8 @@ mod wrappers {
             let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
             let lplpDD = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw") {
+                trace::Record::new(
                     winapi::ddraw::DirectDrawCreate_pos,
                     "ddraw/ddraw",
                     "DirectDrawCreate",
@@ -50,8 +51,8 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
             let lplpDDClipper = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/clipper") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/clipper") {
+                trace::Record::new(
                     winapi::ddraw::DirectDrawCreateClipper_pos,
                     "ddraw/clipper",
                     "DirectDrawCreateClipper",
@@ -84,8 +85,8 @@ mod wrappers {
             let lplpDD = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let iid = <Option<&GUID>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw") {
+                trace::Record::new(
                     winapi::ddraw::DirectDrawCreateEx_pos,
                     "ddraw/ddraw",
                     "DirectDrawCreateEx",
@@ -120,8 +121,8 @@ mod wrappers {
             let desc = <Option<&DDSURFACEDESC>>::from_stack(mem, stack_args + 4u32);
             let lplpDDSurface = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::CreateSurface_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::CreateSurface",
@@ -160,8 +161,8 @@ mod wrappers {
             let lpSurfaceDesc = <Option<&DDSURFACEDESC>>::from_stack(mem, stack_args + 8u32);
             let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
             let lpEnumCallback = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::EnumDisplayModes_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::EnumDisplayModes",
@@ -201,8 +202,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSurfaceDesc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::GetDisplayMode_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::GetDisplayMode",
@@ -225,8 +226,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let riid = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
             let ppvObject = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::QueryInterface_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::QueryInterface",
@@ -247,8 +248,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::Release_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::Release",
@@ -272,8 +273,8 @@ mod wrappers {
             let width = <u32>::from_stack(mem, stack_args + 4u32);
             let height = <u32>::from_stack(mem, stack_args + 8u32);
             let bpp = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw2::SetDisplayMode_pos,
                     "ddraw/ddraw2",
                     "IDirectDraw2::SetDisplayMode",
@@ -308,8 +309,8 @@ mod wrappers {
             let unused = <u32>::from_stack(mem, stack_args + 4u32);
             let lplpClipper = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let reserved = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::CreateClipper_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::CreateClipper",
@@ -345,8 +346,8 @@ mod wrappers {
             let entries = <u32>::from_stack(mem, stack_args + 8u32);
             let lplpPalette = <u32>::from_stack(mem, stack_args + 12u32);
             let unused = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::CreatePalette_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::CreatePalette",
@@ -383,8 +384,8 @@ mod wrappers {
             let desc = <Option<&DDSURFACEDESC2>>::from_stack(mem, stack_args + 4u32);
             let lpDirectDrawSurface7 = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let unused = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::CreateSurface_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::CreateSurface",
@@ -423,8 +424,8 @@ mod wrappers {
             let lpSurfaceDesc = <Option<&DDSURFACEDESC2>>::from_stack(mem, stack_args + 8u32);
             let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
             let lpEnumCallback = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::EnumDisplayModes_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::EnumDisplayModes",
@@ -464,8 +465,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSurfaceDesc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::GetDisplayMode_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::GetDisplayMode",
@@ -486,8 +487,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::Release_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::Release",
@@ -511,8 +512,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::RestoreDisplayMode_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::RestoreDisplayMode",
@@ -538,8 +539,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let flags = <Result<DDSCL, u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::SetCooperativeLevel_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::SetCooperativeLevel",
@@ -571,8 +572,8 @@ mod wrappers {
             let bpp = <u32>::from_stack(mem, stack_args + 12u32);
             let refresh = <u32>::from_stack(mem, stack_args + 16u32);
             let flags = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::SetDisplayMode_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::SetDisplayMode",
@@ -613,8 +614,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let flags = <u32>::from_stack(mem, stack_args + 4u32);
             let _unused = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw7::WaitForVerticalBlank_pos,
                     "ddraw/ddraw7",
                     "IDirectDraw7::WaitForVerticalBlank",
@@ -636,8 +637,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/clipper") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/clipper") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawClipper::Release_pos,
                     "ddraw/clipper",
                     "IDirectDrawClipper::Release",
@@ -660,8 +661,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let unused = <u32>::from_stack(mem, stack_args + 4u32);
             let hwnd = <HWND>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/clipper") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/clipper") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawClipper::SetHWnd_pos,
                     "ddraw/clipper",
                     "IDirectDrawClipper::SetHWnd",
@@ -682,8 +683,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/palette") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/palette") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawPalette::Release_pos,
                     "ddraw/palette",
                     "IDirectDrawPalette::Release",
@@ -711,8 +712,8 @@ mod wrappers {
             let start = <u32>::from_stack(mem, stack_args + 8u32);
             let count = <u32>::from_stack(mem, stack_args + 12u32);
             let entries = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/palette") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/palette") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawPalette::SetEntries_pos,
                     "ddraw/palette",
                     "IDirectDrawPalette::SetEntries",
@@ -751,8 +752,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCaps = <Option<&DDSCAPS>>::from_stack(mem, stack_args + 4u32);
             let lpDirectDrawSurface = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::GetAttachedSurface_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::GetAttachedSurface",
@@ -783,8 +784,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCAPS = <Option<&mut DDSCAPS>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::GetCaps_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::GetCaps",
@@ -809,8 +810,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::GetSurfaceDesc_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::GetSurfaceDesc",
@@ -839,8 +840,8 @@ mod wrappers {
             let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, stack_args + 8u32);
             let flags = <Result<DDLOCK, u32>>::from_stack(mem, stack_args + 12u32);
             let event = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::Lock_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::Lock",
@@ -874,8 +875,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::Release_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::Release",
@@ -897,8 +898,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let ptr = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw2") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw2") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface2::Unlock_pos,
                     "ddraw/ddraw2",
                     "IDirectDrawSurface2::Unlock",
@@ -923,8 +924,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw3") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw3") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface3::Release_pos,
                     "ddraw/ddraw3",
                     "IDirectDrawSurface3::Release",
@@ -950,8 +951,8 @@ mod wrappers {
             let lpSrcRect = <Option<&RECT>>::from_stack(mem, stack_args + 12u32);
             let flags = <Result<DDBLT, u32>>::from_stack(mem, stack_args + 16u32);
             let lpDDBLTFX = <Option<&DDBLTFX>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Blt_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Blt",
@@ -992,8 +993,8 @@ mod wrappers {
             let lpSrc = <u32>::from_stack(mem, stack_args + 12u32);
             let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 16u32);
             let flags = <Result<DDBLTFAST, u32>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::BltFast_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::BltFast",
@@ -1031,8 +1032,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpSurf = <u32>::from_stack(mem, stack_args + 4u32);
             let flags = <Result<DDFLIP, u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Flip_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Flip",
@@ -1063,8 +1064,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCaps2 = <Option<&DDSCAPS2>>::from_stack(mem, stack_args + 4u32);
             let lpDirectDrawSurface7 = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::GetAttachedSurface_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::GetAttachedSurface",
@@ -1095,8 +1096,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCAPS2 = <Option<&mut DDSCAPS2>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::GetCaps_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::GetCaps",
@@ -1118,8 +1119,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpHDC = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::GetDC_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::GetDC",
@@ -1148,8 +1149,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let fmt = <Option<&mut DDPIXELFORMAT>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::GetPixelFormat_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::GetPixelFormat",
@@ -1174,8 +1175,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDesc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::GetSurfaceDesc_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::GetSurfaceDesc",
@@ -1200,8 +1201,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::IsLost_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::IsLost",
@@ -1229,8 +1230,8 @@ mod wrappers {
             let desc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, stack_args + 8u32);
             let flags = <Result<DDLOCK, u32>>::from_stack(mem, stack_args + 12u32);
             let unused = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Lock_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Lock",
@@ -1264,8 +1265,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Release_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Release",
@@ -1290,8 +1291,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let _this = <u32>::from_stack(mem, stack_args + 0u32);
             let _hDC = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::ReleaseDC_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::ReleaseDC",
@@ -1312,8 +1313,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let _this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Restore_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Restore",
@@ -1338,8 +1339,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let clipper = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::SetClipper_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::SetClipper",
@@ -1365,8 +1366,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let flags = <Result<DDCKEY, u32>>::from_stack(mem, stack_args + 4u32);
             let key = <Option<&DDCOLORKEY>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::SetColorKey_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::SetColorKey",
@@ -1391,8 +1392,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let palette = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::SetPalette_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::SetPalette",
@@ -1418,8 +1419,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let rect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw7") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw7") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface7::Unlock_pos,
                     "ddraw/ddraw7",
                     "IDirectDrawSurface7::Unlock",
@@ -1449,8 +1450,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCaps = <Option<&DDSCAPS>>::from_stack(mem, stack_args + 4u32);
             let lpDirectDrawSurface = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::GetAttachedSurface_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::GetAttachedSurface",
@@ -1481,8 +1482,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpDDSCAPS = <Option<&mut DDSCAPS>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::GetCaps_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::GetCaps",
@@ -1507,8 +1508,8 @@ mod wrappers {
             let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, stack_args + 8u32);
             let flags = <Result<DDLOCK, u32>>::from_stack(mem, stack_args + 12u32);
             let event = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::Lock_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::Lock",
@@ -1547,8 +1548,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let riid = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
             let ppvObject = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::QueryInterface_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::QueryInterface",
@@ -1574,8 +1575,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::Release_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::Release",
@@ -1597,8 +1598,8 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let ptr = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDrawSurface::Unlock_pos,
                     "ddraw/ddraw1",
                     "IDirectDrawSurface::Unlock",
@@ -1626,8 +1627,8 @@ mod wrappers {
             let desc = <Option<&DDSURFACEDESC>>::from_stack(mem, stack_args + 4u32);
             let lplpDDSurface = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw::CreateSurface_pos,
                     "ddraw/ddraw1",
                     "IDirectDraw::CreateSurface",
@@ -1661,8 +1662,8 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let riid = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
             let ppvObject = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw::QueryInterface_pos,
                     "ddraw/ddraw1",
                     "IDirectDraw::QueryInterface",
@@ -1688,8 +1689,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw::Release_pos,
                     "ddraw/ddraw1",
                     "IDirectDraw::Release",
@@ -1713,8 +1714,8 @@ mod wrappers {
             let width = <u32>::from_stack(mem, stack_args + 4u32);
             let height = <u32>::from_stack(mem, stack_args + 8u32);
             let bpp = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if crate::winapi::trace::enabled("ddraw/ddraw1") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ddraw/ddraw1") {
+                trace::Record::new(
                     winapi::ddraw::IDirectDraw::SetDisplayMode_pos,
                     "ddraw/ddraw1",
                     "IDirectDraw::SetDisplayMode",

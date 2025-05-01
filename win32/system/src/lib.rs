@@ -4,6 +4,7 @@ mod heap;
 pub mod host;
 pub mod memory;
 mod system;
+pub mod trace;
 
 pub use boxmem::BoxMem as MemImpl;
 pub use heap::Heap;

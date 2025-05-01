@@ -10,12 +10,13 @@ mod wrappers {
         winapi::{self, *},
     };
     use ::memory::Extensions;
+    use win32_system::trace;
     use winapi::ntdll::*;
     pub unsafe fn NtCurrentTeb(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if crate::winapi::trace::enabled("ntdll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ntdll") {
+                trace::Record::new(
                     winapi::ntdll::NtCurrentTeb_pos,
                     "ntdll",
                     "NtCurrentTeb",
@@ -43,8 +44,8 @@ mod wrappers {
             let Buffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 20u32);
             let ByteOffset = <Option<&mut u64>>::from_stack(mem, stack_args + 28u32);
             let Key = <u32>::from_stack(mem, stack_args + 32u32);
-            let __trace_record = if crate::winapi::trace::enabled("ntdll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ntdll") {
+                trace::Record::new(
                     winapi::ntdll::NtReadFile_pos,
                     "ntdll",
                     "NtReadFile",
@@ -84,8 +85,8 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if crate::winapi::trace::enabled("ntdll") {
-                crate::winapi::trace::Record::new(
+            let __trace_record = if trace::enabled("ntdll") {
+                trace::Record::new(
                     winapi::ntdll::RtlExitUserProcess_pos,
                     "ntdll",
                     "RtlExitUserProcess",
