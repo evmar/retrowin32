@@ -31,7 +31,7 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
                 "-p",
                 "win32-derive",
                 "--",
-                "--dll-dir",
+                "--out-dir",
                 "win32/dll",
                 &format!("win32/src/winapi/{}", dll),
             ])

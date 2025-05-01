@@ -29,8 +29,15 @@ fn parse_files(root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
             continue;
         }
         let path = entry.path();
+        if path.file_name().unwrap() == "builtin.rs" {
+            continue;
+        }
+        if path.extension().unwrap() != "rs" {
+            continue;
+        }
         let buf = std::fs::read_to_string(path)?;
-        let file = syn::parse_file(&buf)?;
+        let file =
+            syn::parse_file(&buf).map_err(|err| anyhow::anyhow!("{}: {}", path.display(), err))?;
         let mut trace_name_path = path.strip_prefix(prefix).unwrap().with_extension("");
         if trace_name_path.ends_with("mod") {
             trace_name_path.pop();
@@ -85,7 +92,7 @@ fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
+fn process_builtin_dll(path: &Path, out_dir: &Path) -> anyhow::Result<()> {
     let module_name = path.file_stem().unwrap().to_string_lossy();
     eprintln!("{}.dll", module_name);
 
@@ -106,7 +113,7 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
     dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 
     dll::generate_dll(&module_name, &dllexports, |name, content| {
-        write_if_changed(&dll_dir.join(name), &content)
+        write_if_changed(&out_dir.join(name), &content)
     })?;
 
     let builtins_module = generate::shims_module(&module_name, dllexports);
@@ -121,7 +128,7 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
 struct Args {
     /// dir to write asm files
     #[argh(option)]
-    dll_dir: String,
+    out_dir: String,
 
     /// files to process
     #[argh(positional)]
@@ -132,7 +139,7 @@ fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
 
     for path in &args.inputs {
-        process_builtin_dll(path.as_ref(), args.dll_dir.as_ref())
+        process_builtin_dll(path.as_ref(), args.out_dir.as_ref())
             .map_err(|err| anyhow::anyhow!("processing module: {}", err))?;
     }
 
