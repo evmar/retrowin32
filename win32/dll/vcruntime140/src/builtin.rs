@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::vcruntime140::{self, *};
+    use crate as vcruntime140;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -12,10 +13,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
             let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("vcruntime140") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     vcruntime140::_CxxThrowException_pos,
-                    "vcruntime140",
+                    "src/lib",
                     "_CxxThrowException",
                     &[
                         ("pExceptionObject", &pExceptionObject),
@@ -39,10 +40,10 @@ mod wrappers {
             let lhs = <u32>::from_stack(mem, stack_args + 0u32);
             let rhs = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("vcruntime140") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     vcruntime140::memcmp_pos,
-                    "vcruntime140",
+                    "src/lib",
                     "memcmp",
                     &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
                 )
@@ -63,10 +64,10 @@ mod wrappers {
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
             let src = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("vcruntime140") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     vcruntime140::memcpy_pos,
-                    "vcruntime140",
+                    "src/lib",
                     "memcpy",
                     &[("dst", &dst), ("src", &src), ("len", &len)],
                 )
@@ -87,10 +88,10 @@ mod wrappers {
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
             let val = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("vcruntime140") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     vcruntime140::memset_pos,
-                    "vcruntime140",
+                    "src/lib",
                     "memset",
                     &[("dst", &dst), ("val", &val), ("len", &len)],
                 )
@@ -127,5 +128,5 @@ const SHIMS: [Shim; 4usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "vcruntime140.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/vcruntime140.dll"),
+    raw: std::include_bytes!("../vcruntime140.dll"),
 };

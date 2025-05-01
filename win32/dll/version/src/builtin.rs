@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::version::{self, *};
+    use crate as version;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -14,10 +15,10 @@ mod wrappers {
             let dwHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let dwLen = <u32>::from_stack(mem, stack_args + 8u32);
             let lpData = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("version") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     version::GetFileVersionInfoA_pos,
-                    "version",
+                    "src/lib",
                     "GetFileVersionInfoA",
                     &[
                         ("lptstrFilename", &lptstrFilename),
@@ -42,10 +43,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("version") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     version::GetFileVersionInfoSizeA_pos,
-                    "version",
+                    "src/lib",
                     "GetFileVersionInfoSizeA",
                     &[
                         ("lptstrFilename", &lptstrFilename),
@@ -70,10 +71,10 @@ mod wrappers {
             let lpSubBlock = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lplpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let puLen = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("version") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     version::VerQueryValueA_pos,
-                    "version",
+                    "src/lib",
                     "VerQueryValueA",
                     &[
                         ("pBlock", &pBlock),
@@ -111,5 +112,5 @@ const SHIMS: [Shim; 3usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "version.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/version.dll"),
+    raw: std::include_bytes!("../version.dll"),
 };

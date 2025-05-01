@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::ole32::{self, *};
+    use crate as ole32;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -15,10 +16,10 @@ mod wrappers {
             let dwClsContext = <u32>::from_stack(mem, stack_args + 8u32);
             let riid = <u32>::from_stack(mem, stack_args + 12u32);
             let ppv = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("ole32") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     ole32::CoCreateInstance_pos,
-                    "ole32",
+                    "src/lib",
                     "CoCreateInstance",
                     &[
                         ("rclsid", &rclsid),
@@ -43,10 +44,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("ole32") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     ole32::CoInitialize_pos,
-                    "ole32",
+                    "src/lib",
                     "CoInitialize",
                     &[("pvReserved", &pvReserved)],
                 )
@@ -66,10 +67,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let pvReserved = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
             let dwCoInit = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("ole32") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     ole32::CoInitializeEx_pos,
-                    "ole32",
+                    "src/lib",
                     "CoInitializeEx",
                     &[("pvReserved", &pvReserved), ("dwCoInit", &dwCoInit)],
                 )
@@ -87,8 +88,8 @@ mod wrappers {
     pub unsafe fn CoUninitialize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("ole32") {
-                trace::Record::new(ole32::CoUninitialize_pos, "ole32", "CoUninitialize", &[])
+            let __trace_record = if trace::enabled("src/lib") {
+                trace::Record::new(ole32::CoUninitialize_pos, "src/lib", "CoUninitialize", &[])
                     .enter()
             } else {
                 None
@@ -104,10 +105,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let _pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("ole32") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     ole32::OleInitialize_pos,
-                    "ole32",
+                    "src/lib",
                     "OleInitialize",
                     &[("pvReserved", &_pvReserved)],
                 )
@@ -148,5 +149,5 @@ const SHIMS: [Shim; 5usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "ole32.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/ole32.dll"),
+    raw: std::include_bytes!("../ole32.dll"),
 };

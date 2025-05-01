@@ -13,6 +13,13 @@ win32-winapi = { workspace = true }
 x86 = { workspace = true, optional = true }
 
 builtin-advapi32 = { path = "dll/advapi32" }
+builtin-bass = { path = "dll/bass" }
+builtin-ole32 = { path = "dll/ole32" }
+builtin-oleaut32 = { path = "dll/oleaut32" }
+builtin-shlwapi = { path = "dll/shlwapi" }
+builtin-vcruntime140 = { path = "dll/vcruntime140" }
+builtin-version = { path = "dll/version" }
+builtin-wininet = { path = "dll/wininet" }
 
 anyhow = "1.0"
 bincode = "1.3.3"

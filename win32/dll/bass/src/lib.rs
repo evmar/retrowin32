@@ -8,9 +8,10 @@
 #![allow(non_snake_case)]
 
 mod builtin;
+
 pub use builtin::DLL;
 
-use crate::System;
+use win32_system::System;
 
 /// Hack: time since BASS_Start etc. was called.
 static mut T: u32 = 0;

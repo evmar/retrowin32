@@ -152,7 +152,11 @@ pub fn shims_module(
     };
 
     let shims_count = shims.len();
-    let raw_dll_path = format!("../../../dll/{}", dll_name);
+    let raw_dll_path = if is_split {
+        format!("../{}", dll_name)
+    } else {
+        format!("../../../dll/{}", dll_name)
+    };
     quote! {
         //! Generated code, do not edit.  See winapi/builtin.rs for an overview.
 

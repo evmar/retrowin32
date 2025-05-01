@@ -77,7 +77,7 @@ fn build_dll(b: &mut B, dll: &str, is_split: bool) -> anyhow::Result<()> {
 fn main() -> anyhow::Result<()> {
     let dlls = [
         ("advapi32", true),
-        ("bass", false),
+        ("bass", true),
         ("comctl32", false),
         ("ddraw", false),
         ("dinput", false),
@@ -85,15 +85,15 @@ fn main() -> anyhow::Result<()> {
         ("gdi32", false),
         ("kernel32", false),
         ("ntdll", false),
-        ("ole32", false),
-        ("oleaut32", false),
+        ("ole32", true),
+        ("oleaut32", true),
         ("retrowin32_test", false),
-        ("shlwapi", false),
+        ("shlwapi", true),
         ("ucrtbase", false),
-        ("vcruntime140", false),
-        ("version", false),
+        ("vcruntime140", true),
+        ("version", true),
         ("user32", false),
-        ("wininet", false),
+        ("wininet", true),
         ("winmm", false),
     ];
 

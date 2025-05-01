@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::wininet::{self, *};
+    use crate as wininet;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -15,10 +16,10 @@ mod wrappers {
             let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let lpszProxyBypass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("wininet") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     wininet::InternetOpenA_pos,
-                    "wininet",
+                    "src/lib",
                     "InternetOpenA",
                     &[
                         ("lpszAgent", &lpszAgent),
@@ -54,5 +55,5 @@ const SHIMS: [Shim; 1usize] = [Shim {
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "wininet.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/wininet.dll"),
+    raw: std::include_bytes!("../wininet.dll"),
 };

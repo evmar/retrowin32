@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
 mod arena;
-mod bass;
 mod bitmap;
 pub mod builtin;
 mod com;
@@ -13,16 +12,10 @@ mod encoding;
 pub mod gdi32;
 pub mod kernel32;
 mod ntdll;
-mod ole32;
-mod oleaut32;
 mod printf;
 mod retrowin32_test;
-mod shlwapi;
 mod ucrtbase;
 pub mod user32;
-mod vcruntime140;
-mod version;
-mod wininet;
 mod winmm;
 
 pub use kernel32::HFILE;

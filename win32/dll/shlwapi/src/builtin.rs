@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::shlwapi::{self, *};
+    use crate as shlwapi;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -11,10 +12,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("shlwapi") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     shlwapi::PathRemoveFileSpecA_pos,
-                    "shlwapi",
+                    "src/lib",
                     "PathRemoveFileSpecA",
                     &[("pszPath", &pszPath)],
                 )
@@ -37,5 +38,5 @@ const SHIMS: [Shim; 1usize] = [Shim {
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "shlwapi.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/shlwapi.dll"),
+    raw: std::include_bytes!("../shlwapi.dll"),
 };

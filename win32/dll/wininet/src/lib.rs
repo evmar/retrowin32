@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::System;
+use win32_system::System;
 
 #[win32_derive::dllexport]
 pub fn InternetOpenA(

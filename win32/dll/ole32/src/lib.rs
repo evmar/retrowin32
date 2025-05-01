@@ -5,8 +5,8 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::HRESULT;
-use crate::System;
+use win32_system::System;
+use win32_winapi::HRESULT;
 
 #[win32_derive::dllexport]
 pub fn OleInitialize(sys: &dyn System, _pvReserved: u32) -> u32 {

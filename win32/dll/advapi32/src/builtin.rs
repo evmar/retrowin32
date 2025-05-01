@@ -334,5 +334,5 @@ const SHIMS: [Shim; 8usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "advapi32.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/advapi32.dll"),
+    raw: std::include_bytes!("../advapi32.dll"),
 };

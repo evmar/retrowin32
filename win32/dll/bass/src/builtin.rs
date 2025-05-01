@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::bass::{self, *};
+    use crate as bass;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -11,10 +12,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let mode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("bass") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     bass::BASS_ChannelGetPosition_pos,
-                    "bass",
+                    "src/lib",
                     "BASS_ChannelGetPosition",
                     &[("mode", &mode)],
                 )
@@ -33,9 +34,14 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("bass") {
-                trace::Record::new(bass::BASS_Free_pos, "bass", "BASS_Free", &[("arg1", &arg1)])
-                    .enter()
+            let __trace_record = if trace::enabled("src/lib") {
+                trace::Record::new(
+                    bass::BASS_Free_pos,
+                    "src/lib",
+                    "BASS_Free",
+                    &[("arg1", &arg1)],
+                )
+                .enter()
             } else {
                 None
             };
@@ -53,10 +59,10 @@ mod wrappers {
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("bass") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     bass::BASS_Init_pos,
-                    "bass",
+                    "src/lib",
                     "BASS_Init",
                     &[
                         ("arg1", &arg1),
@@ -84,10 +90,10 @@ mod wrappers {
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
             let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("bass") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     bass::BASS_MusicLoad_pos,
-                    "bass",
+                    "src/lib",
                     "BASS_MusicLoad",
                     &[
                         ("arg1", &arg1),
@@ -112,10 +118,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("bass") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     bass::BASS_MusicPlay_pos,
-                    "bass",
+                    "src/lib",
                     "BASS_MusicPlay",
                     &[("arg1", &arg1)],
                 )
@@ -135,10 +141,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("bass") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     bass::BASS_MusicSetPositionScaler_pos,
-                    "bass",
+                    "src/lib",
                     "BASS_MusicSetPositionScaler",
                     &[("arg1", &arg1), ("arg2", &arg2)],
                 )
@@ -156,8 +162,8 @@ mod wrappers {
     pub unsafe fn BASS_Start(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("bass") {
-                trace::Record::new(bass::BASS_Start_pos, "bass", "BASS_Start", &[]).enter()
+            let __trace_record = if trace::enabled("src/lib") {
+                trace::Record::new(bass::BASS_Start_pos, "src/lib", "BASS_Start", &[]).enter()
             } else {
                 None
             };
@@ -202,5 +208,5 @@ const SHIMS: [Shim; 7usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "bass.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/bass.dll"),
+    raw: std::include_bytes!("../bass.dll"),
 };

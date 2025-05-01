@@ -4,8 +4,8 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::System;
 use memory::{Extensions, ExtensionsMut};
+use win32_system::System;
 
 #[win32_derive::dllexport(cdecl)]
 pub fn memcpy(sys: &mut dyn System, dst: u32, src: u32, len: u32) -> u32 {
