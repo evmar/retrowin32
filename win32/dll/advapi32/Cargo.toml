@@ -1,0 +1,10 @@
+[package]
+name = "builtin-advapi32"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+memory = { workspace = true }
+win32-derive = { path = "../../derive" }
+win32-system = { path = "../../system" }
+win32-winapi = { path = "../../winapi" }

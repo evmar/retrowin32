@@ -4,9 +4,8 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::Str16;
-use crate::System;
-use win32_winapi::ERROR;
+use win32_system::System;
+use win32_winapi::{ERROR, Str16};
 
 pub type HKEY = u32;
 
@@ -63,7 +62,7 @@ pub fn RegQueryValueExA(
     lpData: u32,
     lpcbData: Option<&mut u32>,
 ) -> u32 {
-    2 // ERROR_FILE_NOT_FOUND
+    2 // ERROR_FILE_NOT_FOUND 
 }
 
 #[win32_derive::dllexport]

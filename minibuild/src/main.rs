@@ -1,9 +1,14 @@
 use minibuild::*;
 
-fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
-    let asm_path = format!("win32/dll/{}.s", dll);
-    let def_path = format!("win32/dll/{}.def", dll);
-    let dll_path = format!("win32/dll/{}.dll", dll);
+fn build_dll(b: &mut B, dll: &str, is_split: bool) -> anyhow::Result<()> {
+    let out_dir = if is_split {
+        format!("win32/dll/{dll}")
+    } else {
+        format!("win32/dll")
+    };
+    let asm_path = format!("{out_dir}/{dll}.s");
+    let def_path = format!("{out_dir}/{dll}.def");
+    let dll_path = format!("{out_dir}/{dll}.dll");
 
     b.task("generate source", |b| {
         let mut ins = Vec::new();
@@ -13,8 +18,14 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
         for f in glob("win32/derive/src/*.rs")? {
             ins.push(f?);
         }
+
+        let src_dir = if is_split {
+            format!("win32/dll/{dll}/src")
+        } else {
+            format!("win32/src/winapi/{dll}")
+        };
         // processed source files
-        for f in glob(&format!("win32/src/winapi/{dll}/**/*.rs"))? {
+        for f in glob(&format!("{src_dir}/**/*.rs"))? {
             let f = f?;
             if f.file_name().unwrap() == "builtin.rs" {
                 continue;
@@ -32,8 +43,8 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
                 "win32-derive",
                 "--",
                 "--out-dir",
-                "win32/dll",
-                &format!("win32/src/winapi/{}", dll),
+                &out_dir,
+                &src_dir,
             ])
         })
     })?;
@@ -65,31 +76,31 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
 
 fn main() -> anyhow::Result<()> {
     let dlls = [
-        "advapi32",
-        "bass",
-        "comctl32",
-        "ddraw",
-        "dinput",
-        "dsound",
-        "gdi32",
-        "kernel32",
-        "ntdll",
-        "ole32",
-        "oleaut32",
-        "retrowin32_test",
-        "shlwapi",
-        "ucrtbase",
-        "vcruntime140",
-        "version",
-        "user32",
-        "wininet",
-        "winmm",
+        ("advapi32", true),
+        ("bass", false),
+        ("comctl32", false),
+        ("ddraw", false),
+        ("dinput", false),
+        ("dsound", false),
+        ("gdi32", false),
+        ("kernel32", false),
+        ("ntdll", false),
+        ("ole32", false),
+        ("oleaut32", false),
+        ("retrowin32_test", false),
+        ("shlwapi", false),
+        ("ucrtbase", false),
+        ("vcruntime140", false),
+        ("version", false),
+        ("user32", false),
+        ("wininet", false),
+        ("winmm", false),
     ];
 
     let mut b = B::default();
     b.task("dlls", |b| {
-        for dll in dlls {
-            b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;
+        for (dll, is_split) in dlls {
+            b.task(format!("{dll}.dll"), |b| build_dll(b, dll, is_split))?;
         }
         Ok(())
     })?;

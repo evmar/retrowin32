@@ -5,7 +5,7 @@
 use win32_system::dll::BuiltinDLL;
 
 pub const DLLS: [BuiltinDLL; 19] = [
-    crate::winapi::advapi32::DLL,
+    builtin_advapi32::DLL,
     crate::winapi::bass::DLL,
     crate::winapi::comctl32::DLL,
     crate::winapi::ddraw::DLL,

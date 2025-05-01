@@ -23,7 +23,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     };
     let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
-    let mut fetch_args = quote!(let mem = sys.mem().detach(););
+    let mut body = quote!(let mem = sys.mem().detach(););
 
     let mut stack_offset = 0;
     for parse::Argument {
@@ -34,7 +34,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
-        fetch_args.extend(quote! {
+        body.extend(quote! {
             let #name = <#ty>::from_stack(mem, stack_args + #stack_offset);
         });
         stack_offset += stack_consumed;
@@ -66,7 +66,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
                 quote!((#name, &#arg))
             })
             .collect::<Vec<_>>();
-        fetch_args.extend(quote! {
+        body.extend(quote! {
             let __trace_record = if trace::enabled(#trace_module_name) {
                 trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
             } else {
@@ -92,7 +92,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         quote! {
             pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
                 unsafe {
-                    #fetch_args
+                    #body
                     let machine: *mut crate::Machine = sys.machine() as *mut _;
                     Box::pin(async move {
                         let machine = &mut *machine;
@@ -106,7 +106,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         quote! {
             pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
                 unsafe {
-                    #fetch_args
+                    #body
                     let result = #impls_mod::#base_name(#self_arg, #(#args),*);
                     #return_result
                 }
@@ -124,7 +124,11 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
 }
 
 /// Generate one module (e.g. kernel32) of shim functions.
-pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenStream {
+pub fn shims_module(
+    module_name: &str,
+    is_split: bool,
+    dllexports: parse::DllExports,
+) -> TokenStream {
     let module = quote::format_ident!("{}", module_name);
     let dll_name = format!("{}.dll", module_name);
 
@@ -135,6 +139,17 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
         wrappers.push(wrapper);
         shims.push(shim);
     }
+
+    let self_import = if is_split {
+        quote! {
+            use crate as #module;
+            use crate::*;
+        }
+    } else {
+        quote! {
+            use crate::winapi::#module::{self, *};
+        }
+    };
 
     let shims_count = shims.len();
     let raw_dll_path = format!("../../../dll/{}", dll_name);
@@ -147,7 +162,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
         use win32_system::dll::*;
 
         mod wrappers {
-            use crate::winapi::#module::{self, *};
+            #self_import
             use ::memory::Extensions;
             use win32_system::{System, trace};
             use win32_winapi::{*, calling_convention::*};

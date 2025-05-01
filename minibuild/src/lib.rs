@@ -61,7 +61,7 @@ fn mark_up_to_date(outs: &[&Path]) -> anyhow::Result<()> {
     for out in outs {
         let f = match File::open(out) {
             Err(err) if is_not_found(&err) => {
-                anyhow::bail!("didn't write output {}", out.display());
+                anyhow::bail!("failed to write declared output {}", out.display());
             }
             f => f?,
         };
@@ -128,14 +128,14 @@ impl B {
             let mut cmd = std::process::Command::new(argv[0]);
             cmd.args(&argv[1..]);
             let output = cmd.output()?;
+            if !output.stdout.is_empty() {
+                println!("{}", std::str::from_utf8(&output.stdout).unwrap());
+            }
+            if !output.stderr.is_empty() {
+                println!("{}", std::str::from_utf8(&output.stderr).unwrap());
+            }
             if !output.status.success() {
                 println!();
-                if !output.stdout.is_empty() {
-                    println!("{}", std::str::from_utf8(&output.stdout).unwrap());
-                }
-                if !output.stderr.is_empty() {
-                    println!("{}", std::str::from_utf8(&output.stderr).unwrap());
-                }
                 anyhow::bail!("command failed");
             }
             Ok(())

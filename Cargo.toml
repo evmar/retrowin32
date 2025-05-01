@@ -12,6 +12,7 @@ members = [
   "win32/extract",
   "win32/system",
   "win32/winapi",
+  "win32/dll/advapi32",
 ]
 
 [workspace.dependencies]

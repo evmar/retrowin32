@@ -91,6 +91,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-advapi32"
+version = "0.1.0"
+dependencies = [
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -597,6 +607,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "bitflags 2.9.0",
+ "builtin-advapi32",
  "chrono",
  "log",
  "memory",

@@ -92,11 +92,20 @@ fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_builtin_dll(path: &Path, out_dir: &Path) -> anyhow::Result<()> {
-    let module_name = path.file_stem().unwrap().to_string_lossy();
-    eprintln!("{}.dll", module_name);
+fn process_builtin_dll(src_path: &Path, out_dir: &Path) -> anyhow::Result<()> {
+    let mut module_name = src_path.file_stem().unwrap().to_string_lossy();
+    let mut is_split = false;
+    if module_name == "src" {
+        module_name = src_path
+            .parent()
+            .unwrap()
+            .file_stem()
+            .unwrap()
+            .to_string_lossy();
+        is_split = true;
+    }
 
-    let files = parse_files(path)?;
+    let files = parse_files(src_path)?;
     let mut dllexports = parse::DllExports::default();
     for (name, file) in &files {
         if let Err(err) = parse::gather_dllexports(name, &file.items, &mut dllexports) {
@@ -116,14 +125,14 @@ fn process_builtin_dll(path: &Path, out_dir: &Path) -> anyhow::Result<()> {
         write_if_changed(&out_dir.join(name), &content)
     })?;
 
-    let builtins_module = generate::shims_module(&module_name, dllexports);
+    let builtins_module = generate::shims_module(&module_name, is_split, dllexports);
     let text = rustfmt(&builtins_module.to_string())?;
-    write_if_changed(&path.join("builtin.rs"), text.as_bytes())?;
+    write_if_changed(&src_path.join("builtin.rs"), text.as_bytes())?;
 
     Ok(())
 }
 
-#[derive(argh::FromArgs)]
+#[derive(argh::FromArgs, Debug)]
 /// dllexport generator
 struct Args {
     /// dir to write asm files
