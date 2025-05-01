@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::dsound::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::dsound::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn DirectSoundCreate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -20,7 +15,7 @@ mod wrappers {
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::DirectSoundCreate_pos,
+                    dsound::DirectSoundCreate_pos,
                     "dsound",
                     "DirectSoundCreate",
                     &[
@@ -33,8 +28,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::DirectSoundCreate(
-                &mut *(sys.machine() as *mut Machine),
+            let result = dsound::DirectSoundCreate(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpGuid,
                 ppDS,
                 pUnkOuter,
@@ -52,7 +47,7 @@ mod wrappers {
             let lpContext = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::DirectSoundEnumerateA_pos,
+                    dsound::DirectSoundEnumerateA_pos,
                     "dsound",
                     "DirectSoundEnumerateA",
                     &[
@@ -64,7 +59,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::DirectSoundEnumerateA(sys, lpDSEnumCallback, lpContext);
+            let result = dsound::DirectSoundEnumerateA(sys, lpDSEnumCallback, lpContext);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -82,7 +77,7 @@ mod wrappers {
             let lpdwCurrentWriteCursor = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::GetCurrentPosition_pos,
+                    dsound::IDirectSoundBuffer::GetCurrentPosition_pos,
                     "dsound",
                     "IDirectSoundBuffer::GetCurrentPosition",
                     &[
@@ -95,7 +90,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::GetCurrentPosition(
+            let result = dsound::IDirectSoundBuffer::GetCurrentPosition(
                 sys,
                 this,
                 lpdwCurrentPlayCursor,
@@ -114,7 +109,7 @@ mod wrappers {
             let lpdwStatus = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::GetStatus_pos,
+                    dsound::IDirectSoundBuffer::GetStatus_pos,
                     "dsound",
                     "IDirectSoundBuffer::GetStatus",
                     &[("this", &this), ("lpdwStatus", &lpdwStatus)],
@@ -123,7 +118,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::GetStatus(sys, this, lpdwStatus);
+            let result = dsound::IDirectSoundBuffer::GetStatus(sys, this, lpdwStatus);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -143,7 +138,7 @@ mod wrappers {
             let dwFlags = <Result<DSBLOCK, u32>>::from_stack(mem, stack_args + 28u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::Lock_pos,
+                    dsound::IDirectSoundBuffer::Lock_pos,
                     "dsound",
                     "IDirectSoundBuffer::Lock",
                     &[
@@ -161,8 +156,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::Lock(
-                &mut *(sys.machine() as *mut Machine),
+            let result = dsound::IDirectSoundBuffer::Lock(
+                &mut *(sys.machine() as *mut crate::Machine),
                 this,
                 dwWriteCursor,
                 dwWriteBytes,
@@ -187,7 +182,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::Play_pos,
+                    dsound::IDirectSoundBuffer::Play_pos,
                     "dsound",
                     "IDirectSoundBuffer::Play",
                     &[
@@ -201,13 +196,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::Play(
-                sys,
-                this,
-                dwReserved1,
-                dwReserved2,
-                dwFlags,
-            );
+            let result =
+                dsound::IDirectSoundBuffer::Play(sys, this, dwReserved1, dwReserved2, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -220,7 +210,7 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::Release_pos,
+                    dsound::IDirectSoundBuffer::Release_pos,
                     "dsound",
                     "IDirectSoundBuffer::Release",
                     &[("this", &this)],
@@ -229,7 +219,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::Release(sys, this);
+            let result = dsound::IDirectSoundBuffer::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -243,7 +233,7 @@ mod wrappers {
             let lpcfxFormat = <Option<&WAVEFORMATEX>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::SetFormat_pos,
+                    dsound::IDirectSoundBuffer::SetFormat_pos,
                     "dsound",
                     "IDirectSoundBuffer::SetFormat",
                     &[("this", &this), ("lpcfxFormat", &lpcfxFormat)],
@@ -252,7 +242,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::SetFormat(sys, this, lpcfxFormat);
+            let result = dsound::IDirectSoundBuffer::SetFormat(sys, this, lpcfxFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -269,7 +259,7 @@ mod wrappers {
             let dwAudioBytes2 = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSoundBuffer::Unlock_pos,
+                    dsound::IDirectSoundBuffer::Unlock_pos,
                     "dsound",
                     "IDirectSoundBuffer::Unlock",
                     &[
@@ -284,8 +274,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::Unlock(
-                &mut *(sys.machine() as *mut Machine),
+            let result = dsound::IDirectSoundBuffer::Unlock(
+                &mut *(sys.machine() as *mut crate::Machine),
                 this,
                 lpvAudioPtr1,
                 dwAudioBytes1,
@@ -310,7 +300,7 @@ mod wrappers {
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSound::CreateSoundBuffer_pos,
+                    dsound::IDirectSound::CreateSoundBuffer_pos,
                     "dsound",
                     "IDirectSound::CreateSoundBuffer",
                     &[
@@ -324,8 +314,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSound::CreateSoundBuffer(
-                &mut *(sys.machine() as *mut Machine),
+            let result = dsound::IDirectSound::CreateSoundBuffer(
+                &mut *(sys.machine() as *mut crate::Machine),
                 this,
                 lpcDSBufferDesc,
                 lplpDirectSoundBuffer,
@@ -343,7 +333,7 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSound::Release_pos,
+                    dsound::IDirectSound::Release_pos,
                     "dsound",
                     "IDirectSound::Release",
                     &[("this", &this)],
@@ -352,7 +342,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSound::Release(sys, this);
+            let result = dsound::IDirectSound::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -370,7 +360,7 @@ mod wrappers {
             let dwLevel = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("dsound") {
                 trace::Record::new(
-                    winapi::dsound::IDirectSound::SetCooperativeLevel_pos,
+                    dsound::IDirectSound::SetCooperativeLevel_pos,
                     "dsound",
                     "IDirectSound::SetCooperativeLevel",
                     &[("this", &this), ("hwnd", &hwnd), ("dwLevel", &dwLevel)],
@@ -379,8 +369,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dsound::IDirectSound::SetCooperativeLevel(sys, this, hwnd, dwLevel);
+            let result = dsound::IDirectSound::SetCooperativeLevel(sys, this, hwnd, dwLevel);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::version::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::version::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn GetFileVersionInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -21,7 +16,7 @@ mod wrappers {
             let lpData = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
-                    winapi::version::GetFileVersionInfoA_pos,
+                    version::GetFileVersionInfoA_pos,
                     "version",
                     "GetFileVersionInfoA",
                     &[
@@ -35,8 +30,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::version::GetFileVersionInfoA(sys, lptstrFilename, dwHandle, dwLen, lpData);
+            let result = version::GetFileVersionInfoA(sys, lptstrFilename, dwHandle, dwLen, lpData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -50,7 +44,7 @@ mod wrappers {
             let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
-                    winapi::version::GetFileVersionInfoSizeA_pos,
+                    version::GetFileVersionInfoSizeA_pos,
                     "version",
                     "GetFileVersionInfoSizeA",
                     &[
@@ -62,7 +56,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::version::GetFileVersionInfoSizeA(sys, lptstrFilename, lpdwHandle);
+            let result = version::GetFileVersionInfoSizeA(sys, lptstrFilename, lpdwHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -78,7 +72,7 @@ mod wrappers {
             let puLen = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
-                    winapi::version::VerQueryValueA_pos,
+                    version::VerQueryValueA_pos,
                     "version",
                     "VerQueryValueA",
                     &[
@@ -92,8 +86,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::version::VerQueryValueA(sys, pBlock, lpSubBlock, lplpBuffer, puLen);
+            let result = version::VerQueryValueA(sys, pBlock, lpSubBlock, lplpBuffer, puLen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

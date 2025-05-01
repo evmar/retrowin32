@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::winmm::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::winmm::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn PlaySoundW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -20,7 +15,7 @@ mod wrappers {
             let fdwSound = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/misc") {
                 trace::Record::new(
-                    winapi::winmm::PlaySoundW_pos,
+                    winmm::PlaySoundW_pos,
                     "winmm/misc",
                     "PlaySoundW",
                     &[
@@ -33,7 +28,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::PlaySoundW(sys, pszSound, hmod, fdwSound);
+            let result = winmm::PlaySoundW(sys, pszSound, hmod, fdwSound);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -48,7 +43,7 @@ mod wrappers {
             let cbjc = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/joy") {
                 trace::Record::new(
-                    winapi::winmm::joyGetDevCapsA_pos,
+                    winmm::joyGetDevCapsA_pos,
                     "winmm/joy",
                     "joyGetDevCapsA",
                     &[("uJoyID", &uJoyID), ("pjc", &pjc), ("cbjc", &cbjc)],
@@ -57,7 +52,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetDevCapsA(sys, uJoyID, pjc, cbjc);
+            let result = winmm::joyGetDevCapsA(sys, uJoyID, pjc, cbjc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -68,17 +63,12 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/joy") {
-                trace::Record::new(
-                    winapi::winmm::joyGetNumDevs_pos,
-                    "winmm/joy",
-                    "joyGetNumDevs",
-                    &[],
-                )
-                .enter()
+                trace::Record::new(winmm::joyGetNumDevs_pos, "winmm/joy", "joyGetNumDevs", &[])
+                    .enter()
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetNumDevs(sys);
+            let result = winmm::joyGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -92,7 +82,7 @@ mod wrappers {
             let pji = <Option<&mut JOYINFOEX>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/joy") {
                 trace::Record::new(
-                    winapi::winmm::joyGetPosEx_pos,
+                    winmm::joyGetPosEx_pos,
                     "winmm/joy",
                     "joyGetPosEx",
                     &[("uJoyID", &uJoyID), ("pji", &pji)],
@@ -101,7 +91,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetPosEx(sys, uJoyID, pji);
+            let result = winmm::joyGetPosEx(sys, uJoyID, pji);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -116,7 +106,7 @@ mod wrappers {
             let cchText = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/mci") {
                 trace::Record::new(
-                    winapi::winmm::mciGetErrorStringA_pos,
+                    winmm::mciGetErrorStringA_pos,
                     "winmm/mci",
                     "mciGetErrorStringA",
                     &[
@@ -129,7 +119,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mciGetErrorStringA(sys, mcierr, pszText, cchText);
+            let result = winmm::mciGetErrorStringA(sys, mcierr, pszText, cchText);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -141,7 +131,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/misc") {
                 trace::Record::new(
-                    winapi::winmm::mciSendCommandA_pos,
+                    winmm::mciSendCommandA_pos,
                     "winmm/misc",
                     "mciSendCommandA",
                     &[],
@@ -150,7 +140,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mciSendCommandA(sys);
+            let result = winmm::mciSendCommandA(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -165,7 +155,7 @@ mod wrappers {
             let hwndCallback = <HWND>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("winmm/mci") {
                 trace::Record::new(
-                    winapi::winmm::mciSendStringA_pos,
+                    winmm::mciSendStringA_pos,
                     "winmm/mci",
                     "mciSendStringA",
                     &[
@@ -178,8 +168,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::winmm::mciSendStringA(sys, lpstrCommand, lpstrReturnString, hwndCallback);
+            let result = winmm::mciSendStringA(sys, lpstrCommand, lpstrReturnString, hwndCallback);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -191,7 +180,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiInGetNumDevs_pos,
+                    winmm::midiInGetNumDevs_pos,
                     "winmm/midi",
                     "midiInGetNumDevs",
                     &[],
@@ -200,7 +189,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiInGetNumDevs(sys);
+            let result = winmm::midiInGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -213,7 +202,7 @@ mod wrappers {
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutClose_pos,
+                    winmm::midiOutClose_pos,
                     "winmm/midi",
                     "midiOutClose",
                     &[("hmo", &hmo)],
@@ -222,7 +211,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutClose(sys, hmo);
+            let result = winmm::midiOutClose(sys, hmo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -237,7 +226,7 @@ mod wrappers {
             let cbmoc = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutGetDevCapsA_pos,
+                    winmm::midiOutGetDevCapsA_pos,
                     "winmm/midi",
                     "midiOutGetDevCapsA",
                     &[
@@ -250,7 +239,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutGetDevCapsA(sys, uDeviceID, pmoc, cbmoc);
+            let result = winmm::midiOutGetDevCapsA(sys, uDeviceID, pmoc, cbmoc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -262,7 +251,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutGetNumDevs_pos,
+                    winmm::midiOutGetNumDevs_pos,
                     "winmm/midi",
                     "midiOutGetNumDevs",
                     &[],
@@ -271,7 +260,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutGetNumDevs(sys);
+            let result = winmm::midiOutGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -288,7 +277,7 @@ mod wrappers {
             let fdwOpen = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutOpen_pos,
+                    winmm::midiOutOpen_pos,
                     "winmm/midi",
                     "midiOutOpen",
                     &[
@@ -303,8 +292,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::winmm::midiOutOpen(sys, phmo, uDeviceID, dwCallback, dwInstance, fdwOpen);
+            let result = winmm::midiOutOpen(sys, phmo, uDeviceID, dwCallback, dwInstance, fdwOpen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -317,7 +305,7 @@ mod wrappers {
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutReset_pos,
+                    winmm::midiOutReset_pos,
                     "winmm/midi",
                     "midiOutReset",
                     &[("hmo", &hmo)],
@@ -326,7 +314,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutReset(sys, hmo);
+            let result = winmm::midiOutReset(sys, hmo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -340,7 +328,7 @@ mod wrappers {
             let dwVolume = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutSetVolume_pos,
+                    winmm::midiOutSetVolume_pos,
                     "winmm/midi",
                     "midiOutSetVolume",
                     &[("hmo", &hmo), ("dwVolume", &dwVolume)],
@@ -349,7 +337,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutSetVolume(sys, hmo, dwVolume);
+            let result = winmm::midiOutSetVolume(sys, hmo, dwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -363,7 +351,7 @@ mod wrappers {
             let dwMsg = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/midi") {
                 trace::Record::new(
-                    winapi::winmm::midiOutShortMsg_pos,
+                    winmm::midiOutShortMsg_pos,
                     "winmm/midi",
                     "midiOutShortMsg",
                     &[("hmo", &hmo), ("dwMsg", &dwMsg)],
@@ -372,7 +360,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutShortMsg(sys, hmo, dwMsg);
+            let result = winmm::midiOutShortMsg(sys, hmo, dwMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -385,7 +373,7 @@ mod wrappers {
             let hmx = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerClose_pos,
+                    winmm::mixerClose_pos,
                     "winmm/mixer",
                     "mixerClose",
                     &[("hmx", &hmx)],
@@ -394,7 +382,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerClose(sys, hmx);
+            let result = winmm::mixerClose(sys, hmx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -406,7 +394,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerGetControlDetailsA_pos,
+                    winmm::mixerGetControlDetailsA_pos,
                     "winmm/mixer",
                     "mixerGetControlDetailsA",
                     &[],
@@ -415,7 +403,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerGetControlDetailsA(sys);
+            let result = winmm::mixerGetControlDetailsA(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -430,7 +418,7 @@ mod wrappers {
             let fdwControls = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerGetLineControlsA_pos,
+                    winmm::mixerGetLineControlsA_pos,
                     "winmm/mixer",
                     "mixerGetLineControlsA",
                     &[
@@ -443,7 +431,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerGetLineControlsA(sys, hmxobj, pmxlc, fdwControls);
+            let result = winmm::mixerGetLineControlsA(sys, hmxobj, pmxlc, fdwControls);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -458,7 +446,7 @@ mod wrappers {
             let fdwInfo = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerGetLineInfoA_pos,
+                    winmm::mixerGetLineInfoA_pos,
                     "winmm/mixer",
                     "mixerGetLineInfoA",
                     &[("hmxobj", &hmxobj), ("pmxl", &pmxl), ("fdwInfo", &fdwInfo)],
@@ -467,7 +455,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerGetLineInfoA(sys, hmxobj, pmxl, fdwInfo);
+            let result = winmm::mixerGetLineInfoA(sys, hmxobj, pmxl, fdwInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -484,7 +472,7 @@ mod wrappers {
             let fdwOpen = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerOpen_pos,
+                    winmm::mixerOpen_pos,
                     "winmm/mixer",
                     "mixerOpen",
                     &[
@@ -499,8 +487,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::winmm::mixerOpen(sys, phmx, uMxId, dwCallback, dwInstance, fdwOpen);
+            let result = winmm::mixerOpen(sys, phmx, uMxId, dwCallback, dwInstance, fdwOpen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -515,7 +502,7 @@ mod wrappers {
             let fdwDetails = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/mixer") {
                 trace::Record::new(
-                    winapi::winmm::mixerSetControlDetails_pos,
+                    winmm::mixerSetControlDetails_pos,
                     "winmm/mixer",
                     "mixerSetControlDetails",
                     &[
@@ -528,7 +515,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerSetControlDetails(sys, hmxobj, pmxcd, fdwDetails);
+            let result = winmm::mixerSetControlDetails(sys, hmxobj, pmxcd, fdwDetails);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -543,7 +530,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::retrowin32_time_thread_main_pos,
+                    winmm::retrowin32_time_thread_main_pos,
                     "winmm/time",
                     "retrowin32_time_thread_main",
                     &[],
@@ -552,10 +539,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::winmm::retrowin32_time_thread_main(machine).await;
+                let result = winmm::retrowin32_time_thread_main(machine).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -572,7 +559,7 @@ mod wrappers {
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::retrowin32_wave_thread_main_pos,
+                    winmm::retrowin32_wave_thread_main_pos,
                     "winmm/wave",
                     "retrowin32_wave_thread_main",
                     &[("hwo", &hwo)],
@@ -581,10 +568,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::winmm::retrowin32_wave_thread_main(machine, hwo).await;
+                let result = winmm::retrowin32_wave_thread_main(machine, hwo).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -598,7 +585,7 @@ mod wrappers {
             let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::timeBeginPeriod_pos,
+                    winmm::timeBeginPeriod_pos,
                     "winmm/time",
                     "timeBeginPeriod",
                     &[("uPeriod", &uPeriod)],
@@ -607,7 +594,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeBeginPeriod(sys, uPeriod);
+            let result = winmm::timeBeginPeriod(sys, uPeriod);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -620,7 +607,7 @@ mod wrappers {
             let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::timeEndPeriod_pos,
+                    winmm::timeEndPeriod_pos,
                     "winmm/time",
                     "timeEndPeriod",
                     &[("uPeriod", &uPeriod)],
@@ -629,7 +616,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeEndPeriod(sys, uPeriod);
+            let result = winmm::timeEndPeriod(sys, uPeriod);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -643,7 +630,7 @@ mod wrappers {
             let cbtc = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::timeGetDevCaps_pos,
+                    winmm::timeGetDevCaps_pos,
                     "winmm/time",
                     "timeGetDevCaps",
                     &[("ptc", &ptc), ("cbtc", &cbtc)],
@@ -652,7 +639,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeGetDevCaps(sys, ptc, cbtc);
+            let result = winmm::timeGetDevCaps(sys, ptc, cbtc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -663,17 +650,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/time") {
-                trace::Record::new(
-                    winapi::winmm::timeGetTime_pos,
-                    "winmm/time",
-                    "timeGetTime",
-                    &[],
-                )
-                .enter()
+                trace::Record::new(winmm::timeGetTime_pos, "winmm/time", "timeGetTime", &[]).enter()
             } else {
                 None
             };
-            let result = winapi::winmm::timeGetTime(&mut *(sys.machine() as *mut Machine));
+            let result = winmm::timeGetTime(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -686,7 +667,7 @@ mod wrappers {
             let uTimerID = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::timeKillEvent_pos,
+                    winmm::timeKillEvent_pos,
                     "winmm/time",
                     "timeKillEvent",
                     &[("uTimerID", &uTimerID)],
@@ -695,7 +676,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeKillEvent(sys, uTimerID);
+            let result = winmm::timeKillEvent(sys, uTimerID);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -712,7 +693,7 @@ mod wrappers {
             let fuEvent = <Result<TIME, u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("winmm/time") {
                 trace::Record::new(
-                    winapi::winmm::timeSetEvent_pos,
+                    winmm::timeSetEvent_pos,
                     "winmm/time",
                     "timeSetEvent",
                     &[
@@ -727,8 +708,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeSetEvent(
-                &mut *(sys.machine() as *mut Machine),
+            let result = winmm::timeSetEvent(
+                &mut *(sys.machine() as *mut crate::Machine),
                 uDelay,
                 uResolution,
                 lpTimeProc,
@@ -747,7 +728,7 @@ mod wrappers {
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutClose_pos,
+                    winmm::waveOutClose_pos,
                     "winmm/wave",
                     "waveOutClose",
                     &[("hwo", &hwo)],
@@ -756,7 +737,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutClose(&mut *(sys.machine() as *mut Machine), hwo);
+            let result = winmm::waveOutClose(&mut *(sys.machine() as *mut crate::Machine), hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -771,7 +752,7 @@ mod wrappers {
             let cbwoc = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutGetDevCapsA_pos,
+                    winmm::waveOutGetDevCapsA_pos,
                     "winmm/wave",
                     "waveOutGetDevCapsA",
                     &[
@@ -784,7 +765,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetDevCapsA(sys, uDeviceID, pwoc, cbwoc);
+            let result = winmm::waveOutGetDevCapsA(sys, uDeviceID, pwoc, cbwoc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -796,7 +777,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutGetNumDevs_pos,
+                    winmm::waveOutGetNumDevs_pos,
                     "winmm/wave",
                     "waveOutGetNumDevs",
                     &[],
@@ -805,7 +786,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetNumDevs(&mut *(sys.machine() as *mut Machine));
+            let result = winmm::waveOutGetNumDevs(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -820,7 +801,7 @@ mod wrappers {
             let cbmmt = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutGetPosition_pos,
+                    winmm::waveOutGetPosition_pos,
                     "winmm/wave",
                     "waveOutGetPosition",
                     &[("hwo", &hwo), ("pmmt", &pmmt), ("cbmmt", &cbmmt)],
@@ -829,8 +810,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetPosition(
-                &mut *(sys.machine() as *mut Machine),
+            let result = winmm::waveOutGetPosition(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hwo,
                 pmmt,
                 cbmmt,
@@ -848,7 +829,7 @@ mod wrappers {
             let pdwVolume = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutGetVolume_pos,
+                    winmm::waveOutGetVolume_pos,
                     "winmm/wave",
                     "waveOutGetVolume",
                     &[("hwo", &hwo), ("pdwVolume", &pdwVolume)],
@@ -857,7 +838,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetVolume(sys, hwo, pdwVolume);
+            let result = winmm::waveOutGetVolume(sys, hwo, pdwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -875,7 +856,7 @@ mod wrappers {
             let fdwOpen = <WaveOutOpenFlags>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutOpen_pos,
+                    winmm::waveOutOpen_pos,
                     "winmm/wave",
                     "waveOutOpen",
                     &[
@@ -891,8 +872,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutOpen(
-                &mut *(sys.machine() as *mut Machine),
+            let result = winmm::waveOutOpen(
+                &mut *(sys.machine() as *mut crate::Machine),
                 phwo,
                 uDeviceID,
                 pwfx,
@@ -912,7 +893,7 @@ mod wrappers {
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutPause_pos,
+                    winmm::waveOutPause_pos,
                     "winmm/wave",
                     "waveOutPause",
                     &[("hwo", &hwo)],
@@ -921,7 +902,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutPause(sys, hwo);
+            let result = winmm::waveOutPause(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -936,7 +917,7 @@ mod wrappers {
             let cbwh = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutPrepareHeader_pos,
+                    winmm::waveOutPrepareHeader_pos,
                     "winmm/wave",
                     "waveOutPrepareHeader",
                     &[("hwo", &hwo), ("pwh", &pwh), ("cbwh", &cbwh)],
@@ -945,7 +926,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutPrepareHeader(sys, hwo, pwh, cbwh);
+            let result = winmm::waveOutPrepareHeader(sys, hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -958,7 +939,7 @@ mod wrappers {
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutReset_pos,
+                    winmm::waveOutReset_pos,
                     "winmm/wave",
                     "waveOutReset",
                     &[("hwo", &hwo)],
@@ -967,7 +948,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutReset(sys, hwo);
+            let result = winmm::waveOutReset(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -980,7 +961,7 @@ mod wrappers {
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutRestart_pos,
+                    winmm::waveOutRestart_pos,
                     "winmm/wave",
                     "waveOutRestart",
                     &[("hwo", &hwo)],
@@ -989,7 +970,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutRestart(sys, hwo);
+            let result = winmm::waveOutRestart(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1003,7 +984,7 @@ mod wrappers {
             let dwVolume = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutSetVolume_pos,
+                    winmm::waveOutSetVolume_pos,
                     "winmm/wave",
                     "waveOutSetVolume",
                     &[("hwo", &hwo), ("dwVolume", &dwVolume)],
@@ -1012,7 +993,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutSetVolume(sys, hwo, dwVolume);
+            let result = winmm::waveOutSetVolume(sys, hwo, dwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1027,7 +1008,7 @@ mod wrappers {
             let cbwh = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutUnprepareHeader_pos,
+                    winmm::waveOutUnprepareHeader_pos,
                     "winmm/wave",
                     "waveOutUnprepareHeader",
                     &[("hwo", &hwo), ("pwh", &pwh), ("cbwh", &cbwh)],
@@ -1036,7 +1017,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutUnprepareHeader(sys, hwo, pwh, cbwh);
+            let result = winmm::waveOutUnprepareHeader(sys, hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1051,7 +1032,7 @@ mod wrappers {
             let cbwh = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/wave") {
                 trace::Record::new(
-                    winapi::winmm::waveOutWrite_pos,
+                    winmm::waveOutWrite_pos,
                     "winmm/wave",
                     "waveOutWrite",
                     &[("hwo", &hwo), ("pwh", &pwh), ("cbwh", &cbwh)],
@@ -1061,7 +1042,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::winmm::waveOutWrite(&mut *(sys.machine() as *mut Machine), hwo, pwh, cbwh);
+                winmm::waveOutWrite(&mut *(sys.machine() as *mut crate::Machine), hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

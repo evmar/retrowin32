@@ -3,22 +3,17 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::comctl32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::comctl32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn _TrackMouseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("comctl32") {
                 trace::Record::new(
-                    winapi::comctl32::_TrackMouseEvent_pos,
+                    comctl32::_TrackMouseEvent_pos,
                     "comctl32",
                     "_TrackMouseEvent",
                     &[("lpEventTrack", &lpEventTrack)],
@@ -27,7 +22,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::comctl32::_TrackMouseEvent(sys, lpEventTrack);
+            let result = comctl32::_TrackMouseEvent(sys, lpEventTrack);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -39,7 +34,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("comctl32") {
                 trace::Record::new(
-                    winapi::comctl32::InitCommonControls_pos,
+                    comctl32::InitCommonControls_pos,
                     "comctl32",
                     "InitCommonControls",
                     &[],
@@ -48,7 +43,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::comctl32::InitCommonControls(sys);
+            let result = comctl32::InitCommonControls(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

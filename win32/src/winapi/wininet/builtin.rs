@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::wininet::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::wininet::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn InternetOpenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -22,7 +17,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("wininet") {
                 trace::Record::new(
-                    winapi::wininet::InternetOpenA_pos,
+                    wininet::InternetOpenA_pos,
                     "wininet",
                     "InternetOpenA",
                     &[
@@ -37,7 +32,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::wininet::InternetOpenA(
+            let result = wininet::InternetOpenA(
                 sys,
                 lpszAgent,
                 dwAccessType,

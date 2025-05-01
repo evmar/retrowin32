@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::vcruntime140::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::vcruntime140::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn _CxxThrowException(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -19,7 +14,7 @@ mod wrappers {
             let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
-                    winapi::vcruntime140::_CxxThrowException_pos,
+                    vcruntime140::_CxxThrowException_pos,
                     "vcruntime140",
                     "_CxxThrowException",
                     &[
@@ -31,8 +26,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::vcruntime140::_CxxThrowException(sys, pExceptionObject, pThrowInfo);
+            let result = vcruntime140::_CxxThrowException(sys, pExceptionObject, pThrowInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -47,7 +41,7 @@ mod wrappers {
             let len = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
-                    winapi::vcruntime140::memcmp_pos,
+                    vcruntime140::memcmp_pos,
                     "vcruntime140",
                     "memcmp",
                     &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
@@ -56,7 +50,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memcmp(sys, lhs, rhs, len);
+            let result = vcruntime140::memcmp(sys, lhs, rhs, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -71,7 +65,7 @@ mod wrappers {
             let len = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
-                    winapi::vcruntime140::memcpy_pos,
+                    vcruntime140::memcpy_pos,
                     "vcruntime140",
                     "memcpy",
                     &[("dst", &dst), ("src", &src), ("len", &len)],
@@ -80,7 +74,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memcpy(sys, dst, src, len);
+            let result = vcruntime140::memcpy(sys, dst, src, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -95,7 +89,7 @@ mod wrappers {
             let len = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
-                    winapi::vcruntime140::memset_pos,
+                    vcruntime140::memset_pos,
                     "vcruntime140",
                     "memset",
                     &[("dst", &dst), ("val", &val), ("len", &len)],
@@ -104,7 +98,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memset(sys, dst, val, len);
+            let result = vcruntime140::memset(sys, dst, val, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

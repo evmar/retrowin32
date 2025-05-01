@@ -3,22 +3,17 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::advapi32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::advapi32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn RegCloseKey(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegCloseKey_pos,
+                    advapi32::RegCloseKey_pos,
                     "advapi32",
                     "RegCloseKey",
                     &[("hKey", &hKey)],
@@ -27,7 +22,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCloseKey(sys, hKey);
+            let result = advapi32::RegCloseKey(sys, hKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -42,7 +37,7 @@ mod wrappers {
             let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegCreateKeyA_pos,
+                    advapi32::RegCreateKeyA_pos,
                     "advapi32",
                     "RegCreateKeyA",
                     &[
@@ -55,7 +50,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCreateKeyA(sys, hKey, lpSubKey, phkResult);
+            let result = advapi32::RegCreateKeyA(sys, hKey, lpSubKey, phkResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -76,7 +71,7 @@ mod wrappers {
             let lpdwDisposition = <Option<&mut u32>>::from_stack(mem, stack_args + 32u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegCreateKeyExW_pos,
+                    advapi32::RegCreateKeyExW_pos,
                     "advapi32",
                     "RegCreateKeyExW",
                     &[
@@ -95,7 +90,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCreateKeyExW(
+            let result = advapi32::RegCreateKeyExW(
                 sys,
                 hKey,
                 lpSubKey,
@@ -123,7 +118,7 @@ mod wrappers {
             let phkResult = <Option<&mut HKEY>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegOpenKeyExA_pos,
+                    advapi32::RegOpenKeyExA_pos,
                     "advapi32",
                     "RegOpenKeyExA",
                     &[
@@ -138,9 +133,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegOpenKeyExA(
-                sys, hKey, lpSubKey, ulOptions, samDesired, phkResult,
-            );
+            let result =
+                advapi32::RegOpenKeyExA(sys, hKey, lpSubKey, ulOptions, samDesired, phkResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -158,7 +152,7 @@ mod wrappers {
             let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegQueryValueExA_pos,
+                    advapi32::RegQueryValueExA_pos,
                     "advapi32",
                     "RegQueryValueExA",
                     &[
@@ -174,7 +168,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegQueryValueExA(
+            let result = advapi32::RegQueryValueExA(
                 sys,
                 hKey,
                 lpValueName,
@@ -200,7 +194,7 @@ mod wrappers {
             let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegQueryValueExW_pos,
+                    advapi32::RegQueryValueExW_pos,
                     "advapi32",
                     "RegQueryValueExW",
                     &[
@@ -216,7 +210,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegQueryValueExW(
+            let result = advapi32::RegQueryValueExW(
                 sys,
                 hKey,
                 lpValueName,
@@ -242,7 +236,7 @@ mod wrappers {
             let cbData = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegSetValueExA_pos,
+                    advapi32::RegSetValueExA_pos,
                     "advapi32",
                     "RegSetValueExA",
                     &[
@@ -258,15 +252,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegSetValueExA(
-                sys,
-                hKey,
-                lpValueName,
-                Reserved,
-                dwType,
-                lpData,
-                cbData,
-            );
+            let result =
+                advapi32::RegSetValueExA(sys, hKey, lpValueName, Reserved, dwType, lpData, cbData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -284,7 +271,7 @@ mod wrappers {
             let cbData = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
-                    winapi::advapi32::RegSetValueExW_pos,
+                    advapi32::RegSetValueExW_pos,
                     "advapi32",
                     "RegSetValueExW",
                     &[
@@ -300,15 +287,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegSetValueExW(
-                sys,
-                hKey,
-                lpValueName,
-                Reserved,
-                dwType,
-                lpData,
-                cbData,
-            );
+            let result =
+                advapi32::RegSetValueExW(sys, hKey, lpValueName, Reserved, dwType, lpData, cbData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

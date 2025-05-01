@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::oleaut32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::oleaut32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
 }
 const SHIMS: [Shim; 0usize] = [];
 pub const DLL: BuiltinDLL = BuiltinDLL {

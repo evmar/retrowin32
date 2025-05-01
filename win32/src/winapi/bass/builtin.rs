@@ -3,22 +3,17 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::bass::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::bass::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn BASS_ChannelGetPosition(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
             let mode = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
-                    winapi::bass::BASS_ChannelGetPosition_pos,
+                    bass::BASS_ChannelGetPosition_pos,
                     "bass",
                     "BASS_ChannelGetPosition",
                     &[("mode", &mode)],
@@ -27,7 +22,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_ChannelGetPosition(sys, mode);
+            let result = bass::BASS_ChannelGetPosition(sys, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -39,17 +34,12 @@ mod wrappers {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("bass") {
-                trace::Record::new(
-                    winapi::bass::BASS_Free_pos,
-                    "bass",
-                    "BASS_Free",
-                    &[("arg1", &arg1)],
-                )
-                .enter()
+                trace::Record::new(bass::BASS_Free_pos, "bass", "BASS_Free", &[("arg1", &arg1)])
+                    .enter()
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Free(sys, arg1);
+            let result = bass::BASS_Free(sys, arg1);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -65,7 +55,7 @@ mod wrappers {
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
-                    winapi::bass::BASS_Init_pos,
+                    bass::BASS_Init_pos,
                     "bass",
                     "BASS_Init",
                     &[
@@ -79,7 +69,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Init(sys, arg1, arg2, arg3, arg4);
+            let result = bass::BASS_Init(sys, arg1, arg2, arg3, arg4);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -96,7 +86,7 @@ mod wrappers {
             let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
-                    winapi::bass::BASS_MusicLoad_pos,
+                    bass::BASS_MusicLoad_pos,
                     "bass",
                     "BASS_MusicLoad",
                     &[
@@ -111,7 +101,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicLoad(sys, arg1, arg2, arg3, arg4, arg5);
+            let result = bass::BASS_MusicLoad(sys, arg1, arg2, arg3, arg4, arg5);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -124,7 +114,7 @@ mod wrappers {
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
-                    winapi::bass::BASS_MusicPlay_pos,
+                    bass::BASS_MusicPlay_pos,
                     "bass",
                     "BASS_MusicPlay",
                     &[("arg1", &arg1)],
@@ -133,7 +123,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicPlay(sys, arg1);
+            let result = bass::BASS_MusicPlay(sys, arg1);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -147,7 +137,7 @@ mod wrappers {
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
-                    winapi::bass::BASS_MusicSetPositionScaler_pos,
+                    bass::BASS_MusicSetPositionScaler_pos,
                     "bass",
                     "BASS_MusicSetPositionScaler",
                     &[("arg1", &arg1), ("arg2", &arg2)],
@@ -156,7 +146,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicSetPositionScaler(sys, arg1, arg2);
+            let result = bass::BASS_MusicSetPositionScaler(sys, arg1, arg2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -167,11 +157,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("bass") {
-                trace::Record::new(winapi::bass::BASS_Start_pos, "bass", "BASS_Start", &[]).enter()
+                trace::Record::new(bass::BASS_Start_pos, "bass", "BASS_Start", &[]).enter()
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Start(sys);
+            let result = bass::BASS_Start(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

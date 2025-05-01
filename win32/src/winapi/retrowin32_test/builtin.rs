@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::retrowin32_test::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::retrowin32_test::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn retrowin32_test_callback1(
         sys: &mut dyn System,
         stack_args: u32,
@@ -22,7 +17,7 @@ mod wrappers {
             let data = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("retrowin32_test") {
                 trace::Record::new(
-                    winapi::retrowin32_test::retrowin32_test_callback1_pos,
+                    retrowin32_test::retrowin32_test_callback1_pos,
                     "retrowin32_test",
                     "retrowin32_test_callback1",
                     &[("func", &func), ("data", &data)],
@@ -31,11 +26,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result =
-                    winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
+                let result = retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::user32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::user32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn AdjustWindowRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -20,7 +15,7 @@ mod wrappers {
             let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::AdjustWindowRect_pos,
+                    user32::AdjustWindowRect_pos,
                     "user32/window",
                     "AdjustWindowRect",
                     &[
@@ -33,8 +28,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AdjustWindowRect(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::AdjustWindowRect(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpRect,
                 dwStyle,
                 bMenu,
@@ -54,7 +49,7 @@ mod wrappers {
             let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::AdjustWindowRectEx_pos,
+                    user32::AdjustWindowRectEx_pos,
                     "user32/window",
                     "AdjustWindowRectEx",
                     &[
@@ -68,7 +63,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AdjustWindowRectEx(sys, lpRect, dwStyle, bMenu, dwExStyle);
+            let result = user32::AdjustWindowRectEx(sys, lpRect, dwStyle, bMenu, dwExStyle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -84,7 +79,7 @@ mod wrappers {
             let lpNewItem = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::AppendMenuA_pos,
+                    user32::AppendMenuA_pos,
                     "user32/menu",
                     "AppendMenuA",
                     &[
@@ -98,7 +93,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AppendMenuA(sys, hMenu, uFlags, uIDNewItem, lpNewItem);
+            let result = user32::AppendMenuA(sys, hMenu, uFlags, uIDNewItem, lpNewItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -112,7 +107,7 @@ mod wrappers {
             let lpPaint = <Option<&mut PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::BeginPaint_pos,
+                    user32::BeginPaint_pos,
                     "user32/paint",
                     "BeginPaint",
                     &[("hWnd", &hWnd), ("lpPaint", &lpPaint)],
@@ -122,7 +117,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::BeginPaint(&mut *(sys.machine() as *mut Machine), hWnd, lpPaint);
+                user32::BeginPaint(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -139,7 +134,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::CallWindowProcA_pos,
+                    user32::CallWindowProcA_pos,
                     "user32/message",
                     "CallWindowProcA",
                     &[
@@ -154,8 +149,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::CallWindowProcA(sys, lpPrevWndFunc, hWnd, Msg, wParam, lParam);
+            let result = user32::CallWindowProcA(sys, lpPrevWndFunc, hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -168,7 +162,7 @@ mod wrappers {
             let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::CharLowerA_pos,
+                    user32::CharLowerA_pos,
                     "user32/misc",
                     "CharLowerA",
                     &[("lpsz", &lpsz)],
@@ -177,7 +171,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerA(&mut *(sys.machine() as *mut Machine), lpsz);
+            let result = user32::CharLowerA(&mut *(sys.machine() as *mut crate::Machine), lpsz);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -191,7 +185,7 @@ mod wrappers {
             let cchLength = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::CharLowerBuffA_pos,
+                    user32::CharLowerBuffA_pos,
                     "user32/misc",
                     "CharLowerBuffA",
                     &[("lpsz", &lpsz), ("cchLength", &cchLength)],
@@ -200,8 +194,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerBuffA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::CharLowerBuffA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpsz,
                 cchLength,
             );
@@ -219,7 +213,7 @@ mod wrappers {
             let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::CheckDlgButton_pos,
+                    user32::CheckDlgButton_pos,
                     "user32/dialog",
                     "CheckDlgButton",
                     &[
@@ -232,7 +226,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckDlgButton(sys, hDlg, nIDButton, uCheck);
+            let result = user32::CheckDlgButton(sys, hDlg, nIDButton, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -247,7 +241,7 @@ mod wrappers {
             let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::CheckMenuItem_pos,
+                    user32::CheckMenuItem_pos,
                     "user32/menu",
                     "CheckMenuItem",
                     &[
@@ -260,7 +254,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckMenuItem(sys, hMenu, uIDCheckItem, uCheck);
+            let result = user32::CheckMenuItem(sys, hMenu, uIDCheckItem, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -276,7 +270,7 @@ mod wrappers {
             let nIDCheckButton = <i32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::CheckRadioButton_pos,
+                    user32::CheckRadioButton_pos,
                     "user32/dialog",
                     "CheckRadioButton",
                     &[
@@ -290,13 +284,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckRadioButton(
-                sys,
-                hDlg,
-                nIDFirstButton,
-                nIDLastButton,
-                nIDCheckButton,
-            );
+            let result =
+                user32::CheckRadioButton(sys, hDlg, nIDFirstButton, nIDLastButton, nIDCheckButton);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -310,7 +299,7 @@ mod wrappers {
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::ClientToScreen_pos,
+                    user32::ClientToScreen_pos,
                     "user32/window",
                     "ClientToScreen",
                     &[("hWnd", &hWnd), ("lpPoint", &lpPoint)],
@@ -319,7 +308,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ClientToScreen(sys, hWnd, lpPoint);
+            let result = user32::ClientToScreen(sys, hWnd, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -333,7 +322,7 @@ mod wrappers {
             let lprcSrc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::CopyRect_pos,
+                    user32::CopyRect_pos,
                     "user32/rect",
                     "CopyRect",
                     &[("lprcDst", &lprcDst), ("lprcSrc", &lprcSrc)],
@@ -342,7 +331,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CopyRect(sys, lprcDst, lprcSrc);
+            let result = user32::CopyRect(sys, lprcDst, lprcSrc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -361,7 +350,7 @@ mod wrappers {
             let pvXORPlane = <u32>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::CreateCursor_pos,
+                    user32::CreateCursor_pos,
                     "user32/resource",
                     "CreateCursor",
                     &[
@@ -378,7 +367,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CreateCursor(
+            let result = user32::CreateCursor(
                 sys, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -392,7 +381,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::CreatePopupMenu_pos,
+                    user32::CreatePopupMenu_pos,
                     "user32/menu",
                     "CreatePopupMenu",
                     &[],
@@ -401,7 +390,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CreatePopupMenu(sys);
+            let result = user32::CreatePopupMenu(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -428,7 +417,7 @@ mod wrappers {
             let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::CreateWindowExA_pos,
+                    user32::CreateWindowExA_pos,
                     "user32/window",
                     "CreateWindowExA",
                     &[
@@ -450,10 +439,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::CreateWindowExA(
+                let result = user32::CreateWindowExA(
                     machine,
                     dwExStyle,
                     lpClassName,
@@ -497,7 +486,7 @@ mod wrappers {
             let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::CreateWindowExW_pos,
+                    user32::CreateWindowExW_pos,
                     "user32/window",
                     "CreateWindowExW",
                     &[
@@ -519,10 +508,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::CreateWindowExW(
+                let result = user32::CreateWindowExW(
                     machine,
                     dwExStyle,
                     lpClassName,
@@ -557,7 +546,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::DefWindowProcA_pos,
+                    user32::DefWindowProcA_pos,
                     "user32/window",
                     "DefWindowProcA",
                     &[
@@ -571,11 +560,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result =
-                    winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).await;
+                let result = user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -595,7 +583,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::DefWindowProcW_pos,
+                    user32::DefWindowProcW_pos,
                     "user32/window",
                     "DefWindowProcW",
                     &[
@@ -609,11 +597,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result =
-                    winapi::user32::DefWindowProcW(machine, hWnd, msg, wParam, lParam).await;
+                let result = user32::DefWindowProcW(machine, hWnd, msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -629,7 +616,7 @@ mod wrappers {
             let uFlags = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::DeleteMenu_pos,
+                    user32::DeleteMenu_pos,
                     "user32/menu",
                     "DeleteMenu",
                     &[
@@ -642,7 +629,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DeleteMenu(sys, hMenu, uPosition, uFlags);
+            let result = user32::DeleteMenu(sys, hMenu, uPosition, uFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -655,7 +642,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::DestroyWindow_pos,
+                    user32::DestroyWindow_pos,
                     "user32/window",
                     "DestroyWindow",
                     &[("hWnd", &hWnd)],
@@ -664,7 +651,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DestroyWindow(sys, hWnd);
+            let result = user32::DestroyWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -681,7 +668,7 @@ mod wrappers {
             let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::DialogBoxIndirectParamA_pos,
+                    user32::DialogBoxIndirectParamA_pos,
                     "user32/dialog",
                     "DialogBoxIndirectParamA",
                     &[
@@ -696,7 +683,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DialogBoxIndirectParamA(
+            let result = user32::DialogBoxIndirectParamA(
                 sys,
                 hInstance,
                 hDialogTemplate,
@@ -720,7 +707,7 @@ mod wrappers {
             let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::DialogBoxParamA_pos,
+                    user32::DialogBoxParamA_pos,
                     "user32/dialog",
                     "DialogBoxParamA",
                     &[
@@ -735,7 +722,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DialogBoxParamA(
+            let result = user32::DialogBoxParamA(
                 sys,
                 hInstance,
                 lpTemplateName,
@@ -759,7 +746,7 @@ mod wrappers {
             let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::DialogBoxParamW_pos,
+                    user32::DialogBoxParamW_pos,
                     "user32/dialog",
                     "DialogBoxParamW",
                     &[
@@ -774,7 +761,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DialogBoxParamW(
+            let result = user32::DialogBoxParamW(
                 sys,
                 hInstance,
                 lpTemplateName,
@@ -797,7 +784,7 @@ mod wrappers {
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::DispatchMessageA_pos,
+                    user32::DispatchMessageA_pos,
                     "user32/message",
                     "DispatchMessageA",
                     &[("lpMsg", &lpMsg)],
@@ -806,10 +793,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
+                let result = user32::DispatchMessageA(machine, lpMsg).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -826,7 +813,7 @@ mod wrappers {
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::DispatchMessageW_pos,
+                    user32::DispatchMessageW_pos,
                     "user32/message",
                     "DispatchMessageW",
                     &[("lpMsg", &lpMsg)],
@@ -835,10 +822,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
+                let result = user32::DispatchMessageW(machine, lpMsg).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -852,7 +839,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::DrawMenuBar_pos,
+                    user32::DrawMenuBar_pos,
                     "user32/menu",
                     "DrawMenuBar",
                     &[("hWnd", &hWnd)],
@@ -861,7 +848,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DrawMenuBar(sys, hWnd);
+            let result = user32::DrawMenuBar(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -878,7 +865,7 @@ mod wrappers {
             let uFormat = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::DrawTextW_pos,
+                    user32::DrawTextW_pos,
                     "user32/paint",
                     "DrawTextW",
                     &[
@@ -893,7 +880,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DrawTextW(sys, hDC, lpString, nCount, lpRect, uFormat);
+            let result = user32::DrawTextW(sys, hDC, lpString, nCount, lpRect, uFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -908,7 +895,7 @@ mod wrappers {
             let uEnable = <Result<MF, u32>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::EnableMenuItem_pos,
+                    user32::EnableMenuItem_pos,
                     "user32/menu",
                     "EnableMenuItem",
                     &[
@@ -921,7 +908,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EnableMenuItem(sys, hMenu, uIDEnableItem, uEnable);
+            let result = user32::EnableMenuItem(sys, hMenu, uIDEnableItem, uEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -935,7 +922,7 @@ mod wrappers {
             let bEnable = <bool>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::EnableWindow_pos,
+                    user32::EnableWindow_pos,
                     "user32/window",
                     "EnableWindow",
                     &[("hWnd", &hWnd), ("bEnable", &bEnable)],
@@ -944,7 +931,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EnableWindow(sys, hWnd, bEnable);
+            let result = user32::EnableWindow(sys, hWnd, bEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -958,7 +945,7 @@ mod wrappers {
             let nResult = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::EndDialog_pos,
+                    user32::EndDialog_pos,
                     "user32/dialog",
                     "EndDialog",
                     &[("hDlg", &hDlg), ("nResult", &nResult)],
@@ -967,7 +954,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EndDialog(sys, hDlg, nResult);
+            let result = user32::EndDialog(sys, hDlg, nResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -981,7 +968,7 @@ mod wrappers {
             let lpPaint = <Option<&PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::EndPaint_pos,
+                    user32::EndPaint_pos,
                     "user32/paint",
                     "EndPaint",
                     &[("hWnd", &hWnd), ("lpPaint", &lpPaint)],
@@ -991,7 +978,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::EndPaint(&mut *(sys.machine() as *mut Machine), hWnd, lpPaint);
+                user32::EndPaint(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1006,7 +993,7 @@ mod wrappers {
             let hbr = <BrushOrColor>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::FillRect_pos,
+                    user32::FillRect_pos,
                     "user32/paint",
                     "FillRect",
                     &[("hDC", &hDC), ("lprc", &lprc), ("hbr", &hbr)],
@@ -1016,7 +1003,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::FillRect(&mut *(sys.machine() as *mut Machine), hDC, lprc, hbr);
+                user32::FillRect(&mut *(sys.machine() as *mut crate::Machine), hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1030,7 +1017,7 @@ mod wrappers {
             let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::FindWindowA_pos,
+                    user32::FindWindowA_pos,
                     "user32/window",
                     "FindWindowA",
                     &[
@@ -1042,8 +1029,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FindWindowA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::FindWindowA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpClassName,
                 lpWindowName,
             );
@@ -1061,7 +1048,7 @@ mod wrappers {
             let hbr = <HBRUSH>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::FrameRect_pos,
+                    user32::FrameRect_pos,
                     "user32/paint",
                     "FrameRect",
                     &[("hDC", &hDC), ("lprc", &lprc), ("hbr", &hbr)],
@@ -1070,7 +1057,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FrameRect(sys, hDC, lprc, hbr);
+            let result = user32::FrameRect(sys, hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1082,7 +1069,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetActiveWindow_pos,
+                    user32::GetActiveWindow_pos,
                     "user32/window",
                     "GetActiveWindow",
                     &[],
@@ -1091,7 +1078,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetActiveWindow(&mut *(sys.machine() as *mut Machine));
+            let result = user32::GetActiveWindow(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1102,17 +1089,12 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
-                trace::Record::new(
-                    winapi::user32::GetCapture_pos,
-                    "user32/window",
-                    "GetCapture",
-                    &[],
-                )
-                .enter()
+                trace::Record::new(user32::GetCapture_pos, "user32/window", "GetCapture", &[])
+                    .enter()
             } else {
                 None
             };
-            let result = winapi::user32::GetCapture(&mut *(sys.machine() as *mut Machine));
+            let result = user32::GetCapture(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1126,7 +1108,7 @@ mod wrappers {
             let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::GetClassLongA_pos,
+                    user32::GetClassLongA_pos,
                     "user32/wndclass",
                     "GetClassLongA",
                     &[("hWnd", &hWnd), ("nIndex", &nIndex)],
@@ -1136,7 +1118,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::GetClassLongA(&mut *(sys.machine() as *mut Machine), hWnd, nIndex);
+                user32::GetClassLongA(&mut *(sys.machine() as *mut crate::Machine), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1150,7 +1132,7 @@ mod wrappers {
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetClientRect_pos,
+                    user32::GetClientRect_pos,
                     "user32/window",
                     "GetClientRect",
                     &[("hWnd", &hWnd), ("lpRect", &lpRect)],
@@ -1160,7 +1142,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::GetClientRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
+                user32::GetClientRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1173,7 +1155,7 @@ mod wrappers {
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetCursorPos_pos,
+                    user32::GetCursorPos_pos,
                     "user32/misc",
                     "GetCursorPos",
                     &[("lpPoint", &lpPoint)],
@@ -1182,7 +1164,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetCursorPos(sys, lpPoint);
+            let result = user32::GetCursorPos(sys, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1195,7 +1177,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetDC_pos,
+                    user32::GetDC_pos,
                     "user32/window",
                     "GetDC",
                     &[("hWnd", &hWnd)],
@@ -1204,7 +1186,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDC(&mut *(sys.machine() as *mut Machine), hWnd);
+            let result = user32::GetDC(&mut *(sys.machine() as *mut crate::Machine), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1216,7 +1198,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetDesktopWindow_pos,
+                    user32::GetDesktopWindow_pos,
                     "user32/window",
                     "GetDesktopWindow",
                     &[],
@@ -1225,7 +1207,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDesktopWindow(sys);
+            let result = user32::GetDesktopWindow(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1239,7 +1221,7 @@ mod wrappers {
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::GetDlgItem_pos,
+                    user32::GetDlgItem_pos,
                     "user32/dialog",
                     "GetDlgItem",
                     &[("hDlg", &hDlg), ("nIDDlgItem", &nIDDlgItem)],
@@ -1248,7 +1230,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItem(sys, hDlg, nIDDlgItem);
+            let result = user32::GetDlgItem(sys, hDlg, nIDDlgItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1264,7 +1246,7 @@ mod wrappers {
             let bSigned = <bool>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::GetDlgItemInt_pos,
+                    user32::GetDlgItemInt_pos,
                     "user32/dialog",
                     "GetDlgItemInt",
                     &[
@@ -1278,8 +1260,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::GetDlgItemInt(sys, hDlg, nIDDlgItem, lpTranslated, bSigned);
+            let result = user32::GetDlgItemInt(sys, hDlg, nIDDlgItem, lpTranslated, bSigned);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1294,7 +1275,7 @@ mod wrappers {
             let lpString = <ArrayOut<u16>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::GetDlgItemTextW_pos,
+                    user32::GetDlgItemTextW_pos,
                     "user32/dialog",
                     "GetDlgItemTextW",
                     &[
@@ -1307,7 +1288,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
+            let result = user32::GetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1318,17 +1299,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
-                trace::Record::new(
-                    winapi::user32::GetFocus_pos,
-                    "user32/window",
-                    "GetFocus",
-                    &[],
-                )
-                .enter()
+                trace::Record::new(user32::GetFocus_pos, "user32/window", "GetFocus", &[]).enter()
             } else {
                 None
             };
-            let result = winapi::user32::GetFocus(&mut *(sys.machine() as *mut Machine));
+            let result = user32::GetFocus(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1340,7 +1315,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetForegroundWindow_pos,
+                    user32::GetForegroundWindow_pos,
                     "user32/window",
                     "GetForegroundWindow",
                     &[],
@@ -1349,7 +1324,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetForegroundWindow(&mut *(sys.machine() as *mut Machine));
+            let result = user32::GetForegroundWindow(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1362,7 +1337,7 @@ mod wrappers {
             let nVirtKey = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetKeyState_pos,
+                    user32::GetKeyState_pos,
                     "user32/misc",
                     "GetKeyState",
                     &[("nVirtKey", &nVirtKey)],
@@ -1371,7 +1346,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyState(sys, nVirtKey);
+            let result = user32::GetKeyState(sys, nVirtKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1384,7 +1359,7 @@ mod wrappers {
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetKeyboardLayout_pos,
+                    user32::GetKeyboardLayout_pos,
                     "user32/misc",
                     "GetKeyboardLayout",
                     &[("idThread", &idThread)],
@@ -1393,7 +1368,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayout(sys, idThread);
+            let result = user32::GetKeyboardLayout(sys, idThread);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1407,7 +1382,7 @@ mod wrappers {
             let lpList = <Option<&mut HKL>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetKeyboardLayoutList_pos,
+                    user32::GetKeyboardLayoutList_pos,
                     "user32/misc",
                     "GetKeyboardLayoutList",
                     &[("nBuff", &nBuff), ("lpList", &lpList)],
@@ -1416,7 +1391,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayoutList(sys, nBuff, lpList);
+            let result = user32::GetKeyboardLayoutList(sys, nBuff, lpList);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1429,7 +1404,7 @@ mod wrappers {
             let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetKeyboardState_pos,
+                    user32::GetKeyboardState_pos,
                     "user32/misc",
                     "GetKeyboardState",
                     &[("lpKeyState", &lpKeyState)],
@@ -1438,7 +1413,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardState(sys, lpKeyState);
+            let result = user32::GetKeyboardState(sys, lpKeyState);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1451,7 +1426,7 @@ mod wrappers {
             let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetKeyboardType_pos,
+                    user32::GetKeyboardType_pos,
                     "user32/misc",
                     "GetKeyboardType",
                     &[("nTypeFlag", &nTypeFlag)],
@@ -1460,7 +1435,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardType(sys, nTypeFlag);
+            let result = user32::GetKeyboardType(sys, nTypeFlag);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1472,7 +1447,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetLastActivePopup_pos,
+                    user32::GetLastActivePopup_pos,
                     "user32/window",
                     "GetLastActivePopup",
                     &[],
@@ -1481,7 +1456,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetLastActivePopup(&mut *(sys.machine() as *mut Machine));
+            let result = user32::GetLastActivePopup(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1494,7 +1469,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::GetMenu_pos,
+                    user32::GetMenu_pos,
                     "user32/menu",
                     "GetMenu",
                     &[("hWnd", &hWnd)],
@@ -1503,7 +1478,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMenu(sys, hWnd);
+            let result = user32::GetMenu(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1519,7 +1494,7 @@ mod wrappers {
             let lprcItem = <Option<&mut RECT>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::GetMenuItemRect_pos,
+                    user32::GetMenuItemRect_pos,
                     "user32/menu",
                     "GetMenuItemRect",
                     &[
@@ -1533,7 +1508,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMenuItemRect(sys, hWnd, hMenu, uItem, lprcItem);
+            let result = user32::GetMenuItemRect(sys, hWnd, hMenu, uItem, lprcItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1552,7 +1527,7 @@ mod wrappers {
             let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::GetMessageA_pos,
+                    user32::GetMessageA_pos,
                     "user32/message",
                     "GetMessageA",
                     &[
@@ -1566,12 +1541,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
-                    winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax)
-                        .await;
+                    user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -1591,7 +1565,7 @@ mod wrappers {
             let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::GetMessageW_pos,
+                    user32::GetMessageW_pos,
                     "user32/message",
                     "GetMessageW",
                     &[
@@ -1605,12 +1579,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
-                    winapi::user32::GetMessageW(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax)
-                        .await;
+                    user32::GetMessageW(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -1625,7 +1598,7 @@ mod wrappers {
             let lpmi = <Option<&mut MONITORINFO>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetMonitorInfoA_pos,
+                    user32::GetMonitorInfoA_pos,
                     "user32/misc",
                     "GetMonitorInfoA",
                     &[("hMonitor", &hMonitor), ("lpmi", &lpmi)],
@@ -1634,7 +1607,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMonitorInfoA(sys, hMonitor, lpmi);
+            let result = user32::GetMonitorInfoA(sys, hMonitor, lpmi);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1646,7 +1619,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetProcessWindowStation_pos,
+                    user32::GetProcessWindowStation_pos,
                     "user32/misc",
                     "GetProcessWindowStation",
                     &[],
@@ -1655,7 +1628,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetProcessWindowStation(sys);
+            let result = user32::GetProcessWindowStation(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1668,7 +1641,7 @@ mod wrappers {
             let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::GetQueueStatus_pos,
+                    user32::GetQueueStatus_pos,
                     "user32/message",
                     "GetQueueStatus",
                     &[("flags", &flags)],
@@ -1677,7 +1650,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetQueueStatus(sys, flags);
+            let result = user32::GetQueueStatus(sys, flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1691,7 +1664,7 @@ mod wrappers {
             let nPos = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::GetSubMenu_pos,
+                    user32::GetSubMenu_pos,
                     "user32/menu",
                     "GetSubMenu",
                     &[("hMenu", &hMenu), ("nPos", &nPos)],
@@ -1700,7 +1673,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSubMenu(sys, hMenu, nPos);
+            let result = user32::GetSubMenu(sys, hMenu, nPos);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1713,7 +1686,7 @@ mod wrappers {
             let nIndex = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetSysColor_pos,
+                    user32::GetSysColor_pos,
                     "user32/misc",
                     "GetSysColor",
                     &[("nIndex", &nIndex)],
@@ -1722,7 +1695,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSysColor(sys, nIndex);
+            let result = user32::GetSysColor(sys, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1736,7 +1709,7 @@ mod wrappers {
             let bRevert = <bool>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::GetSystemMenu_pos,
+                    user32::GetSystemMenu_pos,
                     "user32/menu",
                     "GetSystemMenu",
                     &[("hWnd", &hWnd), ("bRevert", &bRevert)],
@@ -1745,7 +1718,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMenu(sys, hWnd, bRevert);
+            let result = user32::GetSystemMenu(sys, hWnd, bRevert);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1758,7 +1731,7 @@ mod wrappers {
             let nIndex = <Result<SM, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetSystemMetrics_pos,
+                    user32::GetSystemMetrics_pos,
                     "user32/misc",
                     "GetSystemMetrics",
                     &[("nIndex", &nIndex)],
@@ -1767,7 +1740,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMetrics(sys, nIndex);
+            let result = user32::GetSystemMetrics(sys, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1782,7 +1755,7 @@ mod wrappers {
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::GetUpdateRect_pos,
+                    user32::GetUpdateRect_pos,
                     "user32/paint",
                     "GetUpdateRect",
                     &[("hWnd", &hWnd), ("lpRect", &lpRect), ("bErase", &bErase)],
@@ -1791,8 +1764,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetUpdateRect(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::GetUpdateRect(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 lpRect,
                 bErase,
@@ -1813,7 +1786,7 @@ mod wrappers {
             let lpnLengthNeeded = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::GetUserObjectInformationW_pos,
+                    user32::GetUserObjectInformationW_pos,
                     "user32/misc",
                     "GetUserObjectInformationW",
                     &[
@@ -1828,7 +1801,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetUserObjectInformationW(
+            let result = user32::GetUserObjectInformationW(
                 sys,
                 hObj,
                 nIndex,
@@ -1848,7 +1821,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetWindowDC_pos,
+                    user32::GetWindowDC_pos,
                     "user32/window",
                     "GetWindowDC",
                     &[("hWnd", &hWnd)],
@@ -1857,7 +1830,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowDC(sys, hWnd);
+            let result = user32::GetWindowDC(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1871,7 +1844,7 @@ mod wrappers {
             let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetWindowLongA_pos,
+                    user32::GetWindowLongA_pos,
                     "user32/window",
                     "GetWindowLongA",
                     &[("hWnd", &hWnd), ("nIndex", &nIndex)],
@@ -1881,7 +1854,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::GetWindowLongA(&mut *(sys.machine() as *mut Machine), hWnd, nIndex);
+                user32::GetWindowLongA(&mut *(sys.machine() as *mut crate::Machine), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1895,7 +1868,7 @@ mod wrappers {
             let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetWindowPlacement_pos,
+                    user32::GetWindowPlacement_pos,
                     "user32/window",
                     "GetWindowPlacement",
                     &[("hWnd", &hWnd), ("lpwndpl", &lpwndpl)],
@@ -1904,8 +1877,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowPlacement(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::GetWindowPlacement(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 lpwndpl,
             );
@@ -1922,7 +1895,7 @@ mod wrappers {
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::GetWindowRect_pos,
+                    user32::GetWindowRect_pos,
                     "user32/window",
                     "GetWindowRect",
                     &[("hWnd", &hWnd), ("lpRect", &lpRect)],
@@ -1932,7 +1905,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::GetWindowRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
+                user32::GetWindowRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1947,7 +1920,7 @@ mod wrappers {
             let dy = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::InflateRect_pos,
+                    user32::InflateRect_pos,
                     "user32/rect",
                     "InflateRect",
                     &[("lprc", &lprc), ("dx", &dx), ("dy", &dy)],
@@ -1956,7 +1929,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InflateRect(sys, lprc, dx, dy);
+            let result = user32::InflateRect(sys, lprc, dx, dy);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1971,7 +1944,7 @@ mod wrappers {
             let lprcSrc2 = <Option<&RECT>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::IntersectRect_pos,
+                    user32::IntersectRect_pos,
                     "user32/rect",
                     "IntersectRect",
                     &[
@@ -1984,7 +1957,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IntersectRect(sys, lprcDst, lprcSrc1, lprcSrc2);
+            let result = user32::IntersectRect(sys, lprcDst, lprcSrc1, lprcSrc2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1999,7 +1972,7 @@ mod wrappers {
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::InvalidateRect_pos,
+                    user32::InvalidateRect_pos,
                     "user32/paint",
                     "InvalidateRect",
                     &[("hWnd", &hWnd), ("lpRect", &lpRect), ("bErase", &bErase)],
@@ -2008,8 +1981,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRect(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::InvalidateRect(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 lpRect,
                 bErase,
@@ -2028,7 +2001,7 @@ mod wrappers {
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::InvalidateRgn_pos,
+                    user32::InvalidateRgn_pos,
                     "user32/paint",
                     "InvalidateRgn",
                     &[("hWnd", &hWnd), ("hRgn", &hRgn), ("bErase", &bErase)],
@@ -2037,8 +2010,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRgn(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::InvalidateRgn(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 hRgn,
                 bErase,
@@ -2056,7 +2029,7 @@ mod wrappers {
             let lpr = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::InvertRect_pos,
+                    user32::InvertRect_pos,
                     "user32/paint",
                     "InvertRect",
                     &[("hDC", &hDC), ("lpr", &lpr)],
@@ -2065,7 +2038,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvertRect(sys, hDC, lpr);
+            let result = user32::InvertRect(sys, hDC, lpr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2079,7 +2052,7 @@ mod wrappers {
             let nIDButton = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::IsDlgButtonChecked_pos,
+                    user32::IsDlgButtonChecked_pos,
                     "user32/dialog",
                     "IsDlgButtonChecked",
                     &[("hDlg", &hDlg), ("nIDButton", &nIDButton)],
@@ -2088,7 +2061,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsDlgButtonChecked(sys, hDlg, nIDButton);
+            let result = user32::IsDlgButtonChecked(sys, hDlg, nIDButton);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2101,7 +2074,7 @@ mod wrappers {
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::IsIconic_pos,
+                    user32::IsIconic_pos,
                     "user32/misc",
                     "IsIconic",
                     &[("hwnd", &hwnd)],
@@ -2110,7 +2083,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsIconic(sys, hwnd);
+            let result = user32::IsIconic(sys, hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2123,7 +2096,7 @@ mod wrappers {
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::IsRectEmpty_pos,
+                    user32::IsRectEmpty_pos,
                     "user32/rect",
                     "IsRectEmpty",
                     &[("lprc", &lprc)],
@@ -2132,7 +2105,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsRectEmpty(sys, lprc);
+            let result = user32::IsRectEmpty(sys, lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2145,7 +2118,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::IsWindow_pos,
+                    user32::IsWindow_pos,
                     "user32/window",
                     "IsWindow",
                     &[("hWnd", &hWnd)],
@@ -2154,7 +2127,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindow(sys, hWnd);
+            let result = user32::IsWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2167,7 +2140,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::IsWindowVisible_pos,
+                    user32::IsWindowVisible_pos,
                     "user32/window",
                     "IsWindowVisible",
                     &[("hWnd", &hWnd)],
@@ -2176,7 +2149,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindowVisible(sys, hWnd);
+            let result = user32::IsWindowVisible(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2190,7 +2163,7 @@ mod wrappers {
             let uIDEvent = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/timer") {
                 trace::Record::new(
-                    winapi::user32::KillTimer_pos,
+                    user32::KillTimer_pos,
                     "user32/timer",
                     "KillTimer",
                     &[("hWnd", &hWnd), ("uIDEvent", &uIDEvent)],
@@ -2200,7 +2173,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::KillTimer(&mut *(sys.machine() as *mut Machine), hWnd, uIDEvent);
+                user32::KillTimer(&mut *(sys.machine() as *mut crate::Machine), hWnd, uIDEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2214,7 +2187,7 @@ mod wrappers {
             let lpTableName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadAcceleratorsW_pos,
+                    user32::LoadAcceleratorsW_pos,
                     "user32/resource",
                     "LoadAcceleratorsW",
                     &[("hInstance", &hInstance), ("lpTableName", &lpTableName)],
@@ -2223,7 +2196,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadAcceleratorsW(sys, hInstance, lpTableName);
+            let result = user32::LoadAcceleratorsW(sys, hInstance, lpTableName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2237,7 +2210,7 @@ mod wrappers {
             let lpBitmapName = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadBitmapA_pos,
+                    user32::LoadBitmapA_pos,
                     "user32/resource",
                     "LoadBitmapA",
                     &[("hInstance", &hInstance), ("lpBitmapName", &lpBitmapName)],
@@ -2246,8 +2219,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadBitmapA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::LoadBitmapA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hInstance,
                 lpBitmapName,
             );
@@ -2264,7 +2237,7 @@ mod wrappers {
             let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadCursorA_pos,
+                    user32::LoadCursorA_pos,
                     "user32/resource",
                     "LoadCursorA",
                     &[("hInstance", &hInstance), ("lpCursorName", &lpCursorName)],
@@ -2273,7 +2246,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorA(sys, hInstance, lpCursorName);
+            let result = user32::LoadCursorA(sys, hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2287,7 +2260,7 @@ mod wrappers {
             let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadCursorW_pos,
+                    user32::LoadCursorW_pos,
                     "user32/resource",
                     "LoadCursorW",
                     &[("hInstance", &hInstance), ("lpCursorName", &lpCursorName)],
@@ -2296,7 +2269,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorW(sys, hInstance, lpCursorName);
+            let result = user32::LoadCursorW(sys, hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2310,7 +2283,7 @@ mod wrappers {
             let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadIconA_pos,
+                    user32::LoadIconA_pos,
                     "user32/resource",
                     "LoadIconA",
                     &[("hInstance", &hInstance), ("lpIconName", &lpIconName)],
@@ -2319,7 +2292,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconA(sys, hInstance, lpIconName);
+            let result = user32::LoadIconA(sys, hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2333,7 +2306,7 @@ mod wrappers {
             let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadIconW_pos,
+                    user32::LoadIconW_pos,
                     "user32/resource",
                     "LoadIconW",
                     &[("hInstance", &hInstance), ("lpIconName", &lpIconName)],
@@ -2342,7 +2315,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconW(sys, hInstance, lpIconName);
+            let result = user32::LoadIconW(sys, hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2360,7 +2333,7 @@ mod wrappers {
             let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadImageA_pos,
+                    user32::LoadImageA_pos,
                     "user32/resource",
                     "LoadImageA",
                     &[
@@ -2376,8 +2349,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadImageA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::LoadImageA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hInstance,
                 name,
                 typ,
@@ -2402,7 +2375,7 @@ mod wrappers {
             let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadImageW_pos,
+                    user32::LoadImageW_pos,
                     "user32/resource",
                     "LoadImageW",
                     &[
@@ -2418,8 +2391,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadImageW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::LoadImageW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hInstance,
                 name,
                 typ,
@@ -2440,7 +2413,7 @@ mod wrappers {
             let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::LoadMenuA_pos,
+                    user32::LoadMenuA_pos,
                     "user32/menu",
                     "LoadMenuA",
                     &[("hInstance", &hInstance), ("lpMenuName", &lpMenuName)],
@@ -2449,7 +2422,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuA(sys, hInstance, lpMenuName);
+            let result = user32::LoadMenuA(sys, hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2463,7 +2436,7 @@ mod wrappers {
             let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadMenuW_pos,
+                    user32::LoadMenuW_pos,
                     "user32/resource",
                     "LoadMenuW",
                     &[("hInstance", &hInstance), ("lpMenuName", &lpMenuName)],
@@ -2472,7 +2445,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuW(sys, hInstance, lpMenuName);
+            let result = user32::LoadMenuW(sys, hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2488,7 +2461,7 @@ mod wrappers {
             let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadStringA_pos,
+                    user32::LoadStringA_pos,
                     "user32/resource",
                     "LoadStringA",
                     &[
@@ -2502,8 +2475,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadStringA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::LoadStringA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hInstance,
                 uID,
                 lpBuffer,
@@ -2524,7 +2497,7 @@ mod wrappers {
             let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::LoadStringW_pos,
+                    user32::LoadStringW_pos,
                     "user32/resource",
                     "LoadStringW",
                     &[
@@ -2538,8 +2511,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadStringW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::LoadStringW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hInstance,
                 uID,
                 lpBuffer,
@@ -2559,7 +2532,7 @@ mod wrappers {
             let lpPoints = <Array<POINT>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::MapWindowPoints_pos,
+                    user32::MapWindowPoints_pos,
                     "user32/window",
                     "MapWindowPoints",
                     &[
@@ -2572,7 +2545,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MapWindowPoints(sys, hWndFrom, hWndTo, lpPoints);
+            let result = user32::MapWindowPoints(sys, hWndFrom, hWndTo, lpPoints);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2588,7 +2561,7 @@ mod wrappers {
             let uType = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::MessageBoxA_pos,
+                    user32::MessageBoxA_pos,
                     "user32/dialog",
                     "MessageBoxA",
                     &[
@@ -2602,7 +2575,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxA(sys, hWnd, lpText, lpCaption, uType);
+            let result = user32::MessageBoxA(sys, hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2618,7 +2591,7 @@ mod wrappers {
             let uType = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::MessageBoxW_pos,
+                    user32::MessageBoxW_pos,
                     "user32/dialog",
                     "MessageBoxW",
                     &[
@@ -2632,7 +2605,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxW(sys, hWnd, lpText, lpCaption, uType);
+            let result = user32::MessageBoxW(sys, hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2650,7 +2623,7 @@ mod wrappers {
             let bRepaint = <bool>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::MoveWindow_pos,
+                    user32::MoveWindow_pos,
                     "user32/window",
                     "MoveWindow",
                     &[
@@ -2666,8 +2639,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MoveWindow(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::MoveWindow(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 X,
                 Y,
@@ -2694,7 +2667,7 @@ mod wrappers {
             let dwWakeMask = <Result<QS, u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::MsgWaitForMultipleObjects_pos,
+                    user32::MsgWaitForMultipleObjects_pos,
                     "user32/message",
                     "MsgWaitForMultipleObjects",
                     &[
@@ -2709,10 +2682,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::MsgWaitForMultipleObjects(
+                let result = user32::MsgWaitForMultipleObjects(
                     machine,
                     nCount,
                     pHandles,
@@ -2735,7 +2708,7 @@ mod wrappers {
             let pDst = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::OemToCharA_pos,
+                    user32::OemToCharA_pos,
                     "user32/misc",
                     "OemToCharA",
                     &[("pSrc", &pSrc), ("pDst", &pDst)],
@@ -2744,7 +2717,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::OemToCharA(sys, pSrc, pDst);
+            let result = user32::OemToCharA(sys, pSrc, pDst);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2761,7 +2734,7 @@ mod wrappers {
             let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PeekMessageA_pos,
+                    user32::PeekMessageA_pos,
                     "user32/message",
                     "PeekMessageA",
                     &[
@@ -2776,8 +2749,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PeekMessageA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::PeekMessageA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2800,7 +2773,7 @@ mod wrappers {
             let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PeekMessageW_pos,
+                    user32::PeekMessageW_pos,
                     "user32/message",
                     "PeekMessageW",
                     &[
@@ -2815,8 +2788,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PeekMessageW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::PeekMessageW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2838,7 +2811,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PostMessageA_pos,
+                    user32::PostMessageA_pos,
                     "user32/message",
                     "PostMessageA",
                     &[
@@ -2852,8 +2825,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::PostMessageA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 Msg,
                 wParam,
@@ -2874,7 +2847,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PostMessageW_pos,
+                    user32::PostMessageW_pos,
                     "user32/message",
                     "PostMessageW",
                     &[
@@ -2888,8 +2861,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::PostMessageW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 Msg,
                 wParam,
@@ -2907,7 +2880,7 @@ mod wrappers {
             let nExitCode = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PostQuitMessage_pos,
+                    user32::PostQuitMessage_pos,
                     "user32/message",
                     "PostQuitMessage",
                     &[("nExitCode", &nExitCode)],
@@ -2917,7 +2890,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::PostQuitMessage(&mut *(sys.machine() as *mut Machine), nExitCode);
+                user32::PostQuitMessage(&mut *(sys.machine() as *mut crate::Machine), nExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2933,7 +2906,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::PostThreadMessageA_pos,
+                    user32::PostThreadMessageA_pos,
                     "user32/message",
                     "PostThreadMessageA",
                     &[
@@ -2947,8 +2920,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostThreadMessageA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::PostThreadMessageA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 idThread,
                 Msg,
                 wParam,
@@ -2967,7 +2940,7 @@ mod wrappers {
             let pt = <POINT>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::PtInRect_pos,
+                    user32::PtInRect_pos,
                     "user32/rect",
                     "PtInRect",
                     &[("lprc", &lprc), ("pt", &pt)],
@@ -2976,7 +2949,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PtInRect(sys, lprc, pt);
+            let result = user32::PtInRect(sys, lprc, pt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2995,7 +2968,7 @@ mod wrappers {
             let flags = <Result<RDW, u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::RedrawWindow_pos,
+                    user32::RedrawWindow_pos,
                     "user32/window",
                     "RedrawWindow",
                     &[
@@ -3009,12 +2982,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
-                    winapi::user32::RedrawWindow(machine, hWnd, lprcUpdate, hrgnUpdate, flags)
-                        .await;
+                    user32::RedrawWindow(machine, hWnd, lprcUpdate, hrgnUpdate, flags).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3028,7 +3000,7 @@ mod wrappers {
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::RegisterClassA_pos,
+                    user32::RegisterClassA_pos,
                     "user32/wndclass",
                     "RegisterClassA",
                     &[("lpWndClass", &lpWndClass)],
@@ -3038,7 +3010,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::RegisterClassA(&mut *(sys.machine() as *mut Machine), lpWndClass);
+                user32::RegisterClassA(&mut *(sys.machine() as *mut crate::Machine), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3051,7 +3023,7 @@ mod wrappers {
             let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::RegisterClassExA_pos,
+                    user32::RegisterClassExA_pos,
                     "user32/wndclass",
                     "RegisterClassExA",
                     &[("lpWndClassEx", &lpWndClassEx)],
@@ -3060,8 +3032,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::RegisterClassExA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpWndClassEx,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -3076,7 +3048,7 @@ mod wrappers {
             let lpWndClassEx = <Option<&WNDCLASSEXW>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::RegisterClassExW_pos,
+                    user32::RegisterClassExW_pos,
                     "user32/wndclass",
                     "RegisterClassExW",
                     &[("lpWndClassEx", &lpWndClassEx)],
@@ -3085,8 +3057,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::RegisterClassExW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpWndClassEx,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -3101,7 +3073,7 @@ mod wrappers {
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::RegisterClassW_pos,
+                    user32::RegisterClassW_pos,
                     "user32/wndclass",
                     "RegisterClassW",
                     &[("lpWndClass", &lpWndClass)],
@@ -3111,7 +3083,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::RegisterClassW(&mut *(sys.machine() as *mut Machine), lpWndClass);
+                user32::RegisterClassW(&mut *(sys.machine() as *mut crate::Machine), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3124,7 +3096,7 @@ mod wrappers {
             let lpszFormat = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::RegisterClipboardFormatA_pos,
+                    user32::RegisterClipboardFormatA_pos,
                     "user32/misc",
                     "RegisterClipboardFormatA",
                     &[("lpszFormat", &lpszFormat)],
@@ -3133,7 +3105,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClipboardFormatA(sys, lpszFormat);
+            let result = user32::RegisterClipboardFormatA(sys, lpszFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3146,7 +3118,7 @@ mod wrappers {
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::RegisterWindowMessageA_pos,
+                    user32::RegisterWindowMessageA_pos,
                     "user32/window",
                     "RegisterWindowMessageA",
                     &[("lpString", &lpString)],
@@ -3155,8 +3127,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::RegisterWindowMessageA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpString,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -3171,7 +3143,7 @@ mod wrappers {
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::RegisterWindowMessageW_pos,
+                    user32::RegisterWindowMessageW_pos,
                     "user32/window",
                     "RegisterWindowMessageW",
                     &[("lpString", &lpString)],
@@ -3180,8 +3152,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageW(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::RegisterWindowMessageW(
+                &mut *(sys.machine() as *mut crate::Machine),
                 lpString,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -3195,7 +3167,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::ReleaseCapture_pos,
+                    user32::ReleaseCapture_pos,
                     "user32/window",
                     "ReleaseCapture",
                     &[],
@@ -3204,7 +3176,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ReleaseCapture(sys);
+            let result = user32::ReleaseCapture(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3218,7 +3190,7 @@ mod wrappers {
             let hdc = <HDC>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::ReleaseDC_pos,
+                    user32::ReleaseDC_pos,
                     "user32/window",
                     "ReleaseDC",
                     &[("hwnd", &hwnd), ("hdc", &hdc)],
@@ -3227,8 +3199,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::ReleaseDC(&mut *(sys.machine() as *mut Machine), hwnd, hdc);
+            let result = user32::ReleaseDC(&mut *(sys.machine() as *mut crate::Machine), hwnd, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3245,7 +3216,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::SendDlgItemMessageA_pos,
+                    user32::SendDlgItemMessageA_pos,
                     "user32/message",
                     "SendDlgItemMessageA",
                     &[
@@ -3260,8 +3231,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SendDlgItemMessageA(sys, hDlg, nIDDlgItem, Msg, wParam, lParam);
+            let result = user32::SendDlgItemMessageA(sys, hDlg, nIDDlgItem, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3280,7 +3250,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::SendMessageA_pos,
+                    user32::SendMessageA_pos,
                     "user32/message",
                     "SendMessageA",
                     &[
@@ -3294,10 +3264,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
+                let result = user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3317,7 +3287,7 @@ mod wrappers {
             let lParam = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::SendMessageW_pos,
+                    user32::SendMessageW_pos,
                     "user32/message",
                     "SendMessageW",
                     &[
@@ -3331,10 +3301,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::SendMessageW(machine, hWnd, Msg, wParam, lParam).await;
+                let result = user32::SendMessageW(machine, hWnd, Msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3348,7 +3318,7 @@ mod wrappers {
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetCapture_pos,
+                    user32::SetCapture_pos,
                     "user32/window",
                     "SetCapture",
                     &[("hwnd", &hwnd)],
@@ -3357,7 +3327,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCapture(sys, hwnd);
+            let result = user32::SetCapture(sys, hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3372,7 +3342,7 @@ mod wrappers {
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::SetClassLongA_pos,
+                    user32::SetClassLongA_pos,
                     "user32/wndclass",
                     "SetClassLongA",
                     &[
@@ -3385,8 +3355,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetClassLongA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::SetClassLongA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 nIndex,
                 dwNewLong,
@@ -3403,7 +3373,7 @@ mod wrappers {
             let hCursor = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::SetCursor_pos,
+                    user32::SetCursor_pos,
                     "user32/resource",
                     "SetCursor",
                     &[("hCursor", &hCursor)],
@@ -3412,7 +3382,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursor(sys, hCursor);
+            let result = user32::SetCursor(sys, hCursor);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3426,7 +3396,7 @@ mod wrappers {
             let y = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::SetCursorPos_pos,
+                    user32::SetCursorPos_pos,
                     "user32/misc",
                     "SetCursorPos",
                     &[("x", &x), ("y", &y)],
@@ -3435,7 +3405,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursorPos(sys, x, y);
+            let result = user32::SetCursorPos(sys, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3451,7 +3421,7 @@ mod wrappers {
             let _bSigned = <bool>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::SetDlgItemInt_pos,
+                    user32::SetDlgItemInt_pos,
                     "user32/dialog",
                     "SetDlgItemInt",
                     &[
@@ -3465,7 +3435,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemInt(sys, hDlg, nIDDlgItem, uValue, _bSigned);
+            let result = user32::SetDlgItemInt(sys, hDlg, nIDDlgItem, uValue, _bSigned);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3480,7 +3450,7 @@ mod wrappers {
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::SetDlgItemTextA_pos,
+                    user32::SetDlgItemTextA_pos,
                     "user32/dialog",
                     "SetDlgItemTextA",
                     &[
@@ -3493,7 +3463,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextA(sys, hDlg, nIDDlgItem, lpString);
+            let result = user32::SetDlgItemTextA(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3508,7 +3478,7 @@ mod wrappers {
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/dialog") {
                 trace::Record::new(
-                    winapi::user32::SetDlgItemTextW_pos,
+                    user32::SetDlgItemTextW_pos,
                     "user32/dialog",
                     "SetDlgItemTextW",
                     &[
@@ -3521,7 +3491,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
+            let result = user32::SetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3537,7 +3507,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetFocus_pos,
+                    user32::SetFocus_pos,
                     "user32/window",
                     "SetFocus",
                     &[("hWnd", &hWnd)],
@@ -3546,10 +3516,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::SetFocus(machine, hWnd).await;
+                let result = user32::SetFocus(machine, hWnd).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3563,7 +3533,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetForegroundWindow_pos,
+                    user32::SetForegroundWindow_pos,
                     "user32/window",
                     "SetForegroundWindow",
                     &[("hWnd", &hWnd)],
@@ -3572,7 +3542,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetForegroundWindow(sys, hWnd);
+            let result = user32::SetForegroundWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3586,7 +3556,7 @@ mod wrappers {
             let hMenu = <HMENU>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::SetMenu_pos,
+                    user32::SetMenu_pos,
                     "user32/menu",
                     "SetMenu",
                     &[("hWnd", &hWnd), ("hMenu", &hMenu)],
@@ -3595,7 +3565,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetMenu(sys, hWnd, hMenu);
+            let result = user32::SetMenu(sys, hWnd, hMenu);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3611,7 +3581,7 @@ mod wrappers {
             let lpmii = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/menu") {
                 trace::Record::new(
-                    winapi::user32::SetMenuItemInfoA_pos,
+                    user32::SetMenuItemInfoA_pos,
                     "user32/menu",
                     "SetMenuItemInfoA",
                     &[
@@ -3625,7 +3595,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetMenuItemInfoA(sys, hMenu, item, fByPosition, lpmii);
+            let result = user32::SetMenuItemInfoA(sys, hMenu, item, fByPosition, lpmii);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3642,7 +3612,7 @@ mod wrappers {
             let yBottom = <i32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::SetRect_pos,
+                    user32::SetRect_pos,
                     "user32/rect",
                     "SetRect",
                     &[
@@ -3657,7 +3627,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRect(sys, lprc, xLeft, yTop, xRight, yBottom);
+            let result = user32::SetRect(sys, lprc, xLeft, yTop, xRight, yBottom);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3670,7 +3640,7 @@ mod wrappers {
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/rect") {
                 trace::Record::new(
-                    winapi::user32::SetRectEmpty_pos,
+                    user32::SetRectEmpty_pos,
                     "user32/rect",
                     "SetRectEmpty",
                     &[("lprc", &lprc)],
@@ -3679,7 +3649,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRectEmpty(sys, lprc);
+            let result = user32::SetRectEmpty(sys, lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3695,7 +3665,7 @@ mod wrappers {
             let lpTimerFunc = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/timer") {
                 trace::Record::new(
-                    winapi::user32::SetTimer_pos,
+                    user32::SetTimer_pos,
                     "user32/timer",
                     "SetTimer",
                     &[
@@ -3709,8 +3679,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetTimer(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::SetTimer(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 nIDEvent,
                 uElapse,
@@ -3730,7 +3700,7 @@ mod wrappers {
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetWindowLongA_pos,
+                    user32::SetWindowLongA_pos,
                     "user32/window",
                     "SetWindowLongA",
                     &[
@@ -3743,8 +3713,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowLongA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::SetWindowLongA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 nIndex,
                 dwNewLong,
@@ -3770,7 +3740,7 @@ mod wrappers {
             let uFlags = <Result<SWP, u32>>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetWindowPos_pos,
+                    user32::SetWindowPos_pos,
                     "user32/window",
                     "SetWindowPos",
                     &[
@@ -3787,20 +3757,12 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::SetWindowPos(
-                    machine,
-                    hWnd,
-                    hWndInsertAfter,
-                    X,
-                    Y,
-                    cx,
-                    cy,
-                    uFlags,
-                )
-                .await;
+                let result =
+                    user32::SetWindowPos(machine, hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags)
+                        .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3815,7 +3777,7 @@ mod wrappers {
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::SetWindowTextA_pos,
+                    user32::SetWindowTextA_pos,
                     "user32/window",
                     "SetWindowTextA",
                     &[("hWnd", &hWnd), ("lpString", &lpString)],
@@ -3824,8 +3786,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowTextA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = user32::SetWindowTextA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hWnd,
                 lpString,
             );
@@ -3844,7 +3806,7 @@ mod wrappers {
             let dwThreadId = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::SetWindowsHookExA_pos,
+                    user32::SetWindowsHookExA_pos,
                     "user32/misc",
                     "SetWindowsHookExA",
                     &[
@@ -3858,7 +3820,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowsHookExA(sys, idHook, lpfn, hmod, dwThreadId);
+            let result = user32::SetWindowsHookExA(sys, idHook, lpfn, hmod, dwThreadId);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3871,7 +3833,7 @@ mod wrappers {
             let bShow = <bool>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/resource") {
                 trace::Record::new(
-                    winapi::user32::ShowCursor_pos,
+                    user32::ShowCursor_pos,
                     "user32/resource",
                     "ShowCursor",
                     &[("bShow", &bShow)],
@@ -3880,7 +3842,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ShowCursor(sys, bShow);
+            let result = user32::ShowCursor(sys, bShow);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3897,7 +3859,7 @@ mod wrappers {
             let nCmdShow = <Result<SW, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::ShowWindow_pos,
+                    user32::ShowWindow_pos,
                     "user32/window",
                     "ShowWindow",
                     &[("hWnd", &hWnd), ("nCmdShow", &nCmdShow)],
@@ -3906,10 +3868,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
+                let result = user32::ShowWindow(machine, hWnd, nCmdShow).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3926,7 +3888,7 @@ mod wrappers {
             let fWinIni = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::SystemParametersInfoA_pos,
+                    user32::SystemParametersInfoA_pos,
                     "user32/misc",
                     "SystemParametersInfoA",
                     &[
@@ -3940,8 +3902,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SystemParametersInfoA(sys, uiAction, uiParam, pvParam, fWinIni);
+            let result = user32::SystemParametersInfoA(sys, uiAction, uiParam, pvParam, fWinIni);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3954,7 +3915,7 @@ mod wrappers {
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::TrackMouseEvent_pos,
+                    user32::TrackMouseEvent_pos,
                     "user32/misc",
                     "TrackMouseEvent",
                     &[("lpEventTrack", &lpEventTrack)],
@@ -3963,7 +3924,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TrackMouseEvent(sys, lpEventTrack);
+            let result = user32::TrackMouseEvent(sys, lpEventTrack);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3978,7 +3939,7 @@ mod wrappers {
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::TranslateAcceleratorW_pos,
+                    user32::TranslateAcceleratorW_pos,
                     "user32/message",
                     "TranslateAcceleratorW",
                     &[
@@ -3991,7 +3952,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TranslateAcceleratorW(sys, hWnd, hAccTable, lpMsg);
+            let result = user32::TranslateAcceleratorW(sys, hWnd, hAccTable, lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4004,7 +3965,7 @@ mod wrappers {
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::TranslateMessage_pos,
+                    user32::TranslateMessage_pos,
                     "user32/message",
                     "TranslateMessage",
                     &[("lpMsg", &lpMsg)],
@@ -4013,7 +3974,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TranslateMessage(sys, lpMsg);
+            let result = user32::TranslateMessage(sys, lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4027,7 +3988,7 @@ mod wrappers {
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
-                    winapi::user32::UnregisterClassA_pos,
+                    user32::UnregisterClassA_pos,
                     "user32/wndclass",
                     "UnregisterClassA",
                     &[("lpClassName", &lpClassName), ("hInstance", &hInstance)],
@@ -4036,7 +3997,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::UnregisterClassA(sys, lpClassName, hInstance);
+            let result = user32::UnregisterClassA(sys, lpClassName, hInstance);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4052,7 +4013,7 @@ mod wrappers {
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
-                    winapi::user32::UpdateWindow_pos,
+                    user32::UpdateWindow_pos,
                     "user32/window",
                     "UpdateWindow",
                     &[("hWnd", &hWnd)],
@@ -4061,10 +4022,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::UpdateWindow(machine, hWnd).await;
+                let result = user32::UpdateWindow(machine, hWnd).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4079,7 +4040,7 @@ mod wrappers {
             let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/paint") {
                 trace::Record::new(
-                    winapi::user32::ValidateRect_pos,
+                    user32::ValidateRect_pos,
                     "user32/paint",
                     "ValidateRect",
                     &[("hWnd", &hWnd), ("lpRect", &lpRect)],
@@ -4089,7 +4050,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::ValidateRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
+                user32::ValidateRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4104,7 +4065,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/message") {
                 trace::Record::new(
-                    winapi::user32::WaitMessage_pos,
+                    user32::WaitMessage_pos,
                     "user32/message",
                     "WaitMessage",
                     &[],
@@ -4113,10 +4074,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine() as *mut _;
+            let machine: *mut crate::Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::user32::WaitMessage(machine).await;
+                let result = user32::WaitMessage(machine).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4133,7 +4094,7 @@ mod wrappers {
             let dwData = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::WinHelpW_pos,
+                    user32::WinHelpW_pos,
                     "user32/misc",
                     "WinHelpW",
                     &[
@@ -4147,7 +4108,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::WinHelpW(sys, hWndMain, lpszHelp, uCommand, dwData);
+            let result = user32::WinHelpW(sys, hWndMain, lpszHelp, uCommand, dwData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4163,7 +4124,7 @@ mod wrappers {
             let dwExtraInfo = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::keybd_event_pos,
+                    user32::keybd_event_pos,
                     "user32/misc",
                     "keybd_event",
                     &[
@@ -4177,7 +4138,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::keybd_event(sys, bVk, bScan, dwFlags, dwExtraInfo);
+            let result = user32::keybd_event(sys, bVk, bScan, dwFlags, dwExtraInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4192,7 +4153,7 @@ mod wrappers {
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::wsprintfA_pos,
+                    user32::wsprintfA_pos,
                     "user32/misc",
                     "wsprintfA",
                     &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
@@ -4202,7 +4163,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::wsprintfA(&mut *(sys.machine() as *mut Machine), buf, fmt, args);
+                user32::wsprintfA(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4217,7 +4178,7 @@ mod wrappers {
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/misc") {
                 trace::Record::new(
-                    winapi::user32::wsprintfW_pos,
+                    user32::wsprintfW_pos,
                     "user32/misc",
                     "wsprintfW",
                     &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
@@ -4227,7 +4188,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::wsprintfW(&mut *(sys.machine() as *mut Machine), buf, fmt, args);
+                user32::wsprintfW(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

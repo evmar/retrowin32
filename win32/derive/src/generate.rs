@@ -18,8 +18,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         None => format!("{}", base_name),                     // "LoadLibrary"
     };
     let impls_mod = match dllexport.vtable {
-        Some(vtable) => quote!(#module::#vtable), // winapi::ddraw::IDirectDraw
-        None => quote!(#module),                  // winapi::kernel32
+        Some(vtable) => quote!(#module::#vtable), // ddraw::IDirectDraw
+        None => module,                           // kernel32
     };
     let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
@@ -43,7 +43,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     let self_arg = if dllexport.sys_arg {
         quote!(sys)
     } else {
-        quote!(&mut *(sys.machine() as *mut Machine))
+        quote!(&mut *(sys.machine() as *mut crate::Machine))
     };
 
     let args = dllexport
@@ -93,7 +93,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
                 unsafe {
                     #fetch_args
-                    let machine: *mut Machine = sys.machine() as *mut _;
+                    let machine: *mut crate::Machine = sys.machine() as *mut _;
                     Box::pin(async move {
                         let machine = &mut *machine;
                         let result = #impls_mod::#base_name(machine, #(#args),*).await;
@@ -131,7 +131,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
     let mut wrappers = Vec::new();
     let mut shims = Vec::new();
     for dllexport in &dllexports.fns {
-        let (wrapper, shim) = fn_wrapper(quote!(winapi::#module), dllexport);
+        let (wrapper, shim) = fn_wrapper(quote!(#module), dllexport);
         wrappers.push(wrapper);
         shims.push(shim);
     }
@@ -147,10 +147,10 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
         use win32_system::dll::*;
 
         mod wrappers {
+            use crate::winapi::#module::{self, *};
             use ::memory::Extensions;
-            use crate::{System, calling_convention::*, machine::Machine, winapi::{self, *}};
-            use win32_system::trace;
-            use winapi::#module::*;  // for types
+            use win32_system::{System, trace};
+            use win32_winapi::{*, calling_convention::*};
             #(#wrappers)*
         }
 

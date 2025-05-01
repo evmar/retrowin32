@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::gdi32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::gdi32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn BitBlt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -26,7 +21,7 @@ mod wrappers {
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 32u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::BitBlt_pos,
+                    gdi32::BitBlt_pos,
                     "gdi32/bitmap",
                     "BitBlt",
                     &[
@@ -45,8 +40,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::BitBlt(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::BitBlt(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdcDst,
                 xDst,
                 yDst,
@@ -73,7 +68,7 @@ mod wrappers {
             let lpBits = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::CreateBitmap_pos,
+                    gdi32::CreateBitmap_pos,
                     "gdi32/bitmap",
                     "CreateBitmap",
                     &[
@@ -88,8 +83,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateBitmap(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::CreateBitmap(
+                &mut *(sys.machine() as *mut crate::Machine),
                 nWidth,
                 nHeight,
                 nPlanes,
@@ -110,7 +105,7 @@ mod wrappers {
             let cy = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::CreateCompatibleBitmap_pos,
+                    gdi32::CreateCompatibleBitmap_pos,
                     "gdi32/bitmap",
                     "CreateCompatibleBitmap",
                     &[("hdc", &hdc), ("cx", &cx), ("cy", &cy)],
@@ -119,8 +114,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateCompatibleBitmap(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::CreateCompatibleBitmap(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdc,
                 cx,
                 cy,
@@ -137,7 +132,7 @@ mod wrappers {
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::CreateCompatibleDC_pos,
+                    gdi32::CreateCompatibleDC_pos,
                     "gdi32/dc",
                     "CreateCompatibleDC",
                     &[("hdc", &hdc)],
@@ -147,7 +142,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::gdi32::CreateCompatibleDC(&mut *(sys.machine() as *mut Machine), hdc);
+                gdi32::CreateCompatibleDC(&mut *(sys.machine() as *mut crate::Machine), hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -165,7 +160,7 @@ mod wrappers {
             let offset = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::CreateDIBSection_pos,
+                    gdi32::CreateDIBSection_pos,
                     "gdi32/bitmap",
                     "CreateDIBSection",
                     &[
@@ -181,8 +176,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateDIBSection(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::CreateDIBSection(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdc,
                 pbmi,
                 usage,
@@ -207,7 +202,7 @@ mod wrappers {
             let iUsage = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::CreateDIBitmap_pos,
+                    gdi32::CreateDIBitmap_pos,
                     "gdi32/bitmap",
                     "CreateDIBitmap",
                     &[
@@ -223,8 +218,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::CreateDIBitmap(sys, hdc, pbmih, flInit, pjBits, pbmi, iUsage);
+            let result = gdi32::CreateDIBitmap(sys, hdc, pbmih, flInit, pjBits, pbmi, iUsage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -250,7 +244,7 @@ mod wrappers {
             let pszFaceName = <Option<&str>>::from_stack(mem, stack_args + 52u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::CreateFontA_pos,
+                    gdi32::CreateFontA_pos,
                     "gdi32/text",
                     "CreateFontA",
                     &[
@@ -274,7 +268,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateFontA(
+            let result = gdi32::CreateFontA(
                 sys,
                 cHeight,
                 cWidth,
@@ -303,7 +297,7 @@ mod wrappers {
             let plpal = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::CreatePalette_pos,
+                    gdi32::CreatePalette_pos,
                     "gdi32/palette",
                     "CreatePalette",
                     &[("plpal", &plpal)],
@@ -312,7 +306,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreatePalette(&mut *(sys.machine() as *mut Machine), plpal);
+            let result = gdi32::CreatePalette(&mut *(sys.machine() as *mut crate::Machine), plpal);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -327,7 +321,7 @@ mod wrappers {
             let color = <COLORREF>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::CreatePen_pos,
+                    gdi32::CreatePen_pos,
                     "gdi32/draw",
                     "CreatePen",
                     &[("iStyle", &iStyle), ("cWidth", &cWidth), ("color", &color)],
@@ -336,8 +330,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreatePen(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::CreatePen(
+                &mut *(sys.machine() as *mut crate::Machine),
                 iStyle,
                 cWidth,
                 color,
@@ -354,7 +348,7 @@ mod wrappers {
             let color = <COLORREF>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::CreateSolidBrush_pos,
+                    gdi32::CreateSolidBrush_pos,
                     "gdi32/draw",
                     "CreateSolidBrush",
                     &[("color", &color)],
@@ -364,7 +358,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::gdi32::CreateSolidBrush(&mut *(sys.machine() as *mut Machine), color);
+                gdi32::CreateSolidBrush(&mut *(sys.machine() as *mut crate::Machine), color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -377,7 +371,7 @@ mod wrappers {
             let hdc = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::DeleteDC_pos,
+                    gdi32::DeleteDC_pos,
                     "gdi32/dc",
                     "DeleteDC",
                     &[("hdc", &hdc)],
@@ -386,7 +380,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::DeleteDC(sys, hdc);
+            let result = gdi32::DeleteDC(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -399,7 +393,7 @@ mod wrappers {
             let handle = <HGDIOBJ>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/object") {
                 trace::Record::new(
-                    winapi::gdi32::DeleteObject_pos,
+                    gdi32::DeleteObject_pos,
                     "gdi32/object",
                     "DeleteObject",
                     &[("handle", &handle)],
@@ -408,7 +402,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::DeleteObject(sys, handle);
+            let result = gdi32::DeleteObject(sys, handle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -425,7 +419,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::EnumFontFamiliesExA_pos,
+                    gdi32::EnumFontFamiliesExA_pos,
                     "gdi32/text",
                     "EnumFontFamiliesExA",
                     &[
@@ -440,8 +434,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::EnumFontFamiliesExA(sys, hdc, lpLogfont, lpProc, lParam, dwFlags);
+            let result = gdi32::EnumFontFamiliesExA(sys, hdc, lpLogfont, lpProc, lParam, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -455,7 +448,7 @@ mod wrappers {
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::GetDCOrgEx_pos,
+                    gdi32::GetDCOrgEx_pos,
                     "gdi32/dc",
                     "GetDCOrgEx",
                     &[("hdc", &hdc), ("lpPoint", &lpPoint)],
@@ -465,7 +458,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::gdi32::GetDCOrgEx(&mut *(sys.machine() as *mut Machine), hdc, lpPoint);
+                gdi32::GetDCOrgEx(&mut *(sys.machine() as *mut crate::Machine), hdc, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -484,7 +477,7 @@ mod wrappers {
             let usage = <u32>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::GetDIBits_pos,
+                    gdi32::GetDIBits_pos,
                     "gdi32/bitmap",
                     "GetDIBits",
                     &[
@@ -501,8 +494,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::GetDIBits(sys, hdc, hbm, start, cLines, lpvBits, lpbmi, usage);
+            let result = gdi32::GetDIBits(sys, hdc, hbm, start, cLines, lpvBits, lpbmi, usage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -516,7 +508,7 @@ mod wrappers {
             let index = <Result<GetDeviceCapsArg, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::GetDeviceCaps_pos,
+                    gdi32::GetDeviceCaps_pos,
                     "gdi32/dc",
                     "GetDeviceCaps",
                     &[("hdc", &hdc), ("index", &index)],
@@ -525,7 +517,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetDeviceCaps(sys, hdc, index);
+            let result = gdi32::GetDeviceCaps(sys, hdc, index);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -538,7 +530,7 @@ mod wrappers {
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::GetLayout_pos,
+                    gdi32::GetLayout_pos,
                     "gdi32/dc",
                     "GetLayout",
                     &[("hdc", &hdc)],
@@ -547,7 +539,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetLayout(sys, hdc);
+            let result = gdi32::GetLayout(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -562,7 +554,7 @@ mod wrappers {
             let out = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/object") {
                 trace::Record::new(
-                    winapi::gdi32::GetObjectA_pos,
+                    gdi32::GetObjectA_pos,
                     "gdi32/object",
                     "GetObjectA",
                     &[("handle", &handle), ("bytes", &bytes), ("out", &out)],
@@ -571,8 +563,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetObjectA(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::GetObjectA(
+                &mut *(sys.machine() as *mut crate::Machine),
                 handle,
                 bytes,
                 out,
@@ -592,7 +584,7 @@ mod wrappers {
             let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::GetPaletteEntries_pos,
+                    gdi32::GetPaletteEntries_pos,
                     "gdi32/palette",
                     "GetPaletteEntries",
                     &[
@@ -606,7 +598,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
+            let result = gdi32::GetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -621,7 +613,7 @@ mod wrappers {
             let y = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::GetPixel_pos,
+                    gdi32::GetPixel_pos,
                     "gdi32/draw",
                     "GetPixel",
                     &[("hdc", &hdc), ("x", &x), ("y", &y)],
@@ -630,7 +622,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetPixel(&mut *(sys.machine() as *mut Machine), hdc, x, y);
+            let result = gdi32::GetPixel(&mut *(sys.machine() as *mut crate::Machine), hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -643,7 +635,7 @@ mod wrappers {
             let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/object") {
                 trace::Record::new(
-                    winapi::gdi32::GetStockObject_pos,
+                    gdi32::GetStockObject_pos,
                     "gdi32/object",
                     "GetStockObject",
                     &[("i", &i)],
@@ -652,7 +644,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetStockObject(&mut *(sys.machine() as *mut Machine), i);
+            let result = gdi32::GetStockObject(&mut *(sys.machine() as *mut crate::Machine), i);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -668,7 +660,7 @@ mod wrappers {
             let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::GetSystemPaletteEntries_pos,
+                    gdi32::GetSystemPaletteEntries_pos,
                     "gdi32/palette",
                     "GetSystemPaletteEntries",
                     &[
@@ -682,8 +674,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::GetSystemPaletteEntries(sys, hdc, iStart, cEntries, pPalEntries);
+            let result = gdi32::GetSystemPaletteEntries(sys, hdc, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -699,7 +690,7 @@ mod wrappers {
             let psizl = <Option<&mut SIZE>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::GetTextExtentPoint32A_pos,
+                    gdi32::GetTextExtentPoint32A_pos,
                     "gdi32/text",
                     "GetTextExtentPoint32A",
                     &[
@@ -713,7 +704,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextExtentPoint32A(sys, hdc, lpString, c, psizl);
+            let result = gdi32::GetTextExtentPoint32A(sys, hdc, lpString, c, psizl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -729,7 +720,7 @@ mod wrappers {
             let psizl = <Option<&mut SIZE>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::GetTextExtentPoint32W_pos,
+                    gdi32::GetTextExtentPoint32W_pos,
                     "gdi32/text",
                     "GetTextExtentPoint32W",
                     &[
@@ -743,7 +734,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextExtentPoint32W(sys, hdc, lpString, c, psizl);
+            let result = gdi32::GetTextExtentPoint32W(sys, hdc, lpString, c, psizl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -757,7 +748,7 @@ mod wrappers {
             let lptm = <Option<&mut TEXTMETRICA>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::GetTextMetricsA_pos,
+                    gdi32::GetTextMetricsA_pos,
                     "gdi32/text",
                     "GetTextMetricsA",
                     &[("hdc", &hdc), ("lptm", &lptm)],
@@ -766,7 +757,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextMetricsA(sys, hdc, lptm);
+            let result = gdi32::GetTextMetricsA(sys, hdc, lptm);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -780,7 +771,7 @@ mod wrappers {
             let lptm = <Option<&mut TEXTMETRICW>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::GetTextMetricsW_pos,
+                    gdi32::GetTextMetricsW_pos,
                     "gdi32/text",
                     "GetTextMetricsW",
                     &[("hdc", &hdc), ("lptm", &lptm)],
@@ -789,7 +780,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextMetricsW(sys, hdc, lptm);
+            let result = gdi32::GetTextMetricsW(sys, hdc, lptm);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -807,7 +798,7 @@ mod wrappers {
             let data = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::LineDDA_pos,
+                    gdi32::LineDDA_pos,
                     "gdi32/draw",
                     "LineDDA",
                     &[
@@ -823,7 +814,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::LineDDA(sys, xStart, yStart, xEnd, yEnd, lpProc, data);
+            let result = gdi32::LineDDA(sys, xStart, yStart, xEnd, yEnd, lpProc, data);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -838,7 +829,7 @@ mod wrappers {
             let y = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::LineTo_pos,
+                    gdi32::LineTo_pos,
                     "gdi32/draw",
                     "LineTo",
                     &[("hdc", &hdc), ("x", &x), ("y", &y)],
@@ -847,7 +838,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::LineTo(&mut *(sys.machine() as *mut Machine), hdc, x, y);
+            let result = gdi32::LineTo(&mut *(sys.machine() as *mut crate::Machine), hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -863,7 +854,7 @@ mod wrappers {
             let lppt = <Option<&mut POINT>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::MoveToEx_pos,
+                    gdi32::MoveToEx_pos,
                     "gdi32/draw",
                     "MoveToEx",
                     &[("hdc", &hdc), ("x", &x), ("y", &y), ("lppt", &lppt)],
@@ -872,8 +863,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::MoveToEx(&mut *(sys.machine() as *mut Machine), hdc, x, y, lppt);
+            let result = gdi32::MoveToEx(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hdc,
+                x,
+                y,
+                lppt,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -891,7 +887,7 @@ mod wrappers {
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::PatBlt_pos,
+                    gdi32::PatBlt_pos,
                     "gdi32/bitmap",
                     "PatBlt",
                     &[
@@ -907,8 +903,15 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::PatBlt(&mut *(sys.machine() as *mut Machine), hdc, x, y, w, h, rop);
+            let result = gdi32::PatBlt(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hdc,
+                x,
+                y,
+                w,
+                h,
+                rop,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -923,7 +926,7 @@ mod wrappers {
             let y = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::PtVisible_pos,
+                    gdi32::PtVisible_pos,
                     "gdi32/draw",
                     "PtVisible",
                     &[("hdc", &hdc), ("x", &x), ("y", &y)],
@@ -932,7 +935,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::PtVisible(sys, hdc, x, y);
+            let result = gdi32::PtVisible(sys, hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -945,7 +948,7 @@ mod wrappers {
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::RealizePalette_pos,
+                    gdi32::RealizePalette_pos,
                     "gdi32/palette",
                     "RealizePalette",
                     &[("hdc", &hdc)],
@@ -954,7 +957,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::RealizePalette(sys, hdc);
+            let result = gdi32::RealizePalette(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -968,7 +971,7 @@ mod wrappers {
             let hGdiObj = <HGDIOBJ>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/object") {
                 trace::Record::new(
-                    winapi::gdi32::SelectObject_pos,
+                    gdi32::SelectObject_pos,
                     "gdi32/object",
                     "SelectObject",
                     &[("hdc", &hdc), ("hGdiObj", &hGdiObj)],
@@ -978,7 +981,7 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::gdi32::SelectObject(&mut *(sys.machine() as *mut Machine), hdc, hGdiObj);
+                gdi32::SelectObject(&mut *(sys.machine() as *mut crate::Machine), hdc, hGdiObj);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -993,7 +996,7 @@ mod wrappers {
             let bForceBkgd = <bool>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::SelectPalette_pos,
+                    gdi32::SelectPalette_pos,
                     "gdi32/palette",
                     "SelectPalette",
                     &[("hdc", &hdc), ("hPal", &hPal), ("bForceBkgd", &bForceBkgd)],
@@ -1002,7 +1005,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SelectPalette(sys, hdc, hPal, bForceBkgd);
+            let result = gdi32::SelectPalette(sys, hdc, hPal, bForceBkgd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1016,7 +1019,7 @@ mod wrappers {
             let color = <COLORREF>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::SetBkColor_pos,
+                    gdi32::SetBkColor_pos,
                     "gdi32/draw",
                     "SetBkColor",
                     &[("hdc", &hdc), ("color", &color)],
@@ -1025,7 +1028,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBkColor(sys, hdc, color);
+            let result = gdi32::SetBkColor(sys, hdc, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1039,7 +1042,7 @@ mod wrappers {
             let mode = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::SetBkMode_pos,
+                    gdi32::SetBkMode_pos,
                     "gdi32/draw",
                     "SetBkMode",
                     &[("hdc", &hdc), ("mode", &mode)],
@@ -1048,7 +1051,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBkMode(sys, hdc, mode);
+            let result = gdi32::SetBkMode(sys, hdc, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1064,7 +1067,7 @@ mod wrappers {
             let lppt = <Option<&mut POINT>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::SetBrushOrgEx_pos,
+                    gdi32::SetBrushOrgEx_pos,
                     "gdi32/draw",
                     "SetBrushOrgEx",
                     &[("hdc", &hdc), ("x", &x), ("y", &y), ("lppt", &lppt)],
@@ -1073,8 +1076,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBrushOrgEx(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::SetBrushOrgEx(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdc,
                 x,
                 y,
@@ -1103,7 +1106,7 @@ mod wrappers {
             let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::SetDIBitsToDevice_pos,
+                    gdi32::SetDIBitsToDevice_pos,
                     "gdi32/bitmap",
                     "SetDIBitsToDevice",
                     &[
@@ -1125,8 +1128,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetDIBitsToDevice(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::SetDIBitsToDevice(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdc,
                 xDst,
                 yDst,
@@ -1153,7 +1156,7 @@ mod wrappers {
             let l = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/dc") {
                 trace::Record::new(
-                    winapi::gdi32::SetLayout_pos,
+                    gdi32::SetLayout_pos,
                     "gdi32/dc",
                     "SetLayout",
                     &[("hdc", &hdc), ("l", &l)],
@@ -1162,7 +1165,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetLayout(sys, hdc, l);
+            let result = gdi32::SetLayout(sys, hdc, l);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1178,7 +1181,7 @@ mod wrappers {
             let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/palette") {
                 trace::Record::new(
-                    winapi::gdi32::SetPaletteEntries_pos,
+                    gdi32::SetPaletteEntries_pos,
                     "gdi32/palette",
                     "SetPaletteEntries",
                     &[
@@ -1192,7 +1195,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
+            let result = gdi32::SetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1208,7 +1211,7 @@ mod wrappers {
             let color = <COLORREF>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::SetPixel_pos,
+                    gdi32::SetPixel_pos,
                     "gdi32/draw",
                     "SetPixel",
                     &[("hdc", &hdc), ("x", &x), ("y", &y), ("color", &color)],
@@ -1217,8 +1220,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::SetPixel(&mut *(sys.machine() as *mut Machine), hdc, x, y, color);
+            let result = gdi32::SetPixel(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hdc,
+                x,
+                y,
+                color,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1232,7 +1240,7 @@ mod wrappers {
             let rop2 = <Result<R2, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/draw") {
                 trace::Record::new(
-                    winapi::gdi32::SetROP2_pos,
+                    gdi32::SetROP2_pos,
                     "gdi32/draw",
                     "SetROP2",
                     &[("hdc", &hdc), ("rop2", &rop2)],
@@ -1241,7 +1249,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetROP2(&mut *(sys.machine() as *mut Machine), hdc, rop2);
+            let result = gdi32::SetROP2(&mut *(sys.machine() as *mut crate::Machine), hdc, rop2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1255,7 +1263,7 @@ mod wrappers {
             let fMode = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::SetTextAlign_pos,
+                    gdi32::SetTextAlign_pos,
                     "gdi32/text",
                     "SetTextAlign",
                     &[("hdc", &hdc), ("fMode", &fMode)],
@@ -1264,7 +1272,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetTextAlign(sys, hdc, fMode);
+            let result = gdi32::SetTextAlign(sys, hdc, fMode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1278,7 +1286,7 @@ mod wrappers {
             let color = <COLORREF>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::SetTextColor_pos,
+                    gdi32::SetTextColor_pos,
                     "gdi32/text",
                     "SetTextColor",
                     &[("hdc", &hdc), ("color", &color)],
@@ -1287,7 +1295,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetTextColor(sys, hdc, color);
+            let result = gdi32::SetTextColor(sys, hdc, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1310,7 +1318,7 @@ mod wrappers {
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 40u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::StretchBlt_pos,
+                    gdi32::StretchBlt_pos,
                     "gdi32/bitmap",
                     "StretchBlt",
                     &[
@@ -1331,8 +1339,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::StretchBlt(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::StretchBlt(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdcDst,
                 xDst,
                 yDst,
@@ -1369,7 +1377,7 @@ mod wrappers {
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 48u32);
             let __trace_record = if trace::enabled("gdi32/bitmap") {
                 trace::Record::new(
-                    winapi::gdi32::StretchDIBits_pos,
+                    gdi32::StretchDIBits_pos,
                     "gdi32/bitmap",
                     "StretchDIBits",
                     &[
@@ -1392,8 +1400,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::StretchDIBits(
-                &mut *(sys.machine() as *mut Machine),
+            let result = gdi32::StretchDIBits(
+                &mut *(sys.machine() as *mut crate::Machine),
                 hdc,
                 xDst,
                 yDst,
@@ -1423,7 +1431,7 @@ mod wrappers {
             let lpString = <Array<u8>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::TextOutA_pos,
+                    gdi32::TextOutA_pos,
                     "gdi32/text",
                     "TextOutA",
                     &[("hdc", &hdc), ("x", &x), ("y", &y), ("lpString", &lpString)],
@@ -1432,7 +1440,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::TextOutA(sys, hdc, x, y, lpString);
+            let result = gdi32::TextOutA(sys, hdc, x, y, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1448,7 +1456,7 @@ mod wrappers {
             let lpString = <Array<u16>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("gdi32/text") {
                 trace::Record::new(
-                    winapi::gdi32::TextOutW_pos,
+                    gdi32::TextOutW_pos,
                     "gdi32/text",
                     "TextOutW",
                     &[("hdc", &hdc), ("x", &x), ("y", &y), ("lpString", &lpString)],
@@ -1457,7 +1465,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::TextOutW(sys, hdc, x, y, lpString);
+            let result = gdi32::TextOutW(sys, hdc, x, y, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

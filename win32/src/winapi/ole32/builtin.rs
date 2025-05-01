@@ -3,15 +3,10 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::{
-        System,
-        calling_convention::*,
-        machine::Machine,
-        winapi::{self, *},
-    };
+    use crate::winapi::ole32::{self, *};
     use ::memory::Extensions;
-    use win32_system::trace;
-    use winapi::ole32::*;
+    use win32_system::{System, trace};
+    use win32_winapi::{calling_convention::*, *};
     pub unsafe fn CoCreateInstance(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -22,7 +17,7 @@ mod wrappers {
             let ppv = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("ole32") {
                 trace::Record::new(
-                    winapi::ole32::CoCreateInstance_pos,
+                    ole32::CoCreateInstance_pos,
                     "ole32",
                     "CoCreateInstance",
                     &[
@@ -37,8 +32,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ole32::CoCreateInstance(sys, rclsid, pUnkOuter, dwClsContext, riid, ppv);
+            let result = ole32::CoCreateInstance(sys, rclsid, pUnkOuter, dwClsContext, riid, ppv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -51,7 +45,7 @@ mod wrappers {
             let pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ole32") {
                 trace::Record::new(
-                    winapi::ole32::CoInitialize_pos,
+                    ole32::CoInitialize_pos,
                     "ole32",
                     "CoInitialize",
                     &[("pvReserved", &pvReserved)],
@@ -60,7 +54,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoInitialize(sys, pvReserved);
+            let result = ole32::CoInitialize(sys, pvReserved);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -74,7 +68,7 @@ mod wrappers {
             let dwCoInit = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ole32") {
                 trace::Record::new(
-                    winapi::ole32::CoInitializeEx_pos,
+                    ole32::CoInitializeEx_pos,
                     "ole32",
                     "CoInitializeEx",
                     &[("pvReserved", &pvReserved), ("dwCoInit", &dwCoInit)],
@@ -83,7 +77,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoInitializeEx(sys, pvReserved, dwCoInit);
+            let result = ole32::CoInitializeEx(sys, pvReserved, dwCoInit);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -94,17 +88,12 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ole32") {
-                trace::Record::new(
-                    winapi::ole32::CoUninitialize_pos,
-                    "ole32",
-                    "CoUninitialize",
-                    &[],
-                )
-                .enter()
+                trace::Record::new(ole32::CoUninitialize_pos, "ole32", "CoUninitialize", &[])
+                    .enter()
             } else {
                 None
             };
-            let result = winapi::ole32::CoUninitialize(sys);
+            let result = ole32::CoUninitialize(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -117,7 +106,7 @@ mod wrappers {
             let _pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ole32") {
                 trace::Record::new(
-                    winapi::ole32::OleInitialize_pos,
+                    ole32::OleInitialize_pos,
                     "ole32",
                     "OleInitialize",
                     &[("pvReserved", &_pvReserved)],
@@ -126,7 +115,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::OleInitialize(sys, _pvReserved);
+            let result = ole32::OleInitialize(sys, _pvReserved);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
