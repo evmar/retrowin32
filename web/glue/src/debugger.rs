@@ -143,8 +143,10 @@ pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
 
             // Attach canvas property to JS object we create from meta.
             let val = JsValue::from_serde(&meta).unwrap();
-            let web_surface =
-                unsafe { &*(s.host.as_ref() as *const dyn win32::Surface as *const WebSurface) };
+            let web_surface = unsafe {
+                &*(s.host.as_ref() as *const dyn win32::host::Surface
+                    as *const crate::host::WebSurface)
+            };
             js_sys::Reflect::set(&val, &"canvas".into(), &web_surface.canvas.clone().into())
                 .unwrap();
 

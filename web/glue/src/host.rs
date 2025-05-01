@@ -2,7 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
-use win32::{Stat, StatKind, WindowsPath};
+use win32::WindowsPath;
 
 /// We create one <canvas> per DirectDraw Surface.  We draw to them by pushing pixels
 /// via putImageData (not hw accelerated) and then use drawImage (likely hw accelerated)
@@ -27,7 +27,7 @@ pub struct WebSurface {
 impl WebSurface {
     pub fn new(
         hwnd: u32,
-        opts: &win32::SurfaceOptions,
+        opts: &win32::host::SurfaceOptions,
         screen: web_sys::CanvasRenderingContext2d,
     ) -> Self {
         let canvas = web_sys::window()
@@ -58,7 +58,7 @@ impl WebSurface {
     }
 }
 
-impl win32::Surface for WebSurface {
+impl win32::host::Surface for WebSurface {
     fn write_pixels(&self, pixels: &[u8]) {
         let image_data = web_sys::ImageData::new_with_u8_clamped_array(
             wasm_bindgen::Clamped(pixels),
@@ -74,11 +74,16 @@ impl win32::Surface for WebSurface {
             .unwrap();
     }
 
-    fn bit_blt(&self, dst_rect: &win32::RECT, src: &dyn win32::Surface, src_rect: &win32::RECT) {
+    fn bit_blt(
+        &self,
+        dst_rect: &win32::RECT,
+        src: &dyn win32::host::Surface,
+        src_rect: &win32::RECT,
+    ) {
         // Hack: we know all surfaces are WebSurface.
         // I think to fix this properly I might need to make every X86 generic across all the
         // host types, eek.
-        let src = unsafe { &*(src as *const dyn win32::Surface as *const WebSurface) };
+        let src = unsafe { &*(src as *const dyn win32::host::Surface as *const WebSurface) };
         self.ctx
             .draw_image_with_html_canvas_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &src.canvas,
@@ -114,7 +119,7 @@ extern "C" {
     fn fullscreen(this: &JsWindow);
 }
 
-impl win32::Window for JsWindow {
+impl win32::host::Window for JsWindow {
     fn set_title(&self, title: &str) {
         JsWindow::set_title(self, title);
     }
@@ -151,10 +156,10 @@ extern "C" {
     fn write(this: &JsFile, buf: &[u8]) -> u32;
 }
 
-impl win32::File for JsFile {
-    fn stat(&self) -> Result<Stat, win32::ERROR> {
-        Ok(Stat {
-            kind: StatKind::File,
+impl win32::host::File for JsFile {
+    fn stat(&self) -> Result<win32::host::Stat, win32::ERROR> {
+        Ok(win32::host::Stat {
+            kind: win32::host::StatKind::File,
             size: JsFile::info(self),
             atime: 0,
             ctime: 0,
@@ -205,13 +210,13 @@ impl std::io::Seek for JsFile {
     }
 }
 
-fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::MouseMessage> {
-    Ok(win32::MouseMessage {
+fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::host::MouseMessage> {
+    Ok(win32::host::MouseMessage {
         down: true,
         button: match event.button() {
-            0 => win32::MouseButton::Left,
-            1 => win32::MouseButton::Middle,
-            2 => win32::MouseButton::Right,
+            0 => win32::host::MouseButton::Left,
+            1 => win32::host::MouseButton::Middle,
+            2 => win32::host::MouseButton::Right,
             _ => bail!("unhandled button"),
         },
         x: event.offset_x() as u32,
@@ -219,7 +224,7 @@ fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::MouseMessa
     })
 }
 
-fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
+fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::host::Message> {
     let hwnd = js_sys::Reflect::get(&event, &JsValue::from_str("hwnd"))
         .unwrap()
         .as_f64()
@@ -229,28 +234,28 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
         "mousedown" => {
             let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
             event.down = true;
-            win32::MessageDetail::Mouse(event)
+            win32::host::MessageDetail::Mouse(event)
         }
         "mousemove" => {
             let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
             event.down = false;
-            event.button = win32::MouseButton::None;
-            win32::MessageDetail::Mouse(event)
+            event.button = win32::host::MouseButton::None;
+            win32::host::MessageDetail::Mouse(event)
         }
         "mouseup" => {
             let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
             event.down = false;
-            win32::MessageDetail::Mouse(event)
+            win32::host::MessageDetail::Mouse(event)
         }
         ty => bail!("unhandled event type {ty}"),
     };
     log::info!("msg: {:?}", detail);
-    Ok(win32::Message { hwnd, detail, time })
+    Ok(win32::host::Message { hwnd, detail, time })
 }
 
 struct ReadDir {}
-impl win32::ReadDir for ReadDir {
-    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, win32::ERROR> {
+impl win32::host::ReadDir for ReadDir {
+    fn next(&mut self) -> Result<Option<win32::host::ReadDirEntry>, win32::ERROR> {
         log::warn!("TODO: ReadDir");
         Ok(None)
     }
@@ -291,7 +296,7 @@ extern "C" {
     fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
-    fn open(this: &JsHost, path: &str, options: win32::FileOptions) -> Option<JsFile>;
+    fn open(this: &JsHost, path: &str, options: win32::host::FileOptions) -> Option<JsFile>;
     #[wasm_bindgen(method)]
     fn stdout(this: &JsHost, buf: &[u8]);
 
@@ -305,23 +310,23 @@ extern "C" {
     fn audio(this: &JsHost, buf: &[i16]);
 }
 
-impl win32::FileSystem for JsHost {
+impl win32::host::FileSystem for JsHost {
     fn open(
         &self,
         path: &WindowsPath,
-        options: win32::FileOptions,
-    ) -> Result<Box<dyn win32::File>, win32::ERROR> {
+        options: win32::host::FileOptions,
+    ) -> Result<Box<dyn win32::host::File>, win32::ERROR> {
         match JsHost::open(self, &path.to_string_lossy(), options) {
             Some(file) => Ok(Box::new(file)),
             None => Err(win32::ERROR::FILE_NOT_FOUND),
         }
     }
 
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, win32::ERROR> {
+    fn stat(&self, path: &WindowsPath) -> Result<win32::host::Stat, win32::ERROR> {
         todo!("stat {path}")
     }
 
-    fn read_dir(&self, _path: &WindowsPath) -> Result<Box<dyn win32::ReadDir>, win32::ERROR> {
+    fn read_dir(&self, _path: &WindowsPath) -> Result<Box<dyn win32::host::ReadDir>, win32::ERROR> {
         Ok(Box::new(ReadDir {}))
     }
 
@@ -342,7 +347,7 @@ impl win32::FileSystem for JsHost {
     }
 }
 
-impl win32::Host for JsHost {
+impl win32::host::Host for JsHost {
     fn ticks(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
@@ -351,7 +356,7 @@ impl win32::Host for JsHost {
         chrono::Local::now()
     }
 
-    fn get_message(&self) -> Option<win32::Message> {
+    fn get_message(&self) -> Option<win32::host::Message> {
         let event = JsHost::get_event(self);
         if event.is_undefined() {
             return None;
@@ -373,7 +378,7 @@ impl win32::Host for JsHost {
         JsHost::stdout(self, buf)
     }
 
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
+    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::host::Window> {
         let window = JsHost::create_window(self, hwnd);
         Box::new(window)
     }
@@ -381,18 +386,22 @@ impl win32::Host for JsHost {
     fn create_surface(
         &mut self,
         hwnd: u32,
-        opts: &win32::SurfaceOptions,
-    ) -> Box<dyn win32::Surface> {
+        opts: &win32::host::SurfaceOptions,
+    ) -> Box<dyn win32::host::Surface> {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
     }
 
-    fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
+    fn init_audio(
+        &mut self,
+        _sample_rate: u32,
+        _callback: win32::host::AudioCallback,
+    ) -> Box<dyn win32::host::Audio> {
         let host: JsHost = self.clone().into();
         Box::new(host)
     }
 }
 
-impl win32::Audio for JsHost {
+impl win32::host::Audio for JsHost {
     fn write(&mut self, _buf: &[u8]) {
         // ignore
     }

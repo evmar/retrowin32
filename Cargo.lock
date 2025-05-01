@@ -729,6 +729,8 @@ dependencies = [
  "memory",
  "pe",
  "serde",
+ "tsify",
+ "wasm-bindgen",
  "win32-derive",
  "win32-winapi",
 ]

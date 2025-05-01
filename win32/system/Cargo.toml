@@ -12,3 +12,7 @@ win32-winapi = { workspace = true }
 
 chrono = "0.4.38"
 serde = { version = "1.0", features = ["derive"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+tsify = { workspace = true }
+wasm-bindgen = { workspace = true }
