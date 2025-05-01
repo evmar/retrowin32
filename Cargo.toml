@@ -19,6 +19,9 @@ members = [
 memory = { path = "memory" }
 pe = { path = "pe" }
 win32 = { path = "win32" }
+win32-derive = { path = "win32/derive" }
+win32-system = { path = "win32/system" }
+win32-winapi = { path = "win32/winapi" }
 x86 = { path = "x86" }
 
 bitflags = { version = "2.9.0", features = ["serde"] }

@@ -7,9 +7,9 @@ edition = "2024"
 log = { workspace = true }
 memory = { workspace = true }
 pe = { workspace = true }
-win32-derive = { path = "derive" }
-win32-system = { path = "system" }
-win32-winapi = { path = "winapi" }
+win32-derive = { workspace = true }
+win32-system = { workspace = true }
+win32-winapi = { workspace = true }
 x86 = { workspace = true, optional = true }
 
 builtin-advapi32 = { path = "dll/advapi32" }

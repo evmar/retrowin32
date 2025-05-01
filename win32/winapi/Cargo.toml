@@ -6,6 +6,6 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 memory = { workspace = true }
+win32-derive = { workspace = true }
 
 typed-path = { version = "0.9.1" }
-win32-derive = { path = "../derive" }

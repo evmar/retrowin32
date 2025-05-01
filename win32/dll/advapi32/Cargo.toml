@@ -5,6 +5,6 @@ edition = "2024"
 
 [dependencies]
 memory = { workspace = true }
-win32-derive = { path = "../../derive" }
-win32-system = { path = "../../system" }
-win32-winapi = { path = "../../winapi" }
+win32-derive = { workspace = true }
+win32-system = { workspace = true }
+win32-winapi = { workspace = true }
