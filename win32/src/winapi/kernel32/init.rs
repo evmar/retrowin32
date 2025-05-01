@@ -13,7 +13,7 @@ use crate::{
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
-use win32_system::{Heap, host, memory::Memory};
+use win32_system::{host, memory::Memory};
 
 #[repr(C)]
 pub struct UNICODE_STRING {
@@ -106,11 +106,6 @@ pub struct State {
     /// Address of PEB (process information exposed to executable).
     pub peb: u32,
 
-    /// The "process heap" is a per-process default heap exposed via GetProcessHeap and used
-    /// by default.
-    /// We also use it for our own random allocations, e.g. buffers allocated by other APIs.
-    pub process_heap: Rc<RefCell<Heap>>,
-
     /// Loaded PE modules: the exe and all DLLs.
     pub modules: HashMap<HMODULE, Module>,
 
@@ -169,7 +164,6 @@ impl State {
             arena,
             image_base: 0,
             peb: 0,
-            process_heap: Rc::new(RefCell::new(Heap::default())),
             modules: dlls,
             objects: Default::default(),
             files: Default::default(),

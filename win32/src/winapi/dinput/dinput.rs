@@ -53,8 +53,7 @@ pub mod IDirectInput {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectInput = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
@@ -126,8 +125,7 @@ pub mod IDirectInputDevice {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectInputDevice = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);

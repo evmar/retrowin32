@@ -298,8 +298,7 @@ fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
         todo!("GMEM_MOVEABLE");
     }
     let addr = machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), dwBytes);
@@ -331,7 +330,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     if uFlags.contains(GMEM::MODIFY) {
         todo!("GMEM_MODIFY");
     }
-    let heap = &mut machine.state.kernel32.process_heap.borrow_mut();
+    let heap = &mut machine.memory.process_heap.borrow_mut();
     let mem = machine.memory.mem();
     let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
@@ -353,8 +352,7 @@ pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
 
 fn free(machine: &mut Machine, hMem: u32) -> u32 {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .free(machine.memory.mem(), hMem);
@@ -395,5 +393,5 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.process_heap.borrow().addr
+    machine.memory.process_heap.borrow().addr
 }

@@ -109,8 +109,7 @@ pub mod IDirectDraw7 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDraw = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
@@ -225,8 +224,7 @@ pub mod IDirectDraw7 {
 
         let mem = machine.memory.mem();
         let desc_addr = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
@@ -237,8 +235,7 @@ pub mod IDirectDraw7 {
             .await;
 
         machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .free(machine.memory.mem(), desc_addr);
@@ -367,8 +364,7 @@ pub mod IDirectDrawSurface7 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDrawSurface7 = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
@@ -402,7 +398,7 @@ pub mod IDirectDrawSurface7 {
             // TODO: obey dst rect
             dst.fill(
                 machine.memory.mem(),
-                &mut machine.state.kernel32.process_heap.borrow_mut(),
+                &mut machine.memory.process_heap.borrow_mut(),
                 fx.dwFillColor,
             );
             return DD::OK;
@@ -523,7 +519,7 @@ pub mod IDirectDrawSurface7 {
         // Ensure surface has backing store, since DC is for drawing on it.
         surf.lock(
             machine.memory.mem(),
-            &mut machine.state.kernel32.process_heap.borrow_mut(),
+            &mut machine.memory.process_heap.borrow_mut(),
         );
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
@@ -599,7 +595,7 @@ pub mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         let pixels = surf.lock(
             machine.memory.mem(),
-            &mut machine.state.kernel32.process_heap.borrow_mut(),
+            &mut machine.memory.process_heap.borrow_mut(),
         );
         // It seems callers (effect, monolife) don't provide flags for what they want,
         // and instead expect all fields to be included.

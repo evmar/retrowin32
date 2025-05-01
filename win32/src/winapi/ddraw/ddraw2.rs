@@ -52,8 +52,7 @@ pub mod IDirectDraw2 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDraw = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
@@ -128,8 +127,7 @@ pub mod IDirectDraw2 {
 
         let mem = machine.memory.mem();
         let desc_addr = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
@@ -140,8 +138,7 @@ pub mod IDirectDraw2 {
             .await;
 
         machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .free(machine.memory.mem(), desc_addr);
@@ -237,8 +234,7 @@ pub mod IDirectDrawSurface2 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDrawSurface = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);

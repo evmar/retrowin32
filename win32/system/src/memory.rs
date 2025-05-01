@@ -168,6 +168,10 @@ pub struct Memory {
     pub labels: HashMap<u32, String>,
 
     pub heaps: HashMap<u32, Rc<RefCell<Heap>>>,
+    /// The "process heap" is a per-process default heap exposed via GetProcessHeap and used
+    /// by default.
+    /// We also use it for our own random allocations, e.g. buffers allocated by other APIs.
+    pub process_heap: Rc<RefCell<Heap>>,
 }
 
 impl Memory {
@@ -177,6 +181,7 @@ impl Memory {
             mappings: Mappings::new(),
             labels: Default::default(),
             heaps: Default::default(),
+            process_heap: Rc::new(RefCell::new(Heap::default())),
         }
     }
 

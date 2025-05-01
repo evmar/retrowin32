@@ -27,8 +27,7 @@ pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
     let len = measure.status().unwrap_err();
 
     let addr = machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), len as u32);
@@ -43,8 +42,7 @@ pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn FreeEnvironmentStringsA(machine: &mut Machine, penv: u32) -> bool {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .free(machine.memory.mem(), penv);
@@ -59,8 +57,7 @@ pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
     let len = measure.status().unwrap_err();
 
     let addr = machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), len as u32);
@@ -75,8 +72,7 @@ pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn FreeEnvironmentStringsW(machine: &mut Machine, penv: u32) -> bool {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .free(machine.memory.mem(), penv);

@@ -65,8 +65,7 @@ pub mod IDirectDrawSurface3 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDrawSurface = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);

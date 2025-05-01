@@ -5,8 +5,7 @@ use crate::Machine;
 #[win32_derive::dllexport(cdecl)]
 pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), size)
@@ -15,8 +14,7 @@ pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
 #[win32_derive::dllexport(cdecl)]
 pub fn calloc(machine: &mut Machine, count: u32, size: u32) -> u32 {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), count * size)
@@ -25,8 +23,7 @@ pub fn calloc(machine: &mut Machine, count: u32, size: u32) -> u32 {
 #[win32_derive::dllexport(cdecl)]
 pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .free(machine.memory.mem(), ptr);
@@ -42,8 +39,7 @@ pub fn memset(machine: &mut Machine, dst: u32, val: u32, len: u32) -> u32 {
 #[win32_derive::dllexport(cdecl, symbol = "??2@YAPAXI@Z")]
 pub fn operator_new(machine: &mut Machine, size: u32) -> u32 {
     machine
-        .state
-        .kernel32
+        .memory
         .process_heap
         .borrow_mut()
         .alloc(machine.memory.mem(), size)

@@ -49,8 +49,7 @@ pub mod IDirectDraw {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDraw = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
@@ -175,8 +174,7 @@ pub mod IDirectDrawSurface {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let lpDirectDrawSurface = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);

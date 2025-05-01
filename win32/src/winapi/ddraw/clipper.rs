@@ -35,8 +35,7 @@ pub mod IDirectDrawClipper {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let clipper = machine
-            .state
-            .kernel32
+            .memory
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
