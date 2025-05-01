@@ -1,6 +1,6 @@
 use crate::{
     Machine, System,
-    winapi::{HWND, com::vtable, ddraw::DD, kernel32::get_symbol},
+    winapi::{HWND, com::vtable, ddraw::DD},
 };
 use memory::ExtensionsMut;
 
@@ -39,7 +39,7 @@ pub mod IDirectDrawClipper {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawClipper");
+        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawClipper");
         machine.mem().put_pod::<u32>(clipper, vtable);
         clipper
     }

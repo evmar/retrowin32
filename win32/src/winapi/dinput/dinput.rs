@@ -1,7 +1,4 @@
-use crate::{
-    Machine, calling_convention,
-    winapi::{com::vtable, kernel32},
-};
+use crate::{Machine, calling_convention, winapi::com::vtable};
 use memory::ExtensionsMut;
 
 pub use crate::winapi::com::GUID;
@@ -57,7 +54,7 @@ pub mod IDirectInput {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = kernel32::get_symbol(machine, "dinput.dll", "IDirectInput");
+        let vtable = crate::loader::get_symbol(machine, "dinput.dll", "IDirectInput");
         machine.mem().put_pod::<u32>(lpDirectInput, vtable);
         lpDirectInput
     }
@@ -129,7 +126,7 @@ pub mod IDirectInputDevice {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = kernel32::get_symbol(machine, "dinput.dll", "IDirectInputDevice");
+        let vtable = crate::loader::get_symbol(machine, "dinput.dll", "IDirectInputDevice");
         machine.mem().put_pod::<u32>(lpDirectInputDevice, vtable);
         lpDirectInputDevice
     }

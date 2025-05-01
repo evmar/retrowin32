@@ -539,3 +539,20 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
         }
     }
 }
+
+pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
+    let res = resolve_dll(machine, dll);
+    let dll_name = res.name();
+
+    let module = machine
+        .state
+        .kernel32
+        .modules
+        .values_mut()
+        .find(|m| m.name == dll_name)
+        .unwrap();
+    module
+        .exports
+        .resolve(&pe::ImportSymbol::Name(name.as_bytes()))
+        .unwrap()
+}

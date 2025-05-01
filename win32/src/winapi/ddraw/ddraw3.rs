@@ -1,9 +1,6 @@
 use crate::{
     Machine, System,
-    winapi::{
-        com::{GUID, vtable},
-        kernel32::get_symbol,
-    },
+    winapi::com::{GUID, vtable},
 };
 use memory::ExtensionsMut;
 
@@ -69,7 +66,7 @@ pub mod IDirectDrawSurface3 {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface3");
+        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface3");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }

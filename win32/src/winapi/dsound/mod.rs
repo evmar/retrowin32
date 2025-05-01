@@ -7,10 +7,7 @@ pub use builtin::DLL;
 use win32_system::Heap;
 
 pub use crate::winapi::com::GUID;
-use crate::{
-    Machine, System,
-    winapi::{com::vtable, kernel32::get_symbol},
-};
+use crate::{Machine, System, winapi::com::vtable};
 use memory::ExtensionsMut;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
@@ -120,7 +117,7 @@ pub mod IDirectSound {
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
         let lpDirectSound = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "dsound.dll", "IDirectSound");
+        let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSound");
         machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
     }
@@ -186,7 +183,7 @@ pub mod IDirectSoundBuffer {
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
         let lpDirectSoundBuffer = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
+        let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
         machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }

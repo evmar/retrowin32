@@ -1,11 +1,7 @@
 use super::{EventObject, KernelObject, peb_mut};
 use crate::{
     Machine, System,
-    winapi::{
-        HANDLE, Str16,
-        arena::Arena,
-        {self},
-    },
+    winapi::{HANDLE, Str16, arena::Arena},
 };
 use memory::{Extensions, Mem};
 use std::{rc::Rc, sync::Arc};
@@ -205,7 +201,7 @@ pub async fn CreateThread(
     lpThreadId: u32,
 ) -> HTHREAD {
     let retrowin32_thread_main =
-        winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_thread_main");
+        crate::loader::get_symbol(machine, "kernel32.dll", "retrowin32_thread_main");
 
     let stack_size = if dwStackSize > 0 {
         dwStackSize

@@ -53,7 +53,7 @@ pub fn timeSetEvent(
     });
 
     let retrowin32_time_thread_main =
-        kernel32::get_symbol(machine, "winmm.dll", "retrowin32_time_thread_main");
+        crate::loader::get_symbol(machine, "winmm.dll", "retrowin32_time_thread_main");
 
     let thread = kernel32::create_thread(machine, 0x1000);
     let cpu = machine.emu.x86.new_cpu();

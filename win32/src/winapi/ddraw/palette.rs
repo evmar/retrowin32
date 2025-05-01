@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use crate::{
     Machine, System,
-    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
+    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY},
 };
 use memory::{Extensions, ExtensionsMut};
 
@@ -31,7 +31,7 @@ pub mod IDirectDrawPalette {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
+        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
         machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
     }

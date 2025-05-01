@@ -11,7 +11,6 @@ use crate::{
             {self},
         },
         gdi32::{DCHandles, PALETTEENTRY},
-        kernel32::get_symbol,
         *,
     },
 };
@@ -113,7 +112,7 @@ pub mod IDirectDraw7 {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw7");
+        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDraw7");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
@@ -368,7 +367,7 @@ pub mod IDirectDrawSurface7 {
             .process_heap
             .borrow_mut()
             .alloc(machine.memory.mem(), 4);
-        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
+        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }

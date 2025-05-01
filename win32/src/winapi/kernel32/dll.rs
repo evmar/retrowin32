@@ -172,27 +172,6 @@ impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
     }
 }
 
-pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
-    let res = loader::resolve_dll(machine, dll);
-    let dll_name = res.name();
-
-    let module = machine
-        .state
-        .kernel32
-        .modules
-        .values_mut()
-        .find(|m| m.name == dll_name)
-        .unwrap();
-    module
-        .exports
-        .resolve(&ImportSymbol::Name(name.as_bytes()))
-        .unwrap()
-}
-
-pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
-    get_symbol(machine, "kernel32.dll", name)
-}
-
 #[win32_derive::dllexport]
 pub fn GetProcAddress(
     machine: &mut Machine,
