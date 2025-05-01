@@ -1,4 +1,5 @@
 pub mod calling_convention;
+pub mod com;
 mod error;
 mod handle;
 mod point;

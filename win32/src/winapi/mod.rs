@@ -3,7 +3,6 @@ use std::{cell::RefCell, rc::Rc};
 mod arena;
 mod bitmap;
 pub mod builtin;
-mod com;
 mod comctl32;
 pub mod ddraw;
 mod dinput;
@@ -21,7 +20,10 @@ mod winmm;
 pub use kernel32::HFILE;
 pub use memory::str16::{Str16, String16};
 use win32_system::{Heap, memory::Memory};
-pub use win32_winapi::*;
+pub use win32_winapi::{
+    CStr, DWORD, ERROR, HANDLE, HRSRC, HWND, Handles, LPARAM, POINT, RECT, StrExt, WORD,
+    WindowsPath,
+};
 
 pub struct State {
     scratch: Rc<RefCell<Heap>>,

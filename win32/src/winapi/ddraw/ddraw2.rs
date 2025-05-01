@@ -7,9 +7,10 @@ use super::{
 };
 use crate::{
     Machine, System,
-    winapi::{com::vtable, ddraw, *},
+    winapi::{ddraw, *},
 };
 use memory::{ExtensionsMut, Pod};
+use win32_winapi::vtable;
 
 pub const IID_IDirectDraw2: GUID = GUID((
     0xb3a6f3e0,

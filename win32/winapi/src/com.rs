@@ -21,9 +21,11 @@ impl std::fmt::Debug for GUID {
     }
 }
 
+#[macro_export]
 macro_rules! vtable {
     ($($fn:ident: $impl:tt,)*) => {
         // macro is parsed by win32-derive codegen
     };
 }
-pub(crate) use vtable;
+
+pub use vtable;

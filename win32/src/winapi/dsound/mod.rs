@@ -4,12 +4,13 @@
 mod builtin;
 
 pub use builtin::DLL;
-use win32_system::Heap;
 
-pub use crate::winapi::com::GUID;
-use crate::{Machine, System, winapi::com::vtable};
+use crate::{Machine, System};
 use memory::ExtensionsMut;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use win32_system::Heap;
+use win32_winapi::com::GUID;
+use win32_winapi::vtable;
 
 /// Set to true to make DirectSoundCreate report no sound device available.
 /// Doing this from the beginning would have been a better idea than trying to implement stubs here...

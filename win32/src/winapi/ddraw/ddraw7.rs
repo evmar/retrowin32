@@ -3,7 +3,6 @@
 use crate::{
     Machine, System,
     winapi::{
-        com::{GUID, vtable},
         ddraw::{
             IDirectDrawClipper,
             palette::{IDirectDrawPalette, Palette},
@@ -17,6 +16,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Pod};
 use std::{cell::RefCell, rc::Rc};
+use win32_winapi::{com::GUID, vtable};
 
 pub const IID_IDirectDraw7: GUID = GUID((
     0x15e65ec0,

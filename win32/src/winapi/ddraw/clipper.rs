@@ -1,8 +1,9 @@
 use crate::{
     Machine, System,
-    winapi::{HWND, com::vtable, ddraw::DD},
+    winapi::{HWND, ddraw::DD},
 };
 use memory::ExtensionsMut;
+use win32_winapi::com::vtable;
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateClipper(

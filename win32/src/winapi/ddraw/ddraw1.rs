@@ -8,12 +8,10 @@ use super::{
 };
 use crate::{
     Machine, System,
-    winapi::{
-        com::{GUID, vtable},
-        ddraw, *,
-    },
+    winapi::{ddraw, *},
 };
 use memory::ExtensionsMut;
+use win32_winapi::{com::GUID, vtable};
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw {

@@ -2,9 +2,10 @@ use std::cell::RefCell;
 
 use crate::{
     Machine, System,
-    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY},
+    winapi::{ddraw::DD, gdi32::PALETTEENTRY},
 };
 use memory::{Extensions, ExtensionsMut};
+use win32_winapi::vtable;
 
 pub struct Palette {
     pub ptr: u32,

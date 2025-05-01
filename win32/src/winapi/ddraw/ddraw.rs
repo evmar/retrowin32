@@ -3,7 +3,6 @@
 
 use super::palette::Palette;
 pub use super::types::*;
-pub use crate::winapi::com::GUID;
 use crate::{
     Machine,
     winapi::{
@@ -15,6 +14,7 @@ use crate::{
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, rc::Rc};
 use win32_system::{Heap, host};
+pub use win32_winapi::com::GUID;
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,

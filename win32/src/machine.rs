@@ -59,6 +59,10 @@ impl System for Machine {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>> {
         Box::pin(self.call_x86(func, args))
     }
+
+    fn get_symbol(&mut self, dll: &str, name: &str) -> u32 {
+        loader::get_symbol(self, dll, name)
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads

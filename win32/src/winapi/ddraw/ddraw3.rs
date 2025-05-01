@@ -1,8 +1,6 @@
-use crate::{
-    Machine, System,
-    winapi::com::{GUID, vtable},
-};
+use crate::{Machine, System};
 use memory::ExtensionsMut;
+use win32_winapi::{com::GUID, vtable};
 
 pub const IID_IDirectDraw3: GUID = GUID((
     0xda044e00,

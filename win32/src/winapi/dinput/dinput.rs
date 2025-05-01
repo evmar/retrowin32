@@ -1,7 +1,7 @@
-use crate::{Machine, calling_convention, winapi::com::vtable};
+use crate::{Machine, calling_convention};
 use memory::ExtensionsMut;
-
-pub use crate::winapi::com::GUID;
+pub use win32_winapi::com::GUID;
+use win32_winapi::vtable;
 
 const ENABLE: bool = true;
 

@@ -14,4 +14,6 @@ pub trait System {
         func: u32,
         args: Vec<u32>,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>>;
+
+    fn get_symbol(&mut self, dll: &str, name: &str) -> u32;
 }
