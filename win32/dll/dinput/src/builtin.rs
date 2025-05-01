@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::dinput::{self, *};
+    use crate as dinput;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -14,10 +15,10 @@ mod wrappers {
             let version = <u32>::from_stack(mem, stack_args + 4u32);
             let ppDI = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::DirectInputCreateA_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "DirectInputCreateA",
                     &[
                         ("hinst", &hinst),
@@ -30,13 +31,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::DirectInputCreateA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hinst,
-                version,
-                ppDI,
-                pUnkOuter,
-            );
+            let result = dinput::DirectInputCreateA(sys, hinst, version, ppDI, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -47,10 +42,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::Acquire_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::Acquire",
                     &[("this", &this)],
                 )
@@ -58,10 +53,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::Acquire(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-            );
+            let result = dinput::IDirectInputDevice::Acquire(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -78,10 +70,10 @@ mod wrappers {
             let lpCallback = <u32>::from_stack(mem, stack_args + 4u32);
             let pvRef = <u32>::from_stack(mem, stack_args + 8u32);
             let dwFlag = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::EnumObjects_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::EnumObjects",
                     &[
                         ("this", &this),
@@ -94,13 +86,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::EnumObjects(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpCallback,
-                pvRef,
-                dwFlag,
-            );
+            let result =
+                dinput::IDirectInputDevice::EnumObjects(sys, this, lpCallback, pvRef, dwFlag);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -118,10 +105,10 @@ mod wrappers {
             let rgdod = <u32>::from_stack(mem, stack_args + 8u32);
             let pdwInOut = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::GetDeviceData_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::GetDeviceData",
                     &[
                         ("this", &this),
@@ -136,7 +123,7 @@ mod wrappers {
                 None
             };
             let result = dinput::IDirectInputDevice::GetDeviceData(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 cbObjectData,
                 rgdod,
@@ -158,10 +145,10 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::SetCooperativeLevel_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::SetCooperativeLevel",
                     &[("this", &this), ("hwnd", &hwnd), ("dwFlags", &dwFlags)],
                 )
@@ -169,12 +156,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::SetCooperativeLevel(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                hwnd,
-                dwFlags,
-            );
+            let result = dinput::IDirectInputDevice::SetCooperativeLevel(sys, this, hwnd, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -189,10 +171,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let lpdf = <Option<&DIDATAFORMAT>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::SetDataFormat_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::SetDataFormat",
                     &[("this", &this), ("lpdf", &lpdf)],
                 )
@@ -200,11 +182,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::SetDataFormat(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpdf,
-            );
+            let result = dinput::IDirectInputDevice::SetDataFormat(sys, this, lpdf);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -219,10 +197,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let hEvent = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::SetEventNotification_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::SetEventNotification",
                     &[("this", &this), ("hEvent", &hEvent)],
                 )
@@ -230,11 +208,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::SetEventNotification(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                hEvent,
-            );
+            let result = dinput::IDirectInputDevice::SetEventNotification(sys, this, hEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -250,10 +224,10 @@ mod wrappers {
             let this = <u32>::from_stack(mem, stack_args + 0u32);
             let rguidProp = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
             let pdiph = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInputDevice::SetProperty_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInputDevice::SetProperty",
                     &[
                         ("this", &this),
@@ -265,12 +239,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInputDevice::SetProperty(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                rguidProp,
-                pdiph,
-            );
+            let result = dinput::IDirectInputDevice::SetProperty(sys, this, rguidProp, pdiph);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -281,10 +250,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInput::AddRef_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInput::AddRef",
                     &[("this", &this)],
                 )
@@ -292,8 +261,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                dinput::IDirectInput::AddRef(&mut *(sys.machine() as *mut crate::Machine), this);
+            let result = dinput::IDirectInput::AddRef(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -307,10 +275,10 @@ mod wrappers {
             let lpGUID = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
             let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInput::CreateDevice_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInput::CreateDevice",
                     &[
                         ("this", &this),
@@ -324,7 +292,7 @@ mod wrappers {
                 None
             };
             let result = dinput::IDirectInput::CreateDevice(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpGUID,
                 lplpDirectInputDevice,
@@ -344,10 +312,10 @@ mod wrappers {
             let callback = <u32>::from_stack(mem, stack_args + 8u32);
             let pvRef = <u32>::from_stack(mem, stack_args + 12u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInput::EnumDevices_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInput::EnumDevices",
                     &[
                         ("this", &this),
@@ -361,14 +329,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dinput::IDirectInput::EnumDevices(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                dwDevType,
-                callback,
-                pvRef,
-                dwFlags,
-            );
+            let result =
+                dinput::IDirectInput::EnumDevices(sys, this, dwDevType, callback, pvRef, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -379,10 +341,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("dinput/dinput") {
+            let __trace_record = if trace::enabled("src/dinput") {
                 trace::Record::new(
                     dinput::IDirectInput::Release_pos,
-                    "dinput/dinput",
+                    "src/dinput",
                     "IDirectInput::Release",
                     &[("this", &this)],
                 )
@@ -390,8 +352,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                dinput::IDirectInput::Release(&mut *(sys.machine() as *mut crate::Machine), this);
+            let result = dinput::IDirectInput::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -452,5 +413,5 @@ const SHIMS: [Shim; 12usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "dinput.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/dinput.dll"),
+    raw: std::include_bytes!("../dinput.dll"),
 };

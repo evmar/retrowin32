@@ -80,7 +80,7 @@ fn main() -> anyhow::Result<()> {
         ("bass", true),
         ("comctl32", false),
         ("ddraw", false),
-        ("dinput", false),
+        ("dinput", true),
         ("dsound", false),
         ("gdi32", false),
         ("kernel32", false),

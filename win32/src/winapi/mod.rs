@@ -5,7 +5,6 @@ mod bitmap;
 pub mod builtin;
 mod comctl32;
 pub mod ddraw;
-mod dinput;
 pub mod dsound;
 mod encoding;
 pub mod gdi32;

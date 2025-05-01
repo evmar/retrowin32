@@ -1,7 +1,8 @@
-use crate::{Machine, calling_convention};
 use memory::ExtensionsMut;
+use win32_system::System;
+use win32_winapi::{HWND, calling_convention, vtable};
+
 pub use win32_winapi::com::GUID;
-use win32_winapi::vtable;
 
 const ENABLE: bool = true;
 
@@ -48,14 +49,11 @@ unsafe impl ::memory::Pod for DIDATAFORMAT {}
 pub mod IDirectInput {
     use super::*;
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectInput = machine
-            .memory
-            .process_heap
-            .borrow_mut()
-            .alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "dinput.dll", "IDirectInput");
-        machine.mem().put_pod::<u32>(lpDirectInput, vtable);
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("dinput.dll", "IDirectInput");
+        let memory = sys.memory();
+        let lpDirectInput = memory.process_heap.borrow_mut().alloc(memory.mem(), 4);
+        memory.mem().put_pod::<u32>(lpDirectInput, vtable);
         lpDirectInput
     }
 
@@ -73,7 +71,7 @@ pub mod IDirectInput {
 
     #[win32_derive::dllexport]
     pub fn CreateDevice(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpGUID: Option<&GUID>,
         lplpDirectInputDevice: Option<&mut u32>,
@@ -87,23 +85,23 @@ pub mod IDirectInput {
             &GUID_SysKeyboard => {}
             _ => return DI::ERR_DEVICENOTREG,
         }
-        *lplpDirectInputDevice.unwrap() = IDirectInputDevice::new(machine);
+        *lplpDirectInputDevice.unwrap() = IDirectInputDevice::new(sys);
         DI::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn AddRef(machine: &mut Machine, this: u32) -> u32 {
+    pub fn AddRef(sys: &mut dyn System, this: u32) -> u32 {
         1
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &mut dyn System, this: u32) -> u32 {
         1
     }
 
     #[win32_derive::dllexport]
     pub fn EnumDevices(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         dwDevType: u32,
         callback: u32,
@@ -116,18 +114,13 @@ pub mod IDirectInput {
 
 #[win32_derive::dllexport]
 pub mod IDirectInputDevice {
-    use crate::winapi::HWND;
-
     use super::*;
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectInputDevice = machine
-            .memory
-            .process_heap
-            .borrow_mut()
-            .alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "dinput.dll", "IDirectInputDevice");
-        machine.mem().put_pod::<u32>(lpDirectInputDevice, vtable);
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("dinput.dll", "IDirectInputDevice");
+        let memory = sys.memory();
+        let lpDirectInputDevice = memory.process_heap.borrow_mut().alloc(memory.mem(), 4);
+        memory.mem().put_pod::<u32>(lpDirectInputDevice, vtable);
         lpDirectInputDevice
     }
 
@@ -155,7 +148,7 @@ pub mod IDirectInputDevice {
 
     #[win32_derive::dllexport]
     pub fn EnumObjects(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpCallback: u32,
         pvRef: u32,
@@ -166,7 +159,7 @@ pub mod IDirectInputDevice {
 
     #[win32_derive::dllexport]
     pub fn SetProperty(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         rguidProp: Option<&GUID>,
         pdiph: u32,
@@ -175,13 +168,13 @@ pub mod IDirectInputDevice {
     }
 
     #[win32_derive::dllexport]
-    pub fn Acquire(machine: &mut Machine, this: u32) -> DI {
+    pub fn Acquire(sys: &mut dyn System, this: u32) -> DI {
         DI::OK
     }
 
     #[win32_derive::dllexport]
     pub fn GetDeviceData(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         cbObjectData: u32,
         rgdod: u32,
@@ -192,30 +185,30 @@ pub mod IDirectInputDevice {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetDataFormat(machine: &mut Machine, this: u32, lpdf: Option<&DIDATAFORMAT>) -> DI {
+    pub fn SetDataFormat(sys: &mut dyn System, this: u32, lpdf: Option<&DIDATAFORMAT>) -> DI {
         DI::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn SetEventNotification(machine: &mut Machine, this: u32, hEvent: u32) -> DI {
+    pub fn SetEventNotification(sys: &mut dyn System, this: u32, hEvent: u32) -> DI {
         DI::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn SetCooperativeLevel(machine: &mut Machine, this: u32, hwnd: HWND, dwFlags: u32) -> DI {
+    pub fn SetCooperativeLevel(sys: &mut dyn System, this: u32, hwnd: HWND, dwFlags: u32) -> DI {
         DI::OK
     }
 }
 
 #[win32_derive::dllexport]
 pub fn DirectInputCreateA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hinst: u32,
     version: u32,
     ppDI: Option<&mut u32>,
     pUnkOuter: u32,
 ) -> DI {
-    *ppDI.unwrap() = IDirectInput::new(machine);
+    *ppDI.unwrap() = IDirectInput::new(sys);
 
     DI::OK
 }

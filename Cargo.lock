@@ -111,6 +111,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-dinput"
+version = "0.1.0"
+dependencies = [
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-ole32"
 version = "0.1.0"
 dependencies = [
@@ -679,6 +689,7 @@ dependencies = [
  "bitflags 2.9.0",
  "builtin-advapi32",
  "builtin-bass",
+ "builtin-dinput",
  "builtin-ole32",
  "builtin-oleaut32",
  "builtin-shlwapi",

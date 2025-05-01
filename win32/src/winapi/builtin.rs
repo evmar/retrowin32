@@ -9,7 +9,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_bass::DLL,
     crate::winapi::comctl32::DLL,
     crate::winapi::ddraw::DLL,
-    crate::winapi::dinput::DLL,
+    builtin_dinput::DLL,
     crate::winapi::dsound::DLL,
     crate::winapi::gdi32::DLL,
     crate::winapi::kernel32::DLL,
