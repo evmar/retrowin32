@@ -1,4 +1,5 @@
 mod boxmem;
+pub mod dll;
 mod heap;
 pub mod host;
 pub mod memory;

@@ -8,7 +8,6 @@ use crate::{
     machine::Machine,
     winapi::{
         self,
-        builtin::BuiltinDLL,
         kernel32::{self, HMODULE},
     },
 };
@@ -18,6 +17,7 @@ use std::{
     path::Path,
 };
 use win32_system::{
+    dll::BuiltinDLL,
     host,
     memory::{Mapping, Memory},
 };

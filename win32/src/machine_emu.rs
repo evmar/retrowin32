@@ -3,7 +3,7 @@
 use crate::{
     loader,
     machine::{MachineX, Status},
-    shims::{Handler, Shims},
+    shims::Shims,
     winapi::{
         self,
         kernel32::{self, CommandLine},
@@ -11,7 +11,7 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
-use win32_system::{host, memory::Memory};
+use win32_system::{dll::Handler, host, memory::Memory};
 use win32_winapi::calling_convention::ABIReturn;
 use x86::CPU;
 

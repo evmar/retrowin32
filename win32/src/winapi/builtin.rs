@@ -2,15 +2,7 @@
 //! Each winapi DLL contains a generated 'builtin.rs',
 //! which joins the raw DLL bytes with emulator-side implementation.
 
-use crate::shims::Shim;
-
-pub struct BuiltinDLL {
-    pub file_name: &'static str,
-    /// The xth function in the DLL represents a call to shims[x].
-    pub shims: &'static [Shim],
-    /// Raw bytes of generated .dll.
-    pub raw: &'static [u8],
-}
+use win32_system::dll::BuiltinDLL;
 
 pub const DLLS: [BuiltinDLL; 19] = [
     crate::winapi::advapi32::DLL,

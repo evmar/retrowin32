@@ -1,10 +1,7 @@
 #![doc = r" Generated code, do not edit.  See winapi/builtin.rs for an overview."]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
-use crate::{
-    shims::{Handler, Shim},
-    winapi::builtin::BuiltinDLL,
-};
+use win32_system::dll::*;
 mod wrappers {
     use crate::{
         System,

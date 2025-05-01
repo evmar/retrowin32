@@ -144,11 +144,11 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
         #![allow(unused_imports)]
         #![allow(unused_variables)]
 
-        use crate::{shims::{Shim, Handler}, winapi::builtin::BuiltinDLL};
+        use win32_system::dll::*;
 
         mod wrappers {
             use ::memory::Extensions;
-            use crate::{calling_convention::*, System, machine::Machine, winapi::{self, *}};
+            use crate::{System, calling_convention::*, machine::Machine, winapi::{self, *}};
             use winapi::#module::*;  // for types
             #(#wrappers)*
         }
