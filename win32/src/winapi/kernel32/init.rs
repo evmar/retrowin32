@@ -109,7 +109,6 @@ pub struct State {
     /// Loaded PE modules: the exe and all DLLs.
     pub modules: HashMap<HMODULE, Module>,
 
-    pub resources: pe::IMAGE_DATA_DIRECTORY,
     pub resource_handles: Handles<HRSRC, ResourceHandle>,
 
     // There is a collection of handle types that are all from the same key space,
@@ -170,7 +169,6 @@ impl State {
             find_handles: Default::default(),
             env,
             cmdline: CommandLine::default(),
-            resources: Default::default(),
             resource_handles: Default::default(),
             break_on_startup: false,
         }

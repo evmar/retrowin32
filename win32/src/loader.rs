@@ -11,7 +11,7 @@ use crate::{
         kernel32::{self, HMODULE},
     },
 };
-use memory::{Extensions, ExtensionsMut};
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -379,10 +379,6 @@ pub async fn load_exe(
     let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
-    if let Some(res_data) = &module.resources {
-        machine.state.kernel32.resources = res_data.clone();
-    }
-
     let entry_point = module.entry_point.unwrap();
     Ok(entry_point)
 }
@@ -405,6 +401,13 @@ pub struct Module {
     pub dynamic_imports: HashSet<u32>,
 
     pub entry_point: Option<u32>,
+}
+
+impl Module {
+    pub fn resources<'m>(&self, mem: Mem<'m>) -> Option<&'m [u8]> {
+        let dir = self.resources.as_ref()?;
+        Some(dir.as_slice(mem.slice(self.image_base..))?)
+    }
 }
 
 #[derive(Debug, Default)]

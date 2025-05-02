@@ -73,22 +73,10 @@ pub fn find_resource<'a>(
     typ: ResourceKey<&Str16>,
     name: &ResourceKey<&Str16>,
 ) -> Option<Range<u32>> {
-    let image = mem.slice(hInstance..);
-    if hInstance == kernel32.image_base {
-        let section = kernel32.resources.as_slice(image)?;
-        pe::find_resource(section, typ.into_pe(), name.into_pe())
-            .map(|r| (hInstance + r.start)..(hInstance + r.end))
-    } else {
-        let module = kernel32.modules.get(&HMODULE::from_raw(hInstance))?;
-        match &module.resources {
-            None => return None,
-            Some(resources) => {
-                let section = resources.as_slice(image)?;
-                pe::find_resource(section, typ.into_pe(), name.into_pe())
-                    .map(|r| (hInstance + r.start)..(hInstance + r.end))
-            }
-        }
-    }
+    let module = kernel32.modules.get(&HMODULE::from_raw(hInstance))?;
+    let resources = module.resources(mem)?;
+    pe::find_resource(resources, typ.into_pe(), name.into_pe())
+        .map(|r| (hInstance + r.start)..(hInstance + r.end))
 }
 
 #[win32_derive::dllexport]
