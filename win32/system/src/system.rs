@@ -21,4 +21,9 @@ pub trait System {
     fn get_resources(&self, module: u32) -> Option<&[u8]>;
 
     fn exit(&mut self, status: u32);
+
+    /// Get a per-subcomponent state object.  The idea is each library (e.g. gdi32)
+    /// can store its own state in the system, without this API needing to depend
+    /// on the gdi32 library.
+    fn state(&self, id: &std::any::TypeId) -> &dyn std::any::Any;
 }

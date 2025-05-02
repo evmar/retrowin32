@@ -1,3 +1,5 @@
+use std::any::{Any, TypeId};
+
 use win32_system::host;
 use win32_system::memory::Memory;
 
@@ -78,6 +80,16 @@ impl System for Machine {
 
     fn exit(&mut self, status: u32) {
         Machine::exit(self, status);
+    }
+
+    fn state(&self, id: &TypeId) -> &dyn Any {
+        if id == &TypeId::of::<winapi::user32::State>() {
+            &self.state.user32
+        } else if id == &TypeId::of::<winapi::gdi32::State>() {
+            &self.state.gdi32
+        } else {
+            panic!();
+        }
     }
 }
 
