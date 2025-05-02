@@ -12,7 +12,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
-use win32_system::host;
+use win32_system::{host, resource::find_resource};
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
@@ -127,13 +127,7 @@ fn load_image(
             IMAGE::BITMAP => pe::RT::BITMAP,
             IMAGE::ICON => pe::RT::ICON,
         } as u32);
-        let Some(slice) = crate::winapi::kernel32::find_resource(
-            &machine.state.kernel32,
-            machine.mem(),
-            hInstance,
-            typ,
-            &name,
-        ) else {
+        let Some(slice) = find_resource(machine, hInstance, typ, &name) else {
             return HGDIOBJ::null();
         };
         Cow::Borrowed(machine.mem().slice(slice))
@@ -208,9 +202,8 @@ fn load_bitmap(
     hInstance: HINSTANCE,
     name: ResourceKey<&Str16>,
 ) -> Option<HGDIOBJ> {
-    let buf = crate::winapi::kernel32::find_resource(
-        &machine.state.kernel32,
-        machine.mem(),
+    let buf = find_resource(
+        machine,
         hInstance,
         ResourceKey::Id(pe::RT::BITMAP as u32),
         &name,
@@ -233,9 +226,8 @@ fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Rang
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
-    let block = crate::winapi::kernel32::find_resource(
-        &machine.state.kernel32,
-        machine.mem(),
+    let block = find_resource(
+        machine,
         hInstance,
         ResourceKey::Id(pe::RT::STRING as u32),
         &ResourceKey::Id(resource_id),

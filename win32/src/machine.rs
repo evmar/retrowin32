@@ -66,6 +66,15 @@ impl System for Machine {
     fn get_symbol(&mut self, dll: &str, name: &str) -> u32 {
         loader::get_symbol(self, dll, name)
     }
+
+    fn get_resources(&self, module: u32) -> Option<&[u8]> {
+        let module = self
+            .state
+            .kernel32
+            .modules
+            .get(&winapi::kernel32::HMODULE::from_raw(module))?;
+        module.resources(self.mem())
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
