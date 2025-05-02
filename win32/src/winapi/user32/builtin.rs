@@ -28,12 +28,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::AdjustWindowRect(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpRect,
-                dwStyle,
-                bMenu,
-            );
+            let result = user32::AdjustWindowRect(sys, lpRect, dwStyle, bMenu);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -116,8 +111,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::BeginPaint(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpPaint);
+            let result = user32::BeginPaint(sys, hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -171,7 +165,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::CharLowerA(&mut *(sys.machine() as *mut crate::Machine), lpsz);
+            let result = user32::CharLowerA(sys, lpsz);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -194,11 +188,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::CharLowerBuffA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpsz,
-                cchLength,
-            );
+            let result = user32::CharLowerBuffA(sys, lpsz, cchLength);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -443,7 +433,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = user32::CreateWindowExA(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     dwExStyle,
                     lpClassName,
                     lpWindowName,
@@ -512,7 +502,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = user32::CreateWindowExW(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     dwExStyle,
                     lpClassName,
                     lpWindowName,
@@ -563,14 +553,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::DefWindowProcA(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    msg,
-                    wParam,
-                    lParam,
-                )
-                .await;
+                let result = user32::DefWindowProcA(sys, hWnd, msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -607,14 +590,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::DefWindowProcW(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    msg,
-                    wParam,
-                    lParam,
-                )
-                .await;
+                let result = user32::DefWindowProcW(sys, hWnd, msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -810,9 +786,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    user32::DispatchMessageA(&mut *(sys.machine() as *mut crate::Machine), lpMsg)
-                        .await;
+                let result = user32::DispatchMessageA(sys, lpMsg).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -841,9 +815,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    user32::DispatchMessageW(&mut *(sys.machine() as *mut crate::Machine), lpMsg)
-                        .await;
+                let result = user32::DispatchMessageW(sys, lpMsg).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -995,8 +967,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::EndPaint(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpPaint);
+            let result = user32::EndPaint(sys, hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1020,8 +991,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::FillRect(&mut *(sys.machine() as *mut crate::Machine), hDC, lprc, hbr);
+            let result = user32::FillRect(sys, hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1047,11 +1017,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::FindWindowA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpClassName,
-                lpWindowName,
-            );
+            let result = user32::FindWindowA(sys, lpClassName, lpWindowName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1096,7 +1062,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetActiveWindow(&mut *(sys.machine() as *mut crate::Machine));
+            let result = user32::GetActiveWindow(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1112,7 +1078,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetCapture(&mut *(sys.machine() as *mut crate::Machine));
+            let result = user32::GetCapture(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1135,8 +1101,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::GetClassLongA(&mut *(sys.machine() as *mut crate::Machine), hWnd, nIndex);
+            let result = user32::GetClassLongA(sys, hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1159,8 +1124,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::GetClientRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
+            let result = user32::GetClientRect(sys, hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1204,7 +1168,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetDC(&mut *(sys.machine() as *mut crate::Machine), hWnd);
+            let result = user32::GetDC(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1321,7 +1285,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetFocus(&mut *(sys.machine() as *mut crate::Machine));
+            let result = user32::GetFocus(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1342,7 +1306,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetForegroundWindow(&mut *(sys.machine() as *mut crate::Machine));
+            let result = user32::GetForegroundWindow(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1474,7 +1438,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetLastActivePopup(&mut *(sys.machine() as *mut crate::Machine));
+            let result = user32::GetLastActivePopup(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1562,14 +1526,8 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::GetMessageA(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    lpMsg,
-                    hWnd,
-                    wMsgFilterMin,
-                    wMsgFilterMax,
-                )
-                .await;
+                let result =
+                    user32::GetMessageA(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -1606,14 +1564,8 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::GetMessageW(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    lpMsg,
-                    hWnd,
-                    wMsgFilterMin,
-                    wMsgFilterMax,
-                )
-                .await;
+                let result =
+                    user32::GetMessageW(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -1794,12 +1746,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetUpdateRect(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                lpRect,
-                bErase,
-            );
+            let result = user32::GetUpdateRect(sys, hWnd, lpRect, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1883,8 +1830,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::GetWindowLongA(&mut *(sys.machine() as *mut crate::Machine), hWnd, nIndex);
+            let result = user32::GetWindowLongA(sys, hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1907,11 +1853,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::GetWindowPlacement(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                lpwndpl,
-            );
+            let result = user32::GetWindowPlacement(sys, hWnd, lpwndpl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1934,8 +1876,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::GetWindowRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
+            let result = user32::GetWindowRect(sys, hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2011,12 +1952,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::InvalidateRect(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                lpRect,
-                bErase,
-            );
+            let result = user32::InvalidateRect(sys, hWnd, lpRect, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2040,12 +1976,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::InvalidateRgn(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                hRgn,
-                bErase,
-            );
+            let result = user32::InvalidateRgn(sys, hWnd, hRgn, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2202,8 +2133,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::KillTimer(&mut *(sys.machine() as *mut crate::Machine), hWnd, uIDEvent);
+            let result = user32::KillTimer(sys, hWnd, uIDEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2249,11 +2179,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::LoadBitmapA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hInstance,
-                lpBitmapName,
-            );
+            let result = user32::LoadBitmapA(sys, hInstance, lpBitmapName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2379,15 +2305,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::LoadImageA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hInstance,
-                name,
-                typ,
-                cx,
-                cy,
-                fuLoad,
-            );
+            let result = user32::LoadImageA(sys, hInstance, name, typ, cx, cy, fuLoad);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2421,15 +2339,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::LoadImageW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hInstance,
-                name,
-                typ,
-                cx,
-                cy,
-                fuLoad,
-            );
+            let result = user32::LoadImageW(sys, hInstance, name, typ, cx, cy, fuLoad);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2505,13 +2415,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::LoadStringA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hInstance,
-                uID,
-                lpBuffer,
-                cchBufferMax,
-            );
+            let result = user32::LoadStringA(sys, hInstance, uID, lpBuffer, cchBufferMax);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2541,13 +2445,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::LoadStringW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hInstance,
-                uID,
-                lpBuffer,
-                cchBufferMax,
-            );
+            let result = user32::LoadStringW(sys, hInstance, uID, lpBuffer, cchBufferMax);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2669,15 +2567,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::MoveWindow(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                X,
-                Y,
-                nWidth,
-                nHeight,
-                bRepaint,
-            );
+            let result = user32::MoveWindow(sys, hWnd, X, Y, nWidth, nHeight, bRepaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2779,14 +2669,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::PeekMessageA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpMsg,
-                hWnd,
-                wMsgFilterMin,
-                wMsgFilterMax,
-                wRemoveMsg,
-            );
+            let result =
+                user32::PeekMessageA(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2818,14 +2702,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::PeekMessageW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpMsg,
-                hWnd,
-                wMsgFilterMin,
-                wMsgFilterMax,
-                wRemoveMsg,
-            );
+            let result =
+                user32::PeekMessageW(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2891,13 +2769,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::PostMessageW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                Msg,
-                wParam,
-                lParam,
-            );
+            let result = user32::PostMessageW(sys, hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2919,8 +2791,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::PostQuitMessage(&mut *(sys.machine() as *mut crate::Machine), nExitCode);
+            let result = user32::PostQuitMessage(sys, nExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3015,14 +2886,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::RedrawWindow(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    lprcUpdate,
-                    hrgnUpdate,
-                    flags,
-                )
-                .await;
+                let result = user32::RedrawWindow(sys, hWnd, lprcUpdate, hrgnUpdate, flags).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3045,8 +2909,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::RegisterClassA(&mut *(sys.machine() as *mut crate::Machine), lpWndClass);
+            let result = user32::RegisterClassA(sys, lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3068,10 +2931,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::RegisterClassExA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpWndClassEx,
-            );
+            let result = user32::RegisterClassExA(sys, lpWndClassEx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3093,10 +2953,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::RegisterClassExW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpWndClassEx,
-            );
+            let result = user32::RegisterClassExW(sys, lpWndClassEx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3118,8 +2975,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::RegisterClassW(&mut *(sys.machine() as *mut crate::Machine), lpWndClass);
+            let result = user32::RegisterClassW(sys, lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3163,10 +3019,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::RegisterWindowMessageA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpString,
-            );
+            let result = user32::RegisterWindowMessageA(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3188,10 +3041,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::RegisterWindowMessageW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpString,
-            );
+            let result = user32::RegisterWindowMessageW(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3235,7 +3085,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::ReleaseDC(&mut *(sys.machine() as *mut crate::Machine), hwnd, hdc);
+            let result = user32::ReleaseDC(sys, hwnd, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3303,14 +3153,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::SendMessageA(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    Msg,
-                    wParam,
-                    lParam,
-                )
-                .await;
+                let result = user32::SendMessageA(sys, hWnd, Msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3347,14 +3190,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::SendMessageW(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    Msg,
-                    wParam,
-                    lParam,
-                )
-                .await;
+                let result = user32::SendMessageW(sys, hWnd, Msg, wParam, lParam).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3405,12 +3241,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::SetClassLongA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                nIndex,
-                dwNewLong,
-            );
+            let result = user32::SetClassLongA(sys, hWnd, nIndex, dwNewLong);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3569,8 +3400,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    user32::SetFocus(&mut *(sys.machine() as *mut crate::Machine), hWnd).await;
+                let result = user32::SetFocus(sys, hWnd).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3730,13 +3560,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::SetTimer(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                nIDEvent,
-                uElapse,
-                lpTimerFunc,
-            );
+            let result = user32::SetTimer(sys, hWnd, nIDEvent, uElapse, lpTimerFunc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3764,12 +3588,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::SetWindowLongA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                nIndex,
-                dwNewLong,
-            );
+            let result = user32::SetWindowLongA(sys, hWnd, nIndex, dwNewLong);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3811,17 +3630,8 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::SetWindowPos(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    hWndInsertAfter,
-                    X,
-                    Y,
-                    cx,
-                    cy,
-                    uFlags,
-                )
-                .await;
+                let result =
+                    user32::SetWindowPos(sys, hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -3845,11 +3655,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::SetWindowTextA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                lpString,
-            );
+            let result = user32::SetWindowTextA(sys, hWnd, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3930,12 +3736,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = user32::ShowWindow(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hWnd,
-                    nCmdShow,
-                )
-                .await;
+                let result = user32::ShowWindow(sys, hWnd, nCmdShow).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4089,8 +3890,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    user32::UpdateWindow(&mut *(sys.machine() as *mut crate::Machine), hWnd).await;
+                let result = user32::UpdateWindow(sys, hWnd).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4114,8 +3914,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::ValidateRect(&mut *(sys.machine() as *mut crate::Machine), hWnd, lpRect);
+            let result = user32::ValidateRect(sys, hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4142,8 +3941,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    user32::WaitMessage(&mut *(sys.machine() as *mut crate::Machine)).await;
+                let result = user32::WaitMessage(sys).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4228,8 +4026,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::wsprintfA(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
+            let result = user32::wsprintfA(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4253,8 +4050,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                user32::wsprintfW(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
+            let result = user32::wsprintfW(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

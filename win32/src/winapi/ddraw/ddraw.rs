@@ -8,6 +8,7 @@ use crate::{
     winapi::{
         HWND, RECT,
         ddraw::{ddraw1, ddraw7},
+        user32,
     },
 };
 use builtin_gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut};
@@ -67,7 +68,7 @@ impl Surface {
 
         if opts.width == 0 || opts.height == 0 {
             // Take width/height from window dimensions
-            if let Some(wnd) = machine.state.user32.windows.get(hwnd) {
+            if let Some(wnd) = user32::get_state(machine).windows.get(hwnd) {
                 let wnd = wnd.borrow();
                 opts.width = wnd.width;
                 opts.height = wnd.height;

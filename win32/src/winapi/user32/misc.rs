@@ -1,5 +1,5 @@
 use crate::{
-    Machine, System,
+    System,
     calling_convention::VarArgs,
     winapi::{HWND, POINT, RECT, Str16},
 };
@@ -11,7 +11,7 @@ pub type HKL = u32;
 pub type HMONITOR = u32;
 
 #[win32_derive::dllexport]
-pub fn CharLowerA<'a>(machine: &mut Machine, lpsz: u32) -> u32 {
+pub fn CharLowerA<'a>(sys: &mut dyn System, lpsz: u32) -> u32 {
     if lpsz & 0xFFu32 == lpsz {
         let mut byte: u8 = lpsz as u8;
         byte.make_ascii_lowercase();
@@ -22,11 +22,8 @@ pub fn CharLowerA<'a>(machine: &mut Machine, lpsz: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn CharLowerBuffA(machine: &mut Machine, lpsz: u32, cchLength: u32) -> u32 {
-    machine
-        .mem()
-        .sub32_mut(lpsz, cchLength)
-        .make_ascii_lowercase();
+pub fn CharLowerBuffA(sys: &mut dyn System, lpsz: u32, cchLength: u32) -> u32 {
+    sys.mem().sub32_mut(lpsz, cchLength).make_ascii_lowercase();
     cchLength
 }
 
@@ -144,10 +141,10 @@ pub fn GetSysColor(sys: &dyn System, nIndex: i32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, args: VarArgs) -> u32 {
+pub fn wsprintfA(sys: &mut dyn System, buf: u32, fmt: Option<&str>, args: VarArgs) -> u32 {
     // The output buffer size is unspecified (eek) but is maximum 1024.
     const BUF_LEN: u32 = 1024;
-    let mem = machine.mem();
+    let mem = sys.mem();
     let buf = mem.sub32_mut(buf, BUF_LEN);
 
     let mut out = Cursor::new(buf);
@@ -162,7 +159,7 @@ pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, args: VarAr
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn wsprintfW(machine: &mut Machine, buf: u32, fmt: Option<&Str16>, args: VarArgs) -> u32 {
+pub fn wsprintfW(sys: &mut dyn System, buf: u32, fmt: Option<&Str16>, args: VarArgs) -> u32 {
     todo!()
 }
 

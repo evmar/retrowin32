@@ -13,10 +13,11 @@ mod timer;
 mod window;
 mod wndclass;
 
-use std::{cell::RefCell, rc::Rc};
+pub use builtin::DLL;
 
 use super::{HWND, Handles};
-pub use builtin::DLL;
+use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
 
 pub use super::kernel32::ResourceKey;
 pub use builtin_gdi32::HDC;
@@ -43,4 +44,12 @@ pub struct State {
 
     messages: MessageQueue,
     timers: Timers,
+}
+
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    type SysState = std::cell::RefCell<State>;
+    sys.state(&std::any::TypeId::of::<SysState>())
+        .downcast_ref::<SysState>()
+        .unwrap()
+        .borrow_mut()
 }

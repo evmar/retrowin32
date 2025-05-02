@@ -1,6 +1,6 @@
-use crate::{Machine, winapi::*};
+use crate::{System, winapi::*};
 
-use super::{MSG, WM};
+use super::{MSG, WM, get_state};
 
 #[derive(Debug)]
 pub struct Timer {
@@ -53,8 +53,8 @@ impl Timers {
 }
 
 #[win32_derive::dllexport]
-pub fn KillTimer(machine: &mut Machine, hWnd: HWND, uIDEvent: u32) -> bool {
-    let timers = &mut machine.state.user32.timers.0;
+pub fn KillTimer(sys: &mut dyn System, hWnd: HWND, uIDEvent: u32) -> bool {
+    let timers = &mut get_state(sys).timers.0;
     let index = timers
         .iter()
         .position(|t| t.hwnd == hWnd && t.id == uIDEvent);
@@ -69,7 +69,7 @@ pub fn KillTimer(machine: &mut Machine, hWnd: HWND, uIDEvent: u32) -> bool {
 
 #[win32_derive::dllexport]
 pub fn SetTimer(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     nIDEvent: u32,
     uElapse: u32,
@@ -83,30 +83,28 @@ pub fn SetTimer(
         log::warn!("timer callbacks unimplemented");
     }
 
-    let id = match machine
-        .state
-        .user32
-        .timers
-        .0
+    let now = sys.host().ticks();
+    let timers = &mut get_state(sys).timers.0;
+    let id = match timers
         .iter_mut()
         .find(|t| t.hwnd == hWnd && t.id == nIDEvent)
     {
         Some(timer) => {
             timer.period = uElapse;
-            timer.next = machine.host.ticks() + uElapse;
+            timer.next = now + uElapse;
             timer.func = lpTimerFunc;
             timer.id
         }
         None => {
-            let id = machine.state.user32.timers.0.len() as u32 + 1;
+            let id = timers.len() as u32 + 1;
             let timer = Timer {
                 id,
                 hwnd: hWnd,
                 period: uElapse,
-                next: machine.host.ticks() + uElapse,
+                next: now + uElapse,
                 func: lpTimerFunc,
             };
-            machine.state.user32.timers.0.push(timer);
+            timers.push(timer);
             id
         }
     };

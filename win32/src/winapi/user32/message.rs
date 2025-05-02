@@ -1,5 +1,8 @@
-use super::{Timers, Window};
-use crate::{Machine, System, winapi};
+use super::{Timers, Window, get_state};
+use crate::{
+    Machine, System,
+    winapi::{self},
+};
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
@@ -205,55 +208,44 @@ impl MessageQueue {
 /// Retrieves the next available message without blocking.
 /// Returns Err(wait) if we need to wait.
 fn poll_message(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hwnd: HWND,
     filter: Option<RangeInclusive<u32>>,
     remove: bool,
 ) -> Result<MSG, Option<u32>> {
     let filter = filter.unwrap_or(0..=0xFFFF_FFFF);
-    if let Some(msg) = machine
-        .state
-        .user32
-        .messages
-        .get_queued(hwnd, &filter, remove)
-    {
+    let mut state = get_state(sys);
+    if let Some(msg) = state.messages.get_queued(hwnd, &filter, remove) {
         return Ok(msg);
     }
 
     // TODO: obey filter here.
-    if let Some(msg) = machine.host.get_message() {
+    if let Some(msg) = sys.host().get_message() {
         let msg = msg_from_message(msg);
         if !remove {
-            machine.state.user32.messages.push(msg.clone());
+            state.messages.push(msg.clone());
         }
         return Ok(msg);
     }
 
+    let state = &mut *state;
     if filter.contains(&(WM::PAINT as u32)) {
-        if let Some(msg) =
-            machine
-                .state
-                .user32
-                .messages
-                .get_paint(hwnd, &machine.state.user32.windows, remove)
-        {
+        if let Some(msg) = state.messages.get_paint(hwnd, &state.windows, remove) {
             return Ok(msg);
         }
     }
 
     if filter.contains(&(WM::TIMER as u32)) {
-        return machine.state.user32.messages.get_timer(
-            &*machine.host,
-            &mut machine.state.user32.timers,
-            remove,
-        );
+        return state
+            .messages
+            .get_timer(sys.host(), &mut state.timers, remove);
     } else {
         Err(None) // block
     }
 }
 
-async fn await_message(machine: &mut Machine, wait: Option<u32>) {
-    machine.block(wait).await;
+async fn await_message(sys: &mut dyn System, wait: Option<u32>) {
+    sys.block(wait).await;
 }
 
 bitflags! {
@@ -267,7 +259,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
@@ -283,7 +275,7 @@ pub fn PeekMessageA(
     };
     let remove = wRemoveMsg.unwrap().contains(RemoveMsg::PM_REMOVE);
 
-    if let Ok(msg) = poll_message(machine, hWnd, filter, remove) {
+    if let Ok(msg) = poll_message(sys, hWnd, filter, remove) {
         *lpMsg = msg;
         return true;
     }
@@ -292,25 +284,18 @@ pub fn PeekMessageA(
 
 #[win32_derive::dllexport]
 pub fn PeekMessageW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
     wRemoveMsg: Result<RemoveMsg, u32>,
 ) -> bool {
-    PeekMessageA(
-        machine,
-        lpMsg,
-        hWnd,
-        wMsgFilterMin,
-        wMsgFilterMax,
-        wRemoveMsg,
-    )
+    PeekMessageA(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg)
 }
 
 async fn get_message(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
@@ -323,12 +308,12 @@ async fn get_message(
         } else {
             Some(wMsgFilterMin..=wMsgFilterMax)
         };
-        match poll_message(machine, hWnd, filter, true) {
+        match poll_message(sys, hWnd, filter, true) {
             Ok(m) => {
                 msg = m;
                 break;
             }
-            Err(wait_until) => await_message(machine, wait_until).await,
+            Err(wait_until) => await_message(sys, wait_until).await,
         }
     }
 
@@ -343,33 +328,33 @@ async fn get_message(
 // Note: the docs say this returns BOOL, but really it can return -1/0/nonzero.
 #[win32_derive::dllexport]
 pub async fn GetMessageA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> i32 {
-    get_message(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
+    get_message(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
 }
 
 // Note: the docs say this returns BOOL, but really it can return -1/0/nonzero.
 #[win32_derive::dllexport]
 pub async fn GetMessageW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> i32 {
-    get_message(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
+    get_message(sys, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
 }
 
 #[win32_derive::dllexport]
-pub async fn WaitMessage(machine: &mut Machine) -> bool {
+pub async fn WaitMessage(sys: &mut dyn System) -> bool {
     loop {
-        match poll_message(machine, HWND::null(), None, false) {
+        match poll_message(sys, HWND::null(), None, false) {
             Ok(_) => break,
-            Err(wait_until) => await_message(machine, wait_until).await,
+            Err(wait_until) => await_message(sys, wait_until).await,
         }
     }
     true
@@ -406,11 +391,9 @@ pub fn TranslateMessage(sys: &dyn System, lpMsg: Option<&MSG>) -> bool {
     false // no message translated
 }
 
-pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) -> u32 {
+pub async fn dispatch_message(sys: &mut dyn System, msg: &MSG) -> u32 {
     assert!(!msg.hwnd.is_null());
-    let wndproc = machine
-        .state
-        .user32
+    let wndproc = get_state(sys)
         .windows
         .get(msg.hwnd)
         .unwrap()
@@ -423,46 +406,45 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) -> u32 {
         return 0;
     }
     // TODO: SetWindowLong can change the wndproc.
-    machine
-        .call_x86(
-            wndproc,
-            vec![
-                msg.hwnd.to_raw(),
-                msg.message as u32,
-                msg.wParam,
-                msg.lParam,
-            ],
-        )
-        .await;
+    sys.call_x86(
+        wndproc,
+        vec![
+            msg.hwnd.to_raw(),
+            msg.message as u32,
+            msg.wParam,
+            msg.lParam,
+        ],
+    )
+    .await;
     // TODO: copy eax to return value
     0
 }
 
 #[win32_derive::dllexport]
-pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
+pub async fn DispatchMessageA(sys: &mut dyn System, lpMsg: Option<&MSG>) -> u32 {
     let msg = lpMsg.unwrap();
     if msg.hwnd.is_null() {
         // No associated hwnd.
         return 0;
     }
-    dispatch_message(machine, msg).await;
+    dispatch_message(sys, msg).await;
     0
 }
 
 #[win32_derive::dllexport]
-pub async fn DispatchMessageW(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
+pub async fn DispatchMessageW(sys: &mut dyn System, lpMsg: Option<&MSG>) -> u32 {
     let msg = lpMsg.unwrap();
     if msg.hwnd.is_null() {
         // No associated hwnd.
         return 0;
     }
-    dispatch_message(machine, msg).await;
+    dispatch_message(sys, msg).await;
     0
 }
 
 #[win32_derive::dllexport]
-pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) {
-    machine.state.user32.messages.push(MSG {
+pub fn PostQuitMessage(sys: &mut dyn System, nExitCode: i32) {
+    get_state(sys).messages.push(MSG {
         hwnd: HWND::null(),
         message: WM::QUIT as u32,
         wParam: 0,
@@ -474,8 +456,8 @@ pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) {
 }
 
 #[win32_derive::dllexport]
-pub fn PostMessageW(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
-    machine.state.user32.messages.push(MSG {
+pub fn PostMessageW(sys: &mut dyn System, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
+    get_state(sys).messages.push(MSG {
         hwnd: hWnd,
         message: Msg,
         wParam,
@@ -499,7 +481,7 @@ pub fn TranslateAcceleratorW(
 
 #[win32_derive::dllexport]
 pub async fn SendMessageA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     Msg: Result<WM, u32>,
     wParam: u32,
@@ -514,12 +496,12 @@ pub async fn SendMessageA(
         pt_x: 0,
         pt_y: 0,
     };
-    dispatch_message(machine, &msg).await
+    dispatch_message(sys, &msg).await
 }
 
 #[win32_derive::dllexport]
 pub async fn SendMessageW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     Msg: Result<WM, u32>,
     wParam: u32,
@@ -592,7 +574,7 @@ pub fn PostThreadMessageA(
         todo!();
     }
 
-    machine.state.user32.messages.push(MSG {
+    get_state(machine).messages.push(MSG {
         hwnd: HWND::null(),
         message: Msg,
         wParam,

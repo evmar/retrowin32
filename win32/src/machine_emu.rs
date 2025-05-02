@@ -33,7 +33,7 @@ impl MachineX<Emulator> {
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
         let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
         let shims = Shims::default();
-        let state = winapi::State::new(&mut memory, kernel32);
+        let state = winapi::State::new(kernel32);
 
         Machine {
             emu: Emulator {

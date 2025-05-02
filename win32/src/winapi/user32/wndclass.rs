@@ -1,6 +1,6 @@
-use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE};
+use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE, get_state};
 use crate::{
-    Machine, System,
+    System,
     calling_convention::FromArg,
     winapi::{HWND, Str16},
 };
@@ -97,7 +97,7 @@ pub struct WNDCLASSA {
 unsafe impl memory::Pod for WNDCLASSA {}
 
 #[win32_derive::dllexport]
-pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
+pub fn RegisterClassA(sys: &mut dyn System, lpWndClass: Option<&WNDCLASSA>) -> u32 {
     let wndclass = lpWndClass.unwrap();
     let ex = WNDCLASSEXA {
         cbSize: std::mem::size_of::<WNDCLASSEXA>() as u32,
@@ -113,22 +113,22 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
         lpszClassName: wndclass.lpszClassName,
         hIconSm: 0,
     };
-    RegisterClassExA(machine, Some(&ex))
+    RegisterClassExA(sys, Some(&ex))
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
+pub fn RegisterClassW(sys: &mut dyn System, lpWndClass: Option<&WNDCLASSA>) -> u32 {
     // TODO: calling the *W variants tags the windows as expecting wide messages(!).
     let lpWndClass = lpWndClass.unwrap();
-    let name = Str16::from_nul_term_ptr(machine.mem(), lpWndClass.lpszClassName).unwrap();
-    let background = BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground);
+    let name = Str16::from_nul_term_ptr(sys.mem(), lpWndClass.lpszClassName).unwrap();
+    let background = BrushOrColor::from_arg(sys.mem(), lpWndClass.hbrBackground);
     let wndclass = WndClass {
         name: name.to_string(),
         style: CS::from_bits(lpWndClass.style).unwrap(),
         wndproc: lpWndClass.lpfnWndProc,
-        background: background.to_brush(machine),
+        background: background.to_brush(sys),
     };
-    machine.state.user32.wndclasses.register(wndclass)
+    get_state(sys).wndclasses.register(wndclass)
 }
 
 #[repr(C, packed)]
@@ -168,9 +168,9 @@ pub struct WNDCLASSEXW {
 unsafe impl memory::Pod for WNDCLASSEXW {}
 
 #[win32_derive::dllexport]
-pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
+pub fn RegisterClassExA(sys: &mut dyn System, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = machine
+    let name = sys
         .mem()
         .slicez(lpWndClassEx.lpszClassName)
         .try_ascii()
@@ -180,26 +180,24 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
-        background: BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground)
-            .to_brush(machine),
+        background: BrushOrColor::from_arg(sys.mem(), lpWndClassEx.hbrBackground).to_brush(sys),
     };
-    machine.state.user32.wndclasses.register(wndclass)
+    get_state(sys).wndclasses.register(wndclass)
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW>) -> u32 {
+pub fn RegisterClassExW(sys: &mut dyn System, lpWndClassEx: Option<&WNDCLASSEXW>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = Str16::from_nul_term_ptr(machine.mem(), lpWndClassEx.lpszClassName)
+    let name = Str16::from_nul_term_ptr(sys.mem(), lpWndClassEx.lpszClassName)
         .unwrap()
         .to_string();
     let wndclass = WndClass {
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
-        background: BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground)
-            .to_brush(machine),
+        background: BrushOrColor::from_arg(sys.mem(), lpWndClassEx.hbrBackground).to_brush(sys),
     };
-    machine.state.user32.wndclasses.register(wndclass)
+    get_state(sys).wndclasses.register(wndclass)
 }
 
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -217,8 +215,9 @@ pub enum GCL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+pub fn GetClassLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     let class = window.wndclass.borrow();
     match nIndex.unwrap() {
         GCL::STYLE => class.style.bits(),
@@ -228,12 +227,13 @@ pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>
 
 #[win32_derive::dllexport]
 pub fn SetClassLongA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     nIndex: Result<GCL, u32>,
     dwNewLong: i32,
 ) -> u32 {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     let class = &window.wndclass;
     match nIndex.unwrap() {
         GCL::STYLE => std::mem::replace(

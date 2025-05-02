@@ -1,6 +1,6 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
-    Machine, System,
+    System,
     winapi::{
         encoding::{Encoder, EncoderAnsi},
         kernel32::ResourceKey,
@@ -90,7 +90,7 @@ bitflags! {
 }
 
 fn load_image(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: u32,
     name: ResourceKey<&Str16>,
     typ: IMAGE,
@@ -117,8 +117,8 @@ fn load_image(
             panic!();
         };
         let path = name.to_string();
-        let mut file = machine
-            .host
+        let mut file = sys
+            .host()
             .open(WindowsPath::new(&path), host::FileOptions::read())
             .unwrap();
         let mut buf = Vec::new();
@@ -130,10 +130,10 @@ fn load_image(
             IMAGE::BITMAP => pe::RT::BITMAP,
             IMAGE::ICON => pe::RT::ICON,
         } as u32);
-        let Some(slice) = find_resource(machine, hInstance, typ, &name) else {
+        let Some(slice) = find_resource(sys, hInstance, typ, &name) else {
             return HGDIOBJ::null();
         };
-        Cow::Borrowed(machine.mem().slice(slice))
+        Cow::Borrowed(sys.mem().slice(slice))
     };
     let buf = &*buf;
 
@@ -149,7 +149,7 @@ fn load_image(
                 buf
             };
             let bmp = Bitmap::parse(buf, None);
-            gdi32::get_state(machine).objects.add_bitmap(bmp)
+            gdi32::get_state(sys).objects.add_bitmap(bmp)
         }
         typ => {
             log::error!("LoadImage: unimplemented image type {:?}", typ);
@@ -160,7 +160,7 @@ fn load_image(
 
 #[win32_derive::dllexport]
 pub fn LoadImageA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: u32,
     name: ResourceKey<&str>,
     typ: Result<IMAGE, u32>,
@@ -169,7 +169,7 @@ pub fn LoadImageA(
     fuLoad: Result<LR, u32>,
 ) -> HGDIOBJ {
     load_image(
-        machine,
+        sys,
         hInstance,
         name.to_string16().as_ref(),
         typ.unwrap(),
@@ -181,7 +181,7 @@ pub fn LoadImageA(
 
 #[win32_derive::dllexport]
 pub fn LoadImageW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: u32,
     name: ResourceKey<&Str16>,
     typ: Result<IMAGE, u32>,
@@ -189,54 +189,46 @@ pub fn LoadImageW(
     cy: u32,
     fuLoad: Result<LR, u32>,
 ) -> HGDIOBJ {
-    load_image(
-        machine,
-        hInstance,
-        name,
-        typ.unwrap(),
-        cx,
-        cy,
-        fuLoad.unwrap(),
-    )
+    load_image(sys, hInstance, name, typ.unwrap(), cx, cy, fuLoad.unwrap())
 }
 
 fn load_bitmap(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: HINSTANCE,
     name: ResourceKey<&Str16>,
 ) -> Option<HGDIOBJ> {
     let buf = find_resource(
-        machine,
+        sys,
         hInstance,
         ResourceKey::Id(pe::RT::BITMAP as u32),
         &name,
     )?;
-    let buf = machine.mem().slice(buf);
+    let buf = sys.mem().slice(buf);
     let bmp = Bitmap::parse(buf, None);
-    Some(gdi32::get_state(machine).objects.add_bitmap(bmp))
+    Some(gdi32::get_state(sys).objects.add_bitmap(bmp))
 }
 
 #[win32_derive::dllexport]
 pub fn LoadBitmapA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: HINSTANCE,
     lpBitmapName: ResourceKey<&str>,
 ) -> HGDIOBJ {
-    load_bitmap(machine, hInstance, lpBitmapName.to_string16().as_ref()).unwrap()
+    load_bitmap(sys, hInstance, lpBitmapName.to_string16().as_ref()).unwrap()
 }
 
-fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Range<u32>> {
+fn find_string(sys: &dyn System, hInstance: HINSTANCE, uID: u32) -> Option<Range<u32>> {
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
     let block = find_resource(
-        machine,
+        sys,
         hInstance,
         ResourceKey::Id(pe::RT::STRING as u32),
         &ResourceKey::Id(resource_id),
     )?;
     let block_ofs = block.start;
-    let block = machine.mem().slice(block);
+    let block = sys.mem().slice(block);
 
     // Each block is a sequence of two byte length-prefixed strings.
     // Iterate through them to find the requested index.
@@ -255,21 +247,21 @@ fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Rang
 
 #[win32_derive::dllexport]
 pub fn LoadStringA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: u32,
     uID: u32,
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
     // TODO: merge with LoadStringW
-    let str = match find_string(machine, hInstance, uID) {
-        Some(str) => Str16::from_bytes(machine.mem().slice(str)).to_string(),
+    let str = match find_string(sys, hInstance, uID) {
+        Some(str) => Str16::from_bytes(sys.mem().slice(str)).to_string(),
         None => return 0,
     }
     .to_string();
     assert!(cchBufferMax != 0); // MSDN claims this is invalid
 
-    let mut enc = EncoderAnsi::from_mem(machine.mem(), lpBuffer, cchBufferMax);
+    let mut enc = EncoderAnsi::from_mem(sys.mem(), lpBuffer, cchBufferMax);
     enc.write_nul(str.as_str());
     let len = enc.status().unwrap();
     len as u32 - 1
@@ -277,22 +269,22 @@ pub fn LoadStringA(
 
 #[win32_derive::dllexport]
 pub fn LoadStringW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hInstance: u32,
     uID: u32,
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
     // TODO: merge with LoadStringA
-    let Some(str) = find_string(machine, hInstance, uID) else {
+    let Some(str) = find_string(sys, hInstance, uID) else {
         return 0;
     };
-    let mem = machine.mem();
+    let mem = sys.mem();
     if cchBufferMax == 0 {
         mem.put_pod::<u32>(lpBuffer, str.start);
         str.len() as u32
     } else {
-        let dst = machine.mem().sub32_mut(lpBuffer, cchBufferMax * 2);
+        let dst = sys.mem().sub32_mut(lpBuffer, cchBufferMax * 2);
         let copy_len = std::cmp::min(dst.len() - 2, str.len()) as u32;
         dst[..copy_len as usize].copy_from_slice(mem.sub32(str.start, copy_len));
         dst.put_pod::<u16>(copy_len as u32, 0);

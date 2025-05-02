@@ -1,6 +1,6 @@
-use super::{DCTarget, HBRUSH, HDC, WindowType};
+use super::{DCTarget, HBRUSH, HDC, WindowType, get_state};
 use crate::{
-    Machine, System,
+    System,
     calling_convention::FromArg,
     winapi::{HWND, RECT, Str16},
 };
@@ -9,19 +9,21 @@ use builtin_gdi32::{COLORREF, HGDIOBJ};
 
 #[win32_derive::dllexport]
 pub fn InvalidateRect(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     window.add_dirty(bErase);
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+pub fn ValidateRect(sys: &mut dyn System, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     let window = window.expect_toplevel_mut();
     match lpRect {
         Some(_rect) => {
@@ -34,12 +36,13 @@ pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) ->
 
 #[win32_derive::dllexport]
 pub fn GetUpdateRect(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lpRect: Option<&mut RECT>,
     bErase: bool,
 ) -> bool {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     let top = window.expect_toplevel_mut();
 
     if let Some(dirty) = &top.dirty {
@@ -64,11 +67,12 @@ pub fn GetUpdateRect(
 pub type HRGN = HGDIOBJ;
 
 #[win32_derive::dllexport]
-pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool) -> bool {
+pub fn InvalidateRgn(sys: &mut dyn System, hWnd: HWND, hRgn: HRGN, bErase: bool) -> bool {
     if !hRgn.is_null() {
         todo!("invalidate specific region");
     }
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     window.add_dirty(bErase);
     true // success
 }
@@ -86,8 +90,8 @@ pub struct PAINTSTRUCT {
 unsafe impl memory::Pod for PAINTSTRUCT {}
 
 #[win32_derive::dllexport]
-pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    let rcwindow = machine.state.user32.windows.get(hWnd).unwrap();
+pub fn BeginPaint(sys: &mut dyn System, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
+    let rcwindow = get_state(sys).windows.get(hWnd).unwrap().clone();
     let window = rcwindow.borrow();
     // TODO: take from update region
     let dirty_rect = RECT {
@@ -103,7 +107,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         log::warn!("TODO: BeginPaint for child windows");
         return HDC::null();
     };
-    let mut gdi_state = gdi32::get_state(machine);
+    let mut gdi_state = gdi32::get_state(sys);
     let hdc = gdi_state.new_dc(DCTarget::new(rcwindow.clone()));
     let update = toplevel.dirty.as_ref().unwrap();
 
@@ -115,7 +119,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
                 if let Some(color) = brush.color {
                     drop(window);
                     drop(gdi_state);
-                    gdi32::fill_rect(machine, hdc, &dirty_rect, color);
+                    gdi32::fill_rect(sys, hdc, &dirty_rect, color);
                     background_drawn = true;
                 }
             }
@@ -134,12 +138,13 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 }
 
 #[win32_derive::dllexport]
-pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+pub fn EndPaint(sys: &mut dyn System, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
+    let window = get_state(sys).windows.get(hWnd).unwrap().clone();
+    let mut window = window.borrow_mut();
     match &mut window.typ {
         WindowType::TopLevel(toplevel) => {
             toplevel.dirty = None;
-            window.flush_backing_store(machine.memory.mem());
+            window.flush_backing_store(sys.mem());
         }
         _ => {
             log::warn!("TODO: EndPaint for child windows");
@@ -208,12 +213,12 @@ impl<'a> FromArg<'a> for BrushOrColor {
 }
 
 impl BrushOrColor {
-    pub fn to_brush(&self, machine: &mut Machine) -> HGDIOBJ {
+    pub fn to_brush(&self, sys: &mut dyn System) -> HGDIOBJ {
         match self {
             BrushOrColor::Brush(hbr) => *hbr,
             BrushOrColor::Color(c) => {
                 let color = Some(COLORREF::from_rgb_tuple(c.to_rgb()));
-                gdi32::get_state(machine)
+                gdi32::get_state(sys)
                     .objects
                     .add(gdi32::Object::Brush(gdi32::Brush { color }))
             }
@@ -222,9 +227,9 @@ impl BrushOrColor {
 }
 
 #[win32_derive::dllexport]
-pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: BrushOrColor) -> bool {
-    let brush = hbr.to_brush(machine);
-    let color = match gdi32::get_state(machine).objects.get(brush).unwrap() {
+pub fn FillRect(sys: &mut dyn System, hDC: HDC, lprc: Option<&RECT>, hbr: BrushOrColor) -> bool {
+    let brush = hbr.to_brush(sys);
+    let color = match gdi32::get_state(sys).objects.get(brush).unwrap() {
         gdi32::Object::Brush(brush) => match brush.color {
             Some(color) => color,
             None => return true,
@@ -232,7 +237,7 @@ pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: Brush
         _ => unimplemented!(),
     };
     let rect = lprc.unwrap();
-    gdi32::fill_rect(machine, hDC, rect, color);
+    gdi32::fill_rect(sys, hDC, rect, color);
     true
 }
 

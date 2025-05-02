@@ -1,12 +1,12 @@
 use super::*;
-use crate::{Machine, System, calling_convention::Array, winapi::*};
+use crate::{System, calling_convention::Array, winapi::*};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
 use gdi32::{
     HDC,
     bitmap::{Bitmap, PixelData, PixelFormat},
 };
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{Extensions, Mem};
 use std::{cell::RefCell, rc::Rc};
 use win32_system::host;
 
@@ -325,7 +325,7 @@ impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowStyle {
 
 #[win32_derive::dllexport]
 pub async fn CreateWindowExA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, str>,
     lpWindowName: Option<&str>,
@@ -349,7 +349,7 @@ pub async fn CreateWindowExA(
     };
     let window_name = String16::from(lpWindowName.unwrap_or(""));
     CreateWindowExW(
-        machine,
+        sys,
         dwExStyle,
         class_name,
         Some(window_name.as_str16()),
@@ -368,7 +368,7 @@ pub async fn CreateWindowExA(
 
 #[win32_derive::dllexport]
 pub async fn CreateWindowExW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, Str16>,
     lpWindowName: Option<&Str16>,
@@ -386,14 +386,15 @@ pub async fn CreateWindowExW(
         CreateWindowClassName::Atom(_) => unimplemented!(),
         CreateWindowClassName::Name(name) => name.to_string(),
     };
-    let wndclass = machine.state.user32.wndclasses.get(&class_name).unwrap();
+    let mut state = get_state(sys);
+    let wndclass = state.wndclasses.get(&class_name).unwrap();
 
     const CW_USEDEFAULT: u32 = 0x8000_0000;
 
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
 
-    let hwnd = machine.state.user32.windows.reserve();
+    let hwnd = state.windows.reserve();
     let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
     let height = if nHeight == CW_USEDEFAULT {
         480
@@ -408,7 +409,7 @@ pub async fn CreateWindowExW(
         WindowType::Child
     } else {
         WindowType::TopLevel(WindowTopLevel::new(
-            &mut *machine.host,
+            sys.host(),
             hwnd,
             &lpWindowName.unwrap().to_string(),
             width,
@@ -427,34 +428,24 @@ pub async fn CreateWindowExW(
         show_cmd: SW::HIDE,
         user_data: 0,
     };
-    machine
-        .state
-        .user32
-        .windows
-        .set(hwnd, Rc::new(RefCell::new(window)));
+
+    state.windows.set(hwnd, Rc::new(RefCell::new(window)));
 
     // Synchronously dispatch WM_CREATE.
-    let createstruct_addr = machine.state.scratch.alloc(
-        machine.memory.mem(),
-        std::mem::size_of::<CREATESTRUCTA>() as u32,
-    );
-    machine.mem().put_pod::<CREATESTRUCTA>(
-        createstruct_addr,
-        CREATESTRUCTA {
-            lpCreateParams: lpParam,
-            hInstance,
-            hMenu,
-            hwndParent: HWND::null(),
-            cy: 0,
-            cx: 0,
-            y: 0,
-            x: 0,
-            style: 0,
-            lpszName: 0,
-            lpszClass: 0,
-            dwExStyle: WS_EX::empty(),
-        },
-    );
+    let createstruct_addr = sys.memory().store(CREATESTRUCTA {
+        lpCreateParams: lpParam,
+        hInstance,
+        hMenu,
+        hwndParent: HWND::null(),
+        cy: 0,
+        cx: 0,
+        y: 0,
+        x: 0,
+        style: 0,
+        lpszName: 0,
+        lpszClass: 0,
+        dwExStyle: WS_EX::empty(),
+    });
 
     let msg = MSG {
         hwnd,
@@ -465,12 +456,10 @@ pub async fn CreateWindowExW(
         pt_x: 0,
         pt_y: 0,
     };
-    dispatch_message(machine, &msg).await;
+    drop(state);
+    dispatch_message(sys, &msg).await;
 
-    machine
-        .state
-        .scratch
-        .free(machine.memory.mem(), createstruct_addr);
+    sys.memory().process_heap.free(sys.mem(), createstruct_addr);
 
     hwnd
 }
@@ -486,11 +475,11 @@ pub fn GetDesktopWindow(sys: &dyn System) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
-    if let Some((hwnd, _)) = machine.state.user32.windows.iter().next() {
+pub fn GetForegroundWindow(sys: &dyn System) -> HWND {
+    if let Some((hwnd, _)) = get_state(sys).windows.iter().next() {
         return hwnd;
     }
-    GetDesktopWindow(machine)
+    GetDesktopWindow(sys)
 }
 
 #[win32_derive::dllexport]
@@ -499,25 +488,25 @@ pub fn SetForegroundWindow(sys: &dyn System, hWnd: HWND) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn GetActiveWindow(machine: &mut Machine) -> HWND {
-    match machine.state.user32.windows.iter().next() {
+pub fn GetActiveWindow(sys: &dyn System) -> HWND {
+    match get_state(sys).windows.iter().next() {
         Some((hwnd, _)) => hwnd,
         None => HWND::null(),
     }
 }
 
 #[win32_derive::dllexport]
-pub fn GetLastActivePopup(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().0
+pub fn GetLastActivePopup(sys: &dyn System) -> HWND {
+    get_state(sys).windows.iter().next().unwrap().0
 }
 
 #[win32_derive::dllexport]
 pub fn FindWindowA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpClassName: Option<&str>,
     lpWindowName: Option<&str>,
 ) -> HWND {
-    match machine.state.user32.windows.iter().find(|_window| {
+    match get_state(sys).windows.iter().find(|_window| {
         // TODO: obey class/window name
         true
     }) {
@@ -527,8 +516,9 @@ pub fn FindWindowA(
 }
 
 #[win32_derive::dllexport]
-pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+pub async fn UpdateWindow(sys: &mut dyn System, hWnd: HWND) -> bool {
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     match &window.typ {
         WindowType::TopLevel(top) => {
             if top.dirty.is_none() {
@@ -550,7 +540,8 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
         pt_x: 0,
         pt_y: 0,
     };
-    dispatch_message(machine, &msg).await;
+    drop(state);
+    dispatch_message(sys, &msg).await;
 
     true // success
 }
@@ -580,7 +571,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub async fn RedrawWindow(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lprcUpdate: Option<&mut RECT>,
     hrgnUpdate: HRGN,
@@ -593,15 +584,18 @@ pub async fn RedrawWindow(
     // TODO: this function has a million flags, ugh.
     // Seems like it's three steps: invalidate/validate, update.
 
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let flags = flags.unwrap();
 
-    if flags.contains(RDW::INVALIDATE) {
-        window.add_dirty(flags.contains(RDW::ERASE));
-    } else if flags.contains(RDW::VALIDATE) {
-        todo!();
+    {
+        let state = get_state(sys);
+        let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
+
+        if flags.contains(RDW::INVALIDATE) {
+            window.add_dirty(flags.contains(RDW::ERASE));
+        } else if flags.contains(RDW::VALIDATE) {
+            todo!();
+        }
     }
-    drop(window);
 
     if flags.contains(RDW::ERASENOW) {
         todo!();
@@ -615,7 +609,7 @@ pub async fn RedrawWindow(
             pt_x: 0,
             pt_y: 0,
         };
-        dispatch_message(machine, &msg).await;
+        dispatch_message(sys, &msg).await;
     }
 
     true
@@ -624,14 +618,16 @@ pub async fn RedrawWindow(
 /// Set a window as the current foreground window.
 /// This triggers WM::ACTIVATEAPP and WM::ACTIVATE messages.
 /// This happens when the window is shown, but can also happen via DirectDraw SetCooperativeLevel.
-pub async fn activate_window(machine: &mut Machine, hWnd: HWND) {
-    if hWnd == machine.state.user32.active_window {
+pub async fn activate_window(sys: &mut dyn System, hWnd: HWND) {
+    let mut state = get_state(sys);
+    if hWnd == state.active_window {
         return;
     }
-    machine.state.user32.active_window = hWnd;
+    state.active_window = hWnd;
+    drop(state);
 
     dispatch_message(
-        machine,
+        sys,
         &MSG {
             hwnd: hWnd,
             message: WM::ACTIVATEAPP as u32,
@@ -646,7 +642,7 @@ pub async fn activate_window(machine: &mut Machine, hWnd: HWND) {
 
     const WA_ACTIVE: u32 = 1;
     dispatch_message(
-        machine,
+        sys,
         &MSG {
             hwnd: hWnd,
             message: WM::ACTIVATE as u32,
@@ -678,24 +674,20 @@ pub enum SW {
 }
 
 #[win32_derive::dllexport]
-pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
-    // Store the show command for returning from GetWindowPlacement.
-    machine
-        .state
-        .user32
-        .windows
-        .get(hWnd)
-        .unwrap()
-        .borrow_mut()
-        .show_cmd = nCmdShow.unwrap();
+pub async fn ShowWindow(sys: &mut dyn System, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+    {
+        let state = get_state(sys);
+        // Store the show command for returning from GetWindowPlacement.
+        state.windows.get(hWnd).unwrap().borrow_mut().show_cmd = nCmdShow.unwrap();
+    }
 
-    activate_window(machine, hWnd).await;
+    activate_window(sys, hWnd).await;
 
     // TODO: WM_WINDOWPOSCHANGED should pass a WINDOWPOS struct,
     // but the DefWindowProc we provide ignores it and calls WM_MOVE/WM_SIZE directly.
     let windowpos_addr = 0;
     dispatch_message(
-        machine,
+        sys,
         &MSG {
             hwnd: hWnd,
             message: WM::WINDOWPOSCHANGED as u32,
@@ -713,10 +705,10 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
 }
 
 #[win32_derive::dllexport]
-pub async fn SetFocus(machine: &mut Machine, hWnd: HWND) -> HWND {
-    let prev_focused = machine.state.user32.active_window;
+pub async fn SetFocus(sys: &mut dyn System, hWnd: HWND) -> HWND {
+    let prev_focused = get_state(sys).active_window;
     dispatch_message(
-        machine,
+        sys,
         &MSG {
             hwnd: hWnd,
             message: WM::SETFOCUS as u32,
@@ -732,12 +724,12 @@ pub async fn SetFocus(machine: &mut Machine, hWnd: HWND) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn GetFocus(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().0
+pub fn GetFocus(sys: &dyn System) -> HWND {
+    get_state(sys).windows.iter().next().unwrap().0
 }
 
 async fn def_window_proc(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     msg: Result<WM, u32>,
     _wParam: u32,
@@ -749,17 +741,17 @@ async fn def_window_proc(
     };
     match msg {
         WM::ACTIVATE => {
-            SetFocus(machine, hWnd).await;
+            SetFocus(sys, hWnd).await;
         }
         WM::PAINT => {
-            let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+            let state = get_state(sys);
+            let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
             let window = window.expect_toplevel_mut();
             window.dirty = None;
         }
         WM::WINDOWPOSCHANGED => {
-            let Window { width, height, .. } =
-                *machine.state.user32.windows.get(hWnd).unwrap().borrow();
-            let WINDOWPOS { flags, .. } = machine.mem().get_pod::<WINDOWPOS>(lParam);
+            let Window { width, height, .. } = *get_state(sys).windows.get(hWnd).unwrap().borrow();
+            let WINDOWPOS { flags, .. } = sys.mem().get_pod::<WINDOWPOS>(lParam);
 
             if !flags.contains(SWP::NOSIZE) {
                 const SIZE_RESTORED: u32 = 0;
@@ -772,7 +764,7 @@ async fn def_window_proc(
                     pt_x: 0,
                     pt_y: 0,
                 };
-                dispatch_message(machine, &msg).await;
+                dispatch_message(sys, &msg).await;
             }
 
             if !flags.contains(SWP::NOMOVE) {
@@ -787,7 +779,7 @@ async fn def_window_proc(
                     pt_x: 0,
                     pt_y: 0,
                 };
-                dispatch_message(machine, &msg).await;
+                dispatch_message(sys, &msg).await;
             }
         }
         _ => {}
@@ -797,24 +789,24 @@ async fn def_window_proc(
 
 #[win32_derive::dllexport]
 pub async fn DefWindowProcA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    def_window_proc(machine, hWnd, msg, wParam, lParam).await
+    def_window_proc(sys, hWnd, msg, wParam, lParam).await
 }
 
 #[win32_derive::dllexport]
 pub async fn DefWindowProcW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    def_window_proc(machine, hWnd, msg, wParam, lParam).await
+    def_window_proc(sys, hWnd, msg, wParam, lParam).await
 }
 
 /// Compute window rectangle from client rectangle.
@@ -854,12 +846,12 @@ fn client_size_from_window_size(style: WS, menu: bool, width: u32, height: u32) 
 
 #[win32_derive::dllexport]
 pub fn AdjustWindowRect(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpRect: Option<&mut RECT>,
     dwStyle: Result<WS, u32>,
     bMenu: bool,
 ) -> bool {
-    AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, Result::Ok(WS_EX::empty()))
+    AdjustWindowRectEx(sys, lpRect, dwStyle, bMenu, Result::Ok(WS_EX::empty()))
 }
 
 #[win32_derive::dllexport]
@@ -910,7 +902,7 @@ unsafe impl memory::Pod for WINDOWPOS {}
 
 #[win32_derive::dllexport]
 pub async fn SetWindowPos(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     hWndInsertAfter: HWND,
     X: i32,
@@ -919,22 +911,15 @@ pub async fn SetWindowPos(
     cy: i32,
     uFlags: Result<SWP, u32>,
 ) -> bool {
-    let windowpos_addr = machine.state.scratch.alloc(
-        machine.memory.mem(),
-        std::mem::size_of::<WINDOWPOS>() as u32,
-    );
-    machine.mem().put_pod::<WINDOWPOS>(
-        windowpos_addr,
-        WINDOWPOS {
-            hwnd: hWnd,
-            hwndInsertAfter: hWndInsertAfter,
-            x: X,
-            y: Y,
-            cx,
-            cy,
-            flags: uFlags.unwrap(),
-        },
-    );
+    let windowpos_addr = sys.memory().store(WINDOWPOS {
+        hwnd: hWnd,
+        hwndInsertAfter: hWndInsertAfter,
+        x: X,
+        y: Y,
+        cx,
+        cy,
+        flags: uFlags.unwrap(),
+    });
 
     // A trace of winstream.exe had this sequence of synchronous messages:
     // WM_WINDOWPOSCHANGING
@@ -950,20 +935,21 @@ pub async fn SetWindowPos(
         pt_x: 0,
         pt_y: 0,
     };
-    dispatch_message(machine, &msg).await;
+    dispatch_message(sys, &msg).await;
 
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
     let (width, height) =
         client_size_from_window_size(window.window_style, menu, cx as u32, cy as u32);
-    window.set_client_size(&mut *machine.host, width, height);
+    window.set_client_size(sys.host(), width, height);
 
     true
 }
 
 #[win32_derive::dllexport]
 pub fn MoveWindow(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     X: u32,
     Y: u32,
@@ -971,16 +957,18 @@ pub fn MoveWindow(
     nHeight: u32,
     bRepaint: bool,
 ) -> bool {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(window.window_style, menu, nWidth, nHeight);
-    window.set_client_size(&mut *machine.host, width, height);
+    window.set_client_size(sys.host(), width, height);
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+pub fn GetClientRect(sys: &mut dyn System, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     let rect = lpRect.unwrap();
     *rect = RECT {
         left: 0,
@@ -992,8 +980,9 @@ pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+pub fn GetWindowRect(sys: &mut dyn System, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
 
     let mut result = RECT {
         left: 0,
@@ -1034,11 +1023,12 @@ unsafe impl memory::Pod for WINDOWPLACEMENT {}
 
 #[win32_derive::dllexport]
 pub fn GetWindowPlacement(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lpwndpl: Option<&mut WINDOWPLACEMENT>,
 ) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     let wndpl = lpwndpl.unwrap();
 
     *wndpl = WINDOWPLACEMENT {
@@ -1069,7 +1059,7 @@ pub fn GetWindowDC(sys: &dyn System, hWnd: HWND) -> HDC {
 }
 
 #[win32_derive::dllexport]
-pub fn ReleaseDC(machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
+pub fn ReleaseDC(sys: &mut dyn System, hwnd: HWND, hdc: HDC) -> bool {
     // Note: there is also DeleteDC; this one is specifically for GetWindowDC/GetDC.
     // TODO: there is a separate refcount for ReleaseDC, but we don't track it.
     true
@@ -1084,8 +1074,9 @@ pub enum GWL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
+    let state = get_state(sys);
+    let window = state.windows.get(hWnd).unwrap().borrow();
     match nIndex {
         Ok(gwl) => match gwl {
             GWL::STYLE => WS::empty().bits() as i32,
@@ -1099,12 +1090,13 @@ pub fn GetWindowLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GWL, u32
 
 #[win32_derive::dllexport]
 pub fn SetWindowLongA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     nIndex: Result<GWL, u32>,
     dwNewLong: i32,
 ) -> i32 {
-    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let state = get_state(sys);
+    let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
     match nIndex {
         Ok(gwl) => match gwl {
             GWL::USERDATA => std::mem::replace(&mut window.user_data, dwNewLong),
@@ -1115,14 +1107,15 @@ pub fn SetWindowLongA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
+pub fn GetDC(sys: &mut dyn System, hWnd: HWND) -> HDC {
     match hWnd.to_option() {
         Some(hwnd) => {
-            let rcwindow = machine.state.user32.windows.get(hwnd).unwrap();
+            let state = get_state(sys);
+            let rcwindow = state.windows.get(hwnd).unwrap();
             let window = rcwindow.borrow();
             match &window.typ {
                 WindowType::TopLevel(_) => {
-                    gdi32::get_state(machine).new_dc(DCTarget::new(rcwindow.clone()))
+                    gdi32::get_state(sys).new_dc(DCTarget::new(rcwindow.clone()))
                 }
                 _ => {
                     log::warn!("GetDC for non-top-level window");
@@ -1130,7 +1123,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
                 }
             }
         }
-        None => gdi32::get_state(machine).screen_dc,
+        None => gdi32::get_state(sys).screen_dc,
     }
 }
 
@@ -1161,8 +1154,8 @@ pub fn ReleaseCapture(sys: &dyn System) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>) -> bool {
-    match machine.state.user32.windows.get_mut(hWnd) {
+pub fn SetWindowTextA(sys: &mut dyn System, hWnd: HWND, lpString: Option<&str>) -> bool {
+    match get_state(sys).windows.get_mut(hWnd) {
         Some(window) => {
             let mut window = window.borrow_mut();
             window
@@ -1182,21 +1175,23 @@ pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>)
 const USER_WINDOW_MESSAGE_BASE: u32 = 0xC000;
 
 #[win32_derive::dllexport]
-pub fn RegisterWindowMessageA(machine: &mut Machine, lpString: Option<&str>) -> u32 {
+pub fn RegisterWindowMessageA(sys: &mut dyn System, lpString: Option<&str>) -> u32 {
     let name = lpString.unwrap().to_string();
-    machine.state.user32.user_window_message_count += 1;
-    USER_WINDOW_MESSAGE_BASE + machine.state.user32.user_window_message_count
+    let mut state = get_state(sys);
+    state.user_window_message_count += 1;
+    USER_WINDOW_MESSAGE_BASE + state.user_window_message_count
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterWindowMessageW(machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
+pub fn RegisterWindowMessageW(sys: &mut dyn System, lpString: Option<&Str16>) -> u32 {
     let name = lpString.unwrap().to_string();
-    machine.state.user32.user_window_message_count += 1;
-    USER_WINDOW_MESSAGE_BASE + machine.state.user32.user_window_message_count
+    let mut state = get_state(sys);
+    state.user_window_message_count += 1;
+    USER_WINDOW_MESSAGE_BASE + state.user_window_message_count
 }
 
 #[win32_derive::dllexport]
-pub fn GetCapture(machine: &mut Machine) -> HWND {
+pub fn GetCapture(sys: &dyn System) -> HWND {
     todo!();
 }
 
