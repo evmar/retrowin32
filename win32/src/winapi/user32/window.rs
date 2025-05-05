@@ -164,7 +164,7 @@ impl Window {
         }
     }
 
-    pub fn set_client_size(&mut self, host: &mut dyn host::Host, width: u32, height: u32) {
+    pub fn set_client_size(&mut self, host: &dyn host::Host, width: u32, height: u32) {
         self.width = width;
         self.height = height;
         match &mut self.typ {
@@ -215,7 +215,7 @@ pub struct Dirty {
 }
 
 impl WindowTopLevel {
-    fn new(host: &mut dyn host::Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
+    fn new(host: &dyn host::Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
         let host_win = host.create_window(hwnd.to_raw());
         host_win.set_title(title);
         host_win.set_size(width, height);
@@ -239,7 +239,7 @@ impl WindowTopLevel {
         }
     }
 
-    fn set_size(&mut self, host: &mut dyn host::Host, id: u32, width: u32, height: u32) {
+    fn set_size(&mut self, host: &dyn host::Host, id: u32, width: u32, height: u32) {
         self.host.set_size(width, height);
         self.surface = host.create_surface(
             id,

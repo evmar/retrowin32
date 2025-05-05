@@ -158,8 +158,8 @@ pub trait Host: FileSystem {
 
     fn stdout(&self, buf: &[u8]);
 
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
-    fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
+    fn create_window(&self, hwnd: u32) -> Box<dyn Window>;
+    fn create_surface(&self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
 
-    fn init_audio(&mut self, sample_rate: u32, callback: AudioCallback) -> Box<dyn Audio>;
+    fn init_audio(&self, sample_rate: u32, callback: AudioCallback) -> Box<dyn Audio>;
 }

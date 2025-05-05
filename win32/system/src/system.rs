@@ -7,7 +7,7 @@ pub trait System {
 
     /// Escape hatch for users that haven't yet moved to this interface.
     fn machine(&mut self) -> *mut ();
-    fn host(&mut self) -> &mut dyn host::Host;
+    fn host(&self) -> &dyn host::Host;
 
     // TODO: I'd like this to just return a future, but because we make System a trait object
     // we use the workaround from https://github.com/dtolnay/async-trait.

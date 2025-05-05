@@ -51,8 +51,8 @@ impl System for Machine {
         self as *mut _ as *mut _
     }
 
-    fn host(&mut self) -> &mut dyn host::Host {
-        self.host.as_mut()
+    fn host(&self) -> &dyn host::Host {
+        self.host.as_ref()
     }
 
     fn call_x86(

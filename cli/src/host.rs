@@ -211,14 +211,14 @@ impl win32::host::Host for EnvRef {
         std::io::stdout().lock().write_all(buf).unwrap();
     }
 
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::host::Window> {
+    fn create_window(&self, hwnd: u32) -> Box<dyn win32::host::Window> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.create_window(hwnd)
     }
 
     fn create_surface(
-        &mut self,
+        &self,
         _hwnd: u32,
         opts: &win32::host::SurfaceOptions,
     ) -> Box<dyn win32::host::Surface> {
@@ -228,7 +228,7 @@ impl win32::host::Host for EnvRef {
     }
 
     fn init_audio(
-        &mut self,
+        &self,
         sample_rate: u32,
         callback: win32::host::AudioCallback,
     ) -> Box<dyn win32::host::Audio> {
