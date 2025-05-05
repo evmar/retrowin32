@@ -357,7 +357,9 @@ pub async fn load_exe(
     // call DllMain()s on dependent DLLs.  But we only have the stack size
     // for that thread once we've parsed the file, so here is the place to
     // create it.  TODO: this feels wrong.  Perhaps caller should parse pe itself?
-    let stack_size = file.opt_header.SizeOfStackReserve;
+    // TODO: zig asks for 16mb of stack space, which then conflicts with the
+    // exe load address.  Clip it here.
+    let stack_size = file.opt_header.SizeOfStackReserve.min(0x10_0000);
     let thread = kernel32::create_thread(machine, stack_size);
     Machine::init_thread(machine.emu.x86.cpu_mut(), &thread);
 
