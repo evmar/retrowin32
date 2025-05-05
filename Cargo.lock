@@ -121,6 +121,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-dsound"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.9.0",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-ole32"
 version = "0.1.0"
 dependencies = [
@@ -700,6 +711,7 @@ dependencies = [
  "builtin-advapi32",
  "builtin-bass",
  "builtin-dinput",
+ "builtin-dsound",
  "builtin-ole32",
  "builtin-oleaut32",
  "builtin-retrowin32_test",

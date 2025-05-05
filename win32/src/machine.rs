@@ -87,6 +87,8 @@ impl System for Machine {
             &self.state.user32
         } else if id == &TypeId::of::<winapi::gdi32::State>() {
             &self.state.gdi32
+        } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
+            &self.state.dsound
         } else {
             panic!();
         }

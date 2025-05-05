@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::dsound::{self, *};
+    use crate as dsound;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -28,12 +29,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = dsound::DirectSoundCreate(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpGuid,
-                ppDS,
-                pUnkOuter,
-            );
+            let result = dsound::DirectSoundCreate(sys, lpGuid, ppDS, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -157,7 +153,7 @@ mod wrappers {
                 None
             };
             let result = dsound::IDirectSoundBuffer::Lock(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 dwWriteCursor,
                 dwWriteBytes,
@@ -275,7 +271,7 @@ mod wrappers {
                 None
             };
             let result = dsound::IDirectSoundBuffer::Unlock(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpvAudioPtr1,
                 dwAudioBytes1,
@@ -315,7 +311,7 @@ mod wrappers {
                 None
             };
             let result = dsound::IDirectSound::CreateSoundBuffer(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpcDSBufferDesc,
                 lplpDirectSoundBuffer,
@@ -430,5 +426,5 @@ const SHIMS: [Shim; 12usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "dsound.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/dsound.dll"),
+    raw: std::include_bytes!("../dsound.dll"),
 };

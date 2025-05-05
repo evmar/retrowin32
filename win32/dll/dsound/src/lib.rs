@@ -5,12 +5,10 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::{Machine, System};
 use memory::ExtensionsMut;
-use std::{collections::HashMap, rc::Rc};
-use win32_system::Heap;
-use win32_winapi::com::GUID;
-use win32_winapi::vtable;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use win32_system::{Heap, System};
+use win32_winapi::{com::GUID, vtable};
 
 /// Set to true to make DirectSoundCreate report no sound device available.
 /// Doing this from the beginning would have been a better idea than trying to implement stubs here...
@@ -35,14 +33,22 @@ pub struct State {
 }
 
 impl State {
-    pub fn new_init(machine: &mut Machine) -> Self {
-        let mut dsound = State::default();
-        dsound.heap = machine.memory.new_heap(
+    pub fn init(sys: &mut dyn System) {
+        let heap = sys.memory().new_heap(
             128 << 10, // chillin needs a 64kb buffer
             "dsound.dll heap".into(),
         );
-        dsound
+        *get_state(sys).borrow_mut() = State {
+            heap,
+            buffers: Default::default(),
+        };
     }
+}
+
+fn get_state(sys: &dyn System) -> &RefCell<State> {
+    sys.state(&std::any::TypeId::of::<RefCell<State>>())
+        .downcast_ref::<RefCell<State>>()
+        .unwrap()
 }
 
 #[derive(Default)]
@@ -115,11 +121,12 @@ unsafe impl memory::Pod for WAVEFORMATEX {}
 pub mod IDirectSound {
     use super::*;
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let dsound = &mut machine.state.dsound;
-        let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSound");
-        machine.mem().put_pod::<u32>(lpDirectSound, vtable);
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let heap = get_state(sys).borrow().heap.clone();
+        let mem = sys.mem();
+        let lpDirectSound = heap.alloc(mem, 4);
+        let vtable = sys.get_symbol("dsound.dll", "IDirectSound");
+        mem.put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
     }
 
@@ -130,29 +137,25 @@ pub mod IDirectSound {
 
     #[win32_derive::dllexport]
     pub fn CreateSoundBuffer(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpcDSBufferDesc: Option<&DSBUFFERDESC>,
         lplpDirectSoundBuffer: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> u32 {
-        let x86_buffer = IDirectSoundBuffer::new(machine);
+        let x86_buffer = IDirectSoundBuffer::new(sys);
         let desc = lpcDSBufferDesc.unwrap();
         assert!(desc.dwSize == std::mem::size_of::<DSBUFFERDESC>() as u32);
         *lplpDirectSoundBuffer.unwrap() = x86_buffer;
-        log::info!("=> {x86_buffer:x}");
 
+        let mut dsound = get_state(sys).borrow_mut();
         let mut buffer = Buffer::default();
         if !desc.dwFlags.contains(DSBCAPS::PRIMARYBUFFER) {
-            buffer.addr = machine
-                .state
-                .dsound
-                .heap
-                .alloc(machine.memory.mem(), desc.dwBufferBytes);
+            buffer.addr = dsound.heap.alloc(sys.mem(), desc.dwBufferBytes);
             buffer.size = desc.dwBufferBytes;
         }
 
-        machine.state.dsound.buffers.insert(x86_buffer, buffer);
+        dsound.buffers.insert(x86_buffer, buffer);
         DS_OK
     }
 
@@ -180,11 +183,12 @@ pub mod IDirectSound {
 pub mod IDirectSoundBuffer {
     use super::*;
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
-        machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let heap = get_state(sys).borrow().heap.clone();
+        let mem = sys.mem();
+        let lpDirectSoundBuffer = heap.alloc(mem, 4);
+        let vtable = sys.get_symbol("dsound.dll", "IDirectSoundBuffer");
+        mem.put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }
 
@@ -220,7 +224,7 @@ pub mod IDirectSoundBuffer {
 
     #[win32_derive::dllexport]
     pub fn Lock(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         dwWriteCursor: u32,
         dwWriteBytes: u32,
@@ -230,9 +234,10 @@ pub mod IDirectSoundBuffer {
         lpdwAudioBytes2: Option<&mut u32>,
         dwFlags: Result<DSBLOCK, u32>,
     ) -> u32 {
+        let mut dsound = get_state(sys).borrow_mut();
         let flags = dwFlags.unwrap();
         if flags.contains(DSBLOCK::ENTIREBUFFER) {
-            let buf = machine.state.dsound.buffers.get_mut(&this).unwrap();
+            let buf = dsound.buffers.get_mut(&this).unwrap();
             assert!(buf.lock.is_none());
             *lplpvAudioPtr1.unwrap() = buf.addr;
             *lpdwAudioBytes1.unwrap() = buf.size;
@@ -279,14 +284,15 @@ pub mod IDirectSoundBuffer {
 
     #[win32_derive::dllexport]
     pub fn Unlock(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpvAudioPtr1: u32,
         dwAudioBytes1: u32,
         lpvAudioPtr2: u32,
         dwAudioBytes2: u32,
     ) -> u32 {
-        let buf = machine.state.dsound.buffers.get_mut(&this).unwrap();
+        let mut dsound = get_state(sys).borrow_mut();
+        let buf = dsound.buffers.get_mut(&this).unwrap();
         let lock = buf.lock.take().unwrap();
 
         assert_eq!(lpvAudioPtr1, lock.addr);
@@ -327,7 +333,7 @@ pub mod IDirectSoundBuffer {
 
 #[win32_derive::dllexport(ordinal = 1)]
 pub fn DirectSoundCreate(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpGuid: Option<&GUID>,
     ppDS: Option<&mut u32>,
     pUnkOuter: u32,
@@ -335,10 +341,10 @@ pub fn DirectSoundCreate(
     if DISABLE {
         return DSERR_NODRIVER;
     }
-    if machine.state.dsound.heap.size == 0 {
-        machine.state.dsound = State::new_init(machine);
+    if get_state(sys).borrow().heap.size == 0 {
+        State::init(sys);
     }
-    let lpDirectSound = IDirectSound::new(machine);
+    let lpDirectSound = IDirectSound::new(sys);
     *ppDS.unwrap() = lpDirectSound;
     DS_OK
 }

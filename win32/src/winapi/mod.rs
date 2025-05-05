@@ -5,7 +5,6 @@ mod bitmap;
 pub mod builtin;
 mod comctl32;
 pub mod ddraw;
-pub mod dsound;
 mod encoding;
 pub mod gdi32;
 pub mod kernel32;
@@ -27,7 +26,7 @@ pub struct State {
     scratch: Rc<Heap>,
 
     pub ddraw: ddraw::State,
-    pub dsound: dsound::State,
+    pub dsound: std::cell::RefCell<builtin_dsound::State>,
     pub gdi32: gdi32::State,
     pub kernel32: kernel32::State,
     pub user32: user32::State,
@@ -41,7 +40,7 @@ impl State {
         State {
             scratch,
             ddraw: ddraw::State::default(),
-            dsound: dsound::State::default(),
+            dsound: Default::default(),
             gdi32: gdi32::State::default(),
             kernel32,
             user32: user32::State::default(),

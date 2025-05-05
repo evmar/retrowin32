@@ -81,7 +81,7 @@ fn main() -> anyhow::Result<()> {
         ("comctl32", false),
         ("ddraw", false),
         ("dinput", true),
-        ("dsound", false),
+        ("dsound", true),
         ("gdi32", false),
         ("kernel32", false),
         ("ntdll", false),
