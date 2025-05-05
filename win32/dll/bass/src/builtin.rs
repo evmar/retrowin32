@@ -12,10 +12,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let mode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
                     bass::BASS_ChannelGetPosition_pos,
-                    "src/lib",
+                    "bass",
                     "BASS_ChannelGetPosition",
                     &[("mode", &mode)],
                 )
@@ -34,14 +34,9 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("src/lib") {
-                trace::Record::new(
-                    bass::BASS_Free_pos,
-                    "src/lib",
-                    "BASS_Free",
-                    &[("arg1", &arg1)],
-                )
-                .enter()
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(bass::BASS_Free_pos, "bass", "BASS_Free", &[("arg1", &arg1)])
+                    .enter()
             } else {
                 None
             };
@@ -59,10 +54,10 @@ mod wrappers {
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
                     bass::BASS_Init_pos,
-                    "src/lib",
+                    "bass",
                     "BASS_Init",
                     &[
                         ("arg1", &arg1),
@@ -90,10 +85,10 @@ mod wrappers {
             let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
             let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
             let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
                     bass::BASS_MusicLoad_pos,
-                    "src/lib",
+                    "bass",
                     "BASS_MusicLoad",
                     &[
                         ("arg1", &arg1),
@@ -118,10 +113,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
                     bass::BASS_MusicPlay_pos,
-                    "src/lib",
+                    "bass",
                     "BASS_MusicPlay",
                     &[("arg1", &arg1)],
                 )
@@ -141,10 +136,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
             let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("bass") {
                 trace::Record::new(
                     bass::BASS_MusicSetPositionScaler_pos,
-                    "src/lib",
+                    "bass",
                     "BASS_MusicSetPositionScaler",
                     &[("arg1", &arg1), ("arg2", &arg2)],
                 )
@@ -162,8 +157,8 @@ mod wrappers {
     pub unsafe fn BASS_Start(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("src/lib") {
-                trace::Record::new(bass::BASS_Start_pos, "src/lib", "BASS_Start", &[]).enter()
+            let __trace_record = if trace::enabled("bass") {
+                trace::Record::new(bass::BASS_Start_pos, "bass", "BASS_Start", &[]).enter()
             } else {
                 None
             };

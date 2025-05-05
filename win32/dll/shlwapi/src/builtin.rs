@@ -12,10 +12,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("shlwapi") {
                 trace::Record::new(
                     shlwapi::PathRemoveFileSpecA_pos,
-                    "src/lib",
+                    "shlwapi",
                     "PathRemoveFileSpecA",
                     &[("pszPath", &pszPath)],
                 )

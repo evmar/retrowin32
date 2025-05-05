@@ -16,10 +16,10 @@ mod wrappers {
             let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let lpszProxyBypass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("wininet") {
                 trace::Record::new(
                     wininet::InternetOpenA_pos,
-                    "src/lib",
+                    "wininet",
                     "InternetOpenA",
                     &[
                         ("lpszAgent", &lpszAgent),

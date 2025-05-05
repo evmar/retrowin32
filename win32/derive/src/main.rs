@@ -20,8 +20,7 @@ fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
 }
 
 /// Parse a directory's collection of files.
-fn parse_files(root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
-    let prefix = root.parent().unwrap();
+fn parse_files(module_name: &str, root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root).sort_by_file_name() {
         let entry = entry?;
@@ -38,11 +37,21 @@ fn parse_files(root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
         let buf = std::fs::read_to_string(path)?;
         let file =
             syn::parse_file(&buf).map_err(|err| anyhow::anyhow!("{}: {}", path.display(), err))?;
-        let mut trace_name_path = path.strip_prefix(prefix).unwrap().with_extension("");
-        if trace_name_path.ends_with("mod") {
+
+        let mut trace_name_path = path.strip_prefix(root).unwrap().with_extension("");
+        // e.g. "kernel32/env"
+        if trace_name_path.ends_with("mod") || trace_name_path.ends_with("lib") {
             trace_name_path.pop();
         }
-        files.push((trace_name_path.to_string_lossy().into_owned(), file));
+        if trace_name_path.ends_with(module_name) {
+            // avoid e.g. "dinput/dinput"
+            trace_name_path.pop();
+        }
+        let mut trace_name = format!("{}", Path::new(module_name).join(trace_name_path).display());
+        if trace_name.ends_with("/") {
+            trace_name.pop();
+        }
+        files.push((trace_name, file));
     }
     Ok(files)
 }
@@ -105,7 +114,7 @@ fn process_builtin_dll(src_path: &Path, out_dir: &Path) -> anyhow::Result<()> {
         is_split = true;
     }
 
-    let files = parse_files(src_path)?;
+    let files = parse_files(&module_name, src_path)?;
     let mut dllexports = parse::DllExports::default();
     for (name, file) in &files {
         if let Err(err) = parse::gather_dllexports(name, &file.items, &mut dllexports) {

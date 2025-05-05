@@ -12,10 +12,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegCloseKey_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegCloseKey",
                     &[("hKey", &hKey)],
                 )
@@ -36,10 +36,10 @@ mod wrappers {
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegCreateKeyA_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegCreateKeyA",
                     &[
                         ("hKey", &hKey),
@@ -70,10 +70,10 @@ mod wrappers {
             let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 24u32);
             let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
             let lpdwDisposition = <Option<&mut u32>>::from_stack(mem, stack_args + 32u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegCreateKeyExW_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegCreateKeyExW",
                     &[
                         ("hKey", &hKey),
@@ -117,10 +117,10 @@ mod wrappers {
             let ulOptions = <u32>::from_stack(mem, stack_args + 8u32);
             let samDesired = <u32>::from_stack(mem, stack_args + 12u32);
             let phkResult = <Option<&mut HKEY>>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegOpenKeyExA_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegOpenKeyExA",
                     &[
                         ("hKey", &hKey),
@@ -151,10 +151,10 @@ mod wrappers {
             let lpType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpData = <u32>::from_stack(mem, stack_args + 16u32);
             let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegQueryValueExA_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegQueryValueExA",
                     &[
                         ("hKey", &hKey),
@@ -193,10 +193,10 @@ mod wrappers {
             let lpType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let lpData = <u32>::from_stack(mem, stack_args + 16u32);
             let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegQueryValueExW_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegQueryValueExW",
                     &[
                         ("hKey", &hKey),
@@ -235,10 +235,10 @@ mod wrappers {
             let dwType = <u32>::from_stack(mem, stack_args + 12u32);
             let lpData = <u32>::from_stack(mem, stack_args + 16u32);
             let cbData = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegSetValueExA_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegSetValueExA",
                     &[
                         ("hKey", &hKey),
@@ -270,10 +270,10 @@ mod wrappers {
             let dwType = <u32>::from_stack(mem, stack_args + 12u32);
             let lpData = <u32>::from_stack(mem, stack_args + 16u32);
             let cbData = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("advapi32") {
                 trace::Record::new(
                     advapi32::RegSetValueExW_pos,
-                    "src/lib",
+                    "advapi32",
                     "RegSetValueExW",
                     &[
                         ("hKey", &hKey),

@@ -13,10 +13,10 @@ mod wrappers {
             let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
             let lplpDD = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("ddraw/ddraw") {
+            let __trace_record = if trace::enabled("ddraw") {
                 trace::Record::new(
                     ddraw::DirectDrawCreate_pos,
-                    "ddraw/ddraw",
+                    "ddraw",
                     "DirectDrawCreate",
                     &[
                         ("lpGuid", &lpGuid),
@@ -80,10 +80,10 @@ mod wrappers {
             let lplpDD = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let iid = <Option<&GUID>>::from_stack(mem, stack_args + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("ddraw/ddraw") {
+            let __trace_record = if trace::enabled("ddraw") {
                 trace::Record::new(
                     ddraw::DirectDrawCreateEx_pos,
-                    "ddraw/ddraw",
+                    "ddraw",
                     "DirectDrawCreateEx",
                     &[
                         ("lpGuid", &lpGuid),

@@ -13,10 +13,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
             let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
                     vcruntime140::_CxxThrowException_pos,
-                    "src/lib",
+                    "vcruntime140",
                     "_CxxThrowException",
                     &[
                         ("pExceptionObject", &pExceptionObject),
@@ -40,10 +40,10 @@ mod wrappers {
             let lhs = <u32>::from_stack(mem, stack_args + 0u32);
             let rhs = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
                     vcruntime140::memcmp_pos,
-                    "src/lib",
+                    "vcruntime140",
                     "memcmp",
                     &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
                 )
@@ -64,10 +64,10 @@ mod wrappers {
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
             let src = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
                     vcruntime140::memcpy_pos,
-                    "src/lib",
+                    "vcruntime140",
                     "memcpy",
                     &[("dst", &dst), ("src", &src), ("len", &len)],
                 )
@@ -88,10 +88,10 @@ mod wrappers {
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
             let val = <u32>::from_stack(mem, stack_args + 4u32);
             let len = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("vcruntime140") {
                 trace::Record::new(
                     vcruntime140::memset_pos,
-                    "src/lib",
+                    "vcruntime140",
                     "memset",
                     &[("dst", &dst), ("val", &val), ("len", &len)],
                 )

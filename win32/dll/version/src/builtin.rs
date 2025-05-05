@@ -15,10 +15,10 @@ mod wrappers {
             let dwHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let dwLen = <u32>::from_stack(mem, stack_args + 8u32);
             let lpData = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
                     version::GetFileVersionInfoA_pos,
-                    "src/lib",
+                    "version",
                     "GetFileVersionInfoA",
                     &[
                         ("lptstrFilename", &lptstrFilename),
@@ -43,10 +43,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
                     version::GetFileVersionInfoSizeA_pos,
-                    "src/lib",
+                    "version",
                     "GetFileVersionInfoSizeA",
                     &[
                         ("lptstrFilename", &lptstrFilename),
@@ -71,10 +71,10 @@ mod wrappers {
             let lpSubBlock = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lplpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let puLen = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("version") {
                 trace::Record::new(
                     version::VerQueryValueA_pos,
-                    "src/lib",
+                    "version",
                     "VerQueryValueA",
                     &[
                         ("pBlock", &pBlock),

@@ -16,10 +16,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let data = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("src/lib") {
+            let __trace_record = if trace::enabled("retrowin32_test") {
                 trace::Record::new(
                     retrowin32_test::retrowin32_test_callback1_pos,
-                    "src/lib",
+                    "retrowin32_test",
                     "retrowin32_test_callback1",
                     &[("func", &func), ("data", &data)],
                 )
