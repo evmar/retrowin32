@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 mod arena;
 mod bitmap;
@@ -24,7 +24,7 @@ pub use win32_winapi::{
 };
 
 pub struct State {
-    scratch: Rc<RefCell<Heap>>,
+    scratch: Rc<Heap>,
 
     pub ddraw: ddraw::State,
     pub dsound: dsound::State,

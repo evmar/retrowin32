@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{MemImpl, heap::Heap};
 use memory::{Extensions, Mem};
@@ -168,11 +168,11 @@ pub struct Memory {
     pub mappings: Mappings,
     pub labels: HashMap<u32, String>,
 
-    pub heaps: HashMap<u32, Rc<RefCell<Heap>>>,
+    pub heaps: HashMap<u32, Rc<Heap>>,
     /// The "process heap" is a per-process default heap exposed via GetProcessHeap and used
     /// by default.
     /// We also use it for our own random allocations, e.g. buffers allocated by other APIs.
-    pub process_heap: Rc<RefCell<Heap>>,
+    pub process_heap: Rc<Heap>,
 }
 
 impl Memory {
@@ -182,7 +182,7 @@ impl Memory {
             mappings: Mappings::new(),
             labels: Default::default(),
             heaps: Default::default(),
-            process_heap: Rc::new(RefCell::new(Heap::default())),
+            process_heap: Rc::new(Heap::new(0, 0)),
         }
     }
 
@@ -194,9 +194,9 @@ impl Memory {
         self.imp.mem()
     }
 
-    pub fn new_heap(&mut self, size: usize, desc: String) -> Rc<RefCell<Heap>> {
+    pub fn new_heap(&mut self, size: usize, desc: String) -> Rc<Heap> {
         let mapping = self.mappings.alloc(self.imp.mem(), size as u32, desc);
-        let heap = Rc::new(RefCell::new(Heap::new(mapping.addr, mapping.size)));
+        let heap = Rc::new(Heap::new(mapping.addr, mapping.size));
         self.heaps.insert(mapping.addr, heap.clone());
         heap
     }

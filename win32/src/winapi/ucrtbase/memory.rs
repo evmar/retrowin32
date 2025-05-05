@@ -5,22 +5,19 @@ use win32_winapi::CStr;
 #[win32_derive::dllexport(cdecl)]
 pub fn malloc(sys: &mut dyn System, size: u32) -> u32 {
     let memory = sys.memory();
-    memory.process_heap.borrow_mut().alloc(memory.mem(), size)
+    memory.process_heap.alloc(memory.mem(), size)
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn calloc(sys: &mut dyn System, count: u32, size: u32) -> u32 {
     let memory = sys.memory();
-    memory
-        .process_heap
-        .borrow_mut()
-        .alloc(memory.mem(), count * size)
+    memory.process_heap.alloc(memory.mem(), count * size)
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn free(sys: &mut dyn System, ptr: u32) -> u32 {
     let memory = sys.memory();
-    memory.process_heap.borrow_mut().free(memory.mem(), ptr);
+    memory.process_heap.free(memory.mem(), ptr);
     0
 }
 
@@ -45,7 +42,7 @@ pub fn memcpy(sys: &mut dyn System, dest: u32, src: u32, count: u32) -> u32 {
 #[win32_derive::dllexport(cdecl, symbol = "??2@YAPAXI@Z")]
 pub fn operator_new(sys: &mut dyn System, size: u32) -> u32 {
     let memory = sys.memory();
-    memory.process_heap.borrow_mut().alloc(memory.mem(), size)
+    memory.process_heap.alloc(memory.mem(), size)
 }
 
 #[win32_derive::dllexport(cdecl, symbol = "??3@YAXPAX@Z")]

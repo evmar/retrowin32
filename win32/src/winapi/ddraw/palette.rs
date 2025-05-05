@@ -27,11 +27,7 @@ pub mod IDirectDrawPalette {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawPalette = machine
-            .memory
-            .process_heap
-            .borrow_mut()
-            .alloc(machine.memory.mem(), 4);
+        let lpDirectDrawPalette = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
         let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
         machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette

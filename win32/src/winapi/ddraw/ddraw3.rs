@@ -59,11 +59,7 @@ pub mod IDirectDrawSurface3 {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawSurface = machine
-            .memory
-            .process_heap
-            .borrow_mut()
-            .alloc(machine.memory.mem(), 4);
+        let lpDirectDrawSurface = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
         let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface3");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface

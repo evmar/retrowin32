@@ -419,7 +419,7 @@ pub async fn CreateWindowExW(
         .set(hwnd, Rc::new(RefCell::new(window)));
 
     // Synchronously dispatch WM_CREATE.
-    let createstruct_addr = machine.state.scratch.borrow_mut().alloc(
+    let createstruct_addr = machine.state.scratch.alloc(
         machine.memory.mem(),
         std::mem::size_of::<CREATESTRUCTA>() as u32,
     );
@@ -455,7 +455,6 @@ pub async fn CreateWindowExW(
     machine
         .state
         .scratch
-        .borrow_mut()
         .free(machine.memory.mem(), createstruct_addr);
 
     hwnd
@@ -905,7 +904,7 @@ pub async fn SetWindowPos(
     cy: i32,
     uFlags: Result<SWP, u32>,
 ) -> bool {
-    let windowpos_addr = machine.state.scratch.borrow_mut().alloc(
+    let windowpos_addr = machine.state.scratch.alloc(
         machine.memory.mem(),
         std::mem::size_of::<WINDOWPOS>() as u32,
     );

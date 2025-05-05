@@ -32,7 +32,7 @@ pub fn HeapAlloc(
         }
         Some(heap) => heap,
     };
-    let addr = heap.borrow_mut().alloc(machine.memory.mem(), dwBytes);
+    let addr = heap.alloc(machine.memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -56,7 +56,6 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         .heaps
         .get(&hHeap)
         .unwrap()
-        .borrow_mut()
         .free(machine.memory.mem(), lpMem);
     true
 }
@@ -73,7 +72,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         }
         Some(heap) => heap,
     };
-    heap.borrow().size(machine.memory.mem(), lpMem)
+    heap.size(machine.memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -105,7 +104,6 @@ pub fn HeapReAlloc(
         }
         Some(heap) => heap,
     };
-    let mut heap = heap.borrow_mut();
     let old_size = heap.size(machine.memory.mem(), lpMem);
     let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
     assert!(dwBytes >= old_size);
@@ -134,11 +132,7 @@ pub fn HeapCreate(
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
     let size = max(dwInitialSize as usize, 20 << 20);
-    machine
-        .memory
-        .new_heap(size, "HeapCreate".into())
-        .borrow()
-        .addr
+    machine.memory.new_heap(size, "HeapCreate".into()).addr
 }
 
 #[win32_derive::dllexport]
@@ -300,7 +294,6 @@ fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     let addr = machine
         .memory
         .process_heap
-        .borrow_mut()
         .alloc(machine.memory.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
         machine.mem().sub32_mut(addr, dwBytes).fill(0);
@@ -330,7 +323,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     if uFlags.contains(GMEM::MODIFY) {
         todo!("GMEM_MODIFY");
     }
-    let heap = &mut machine.memory.process_heap.borrow_mut();
+    let heap = &machine.memory.process_heap;
     let mem = machine.memory.mem();
     let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
@@ -351,11 +344,7 @@ pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
 }
 
 fn free(machine: &mut Machine, hMem: u32) -> u32 {
-    machine
-        .memory
-        .process_heap
-        .borrow_mut()
-        .free(machine.memory.mem(), hMem);
+    machine.memory.process_heap.free(machine.memory.mem(), hMem);
     return 0; // success
 }
 
@@ -393,5 +382,5 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine.memory.process_heap.borrow().addr
+    machine.memory.process_heap.addr
 }

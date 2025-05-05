@@ -371,10 +371,10 @@ pub async fn load_exe(
 
     // Another "feels wrong": initialize process heap after exe has loaded and picked an address,
     // to ensure the process heap doesn't occupy any addresses that the exe wants.
-    debug_assert!(machine.memory.process_heap.borrow().addr == 0);
+    debug_assert!(machine.memory.process_heap.addr == 0);
     let size = 24 << 20;
-    let addr = machine.memory.new_heap(size, "process heap".into());
-    machine.memory.process_heap = addr;
+    let heap = machine.memory.new_heap(size, "process heap".into());
+    machine.memory.process_heap = heap;
 
     let hmodule = init_module(machine, &file, module).await.unwrap();
 

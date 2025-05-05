@@ -29,7 +29,6 @@ pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
     let addr = machine
         .memory
         .process_heap
-        .borrow_mut()
         .alloc(machine.memory.mem(), len as u32);
 
     let mut env = EncoderAnsi::from_mem(machine.memory.mem(), addr, len as u32);
@@ -41,11 +40,7 @@ pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn FreeEnvironmentStringsA(machine: &mut Machine, penv: u32) -> bool {
-    machine
-        .memory
-        .process_heap
-        .borrow_mut()
-        .free(machine.memory.mem(), penv);
+    machine.memory.process_heap.free(machine.memory.mem(), penv);
     true // success
 }
 
@@ -59,7 +54,6 @@ pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
     let addr = machine
         .memory
         .process_heap
-        .borrow_mut()
         .alloc(machine.memory.mem(), len as u32);
 
     let mut env = EncoderWide::from_mem(machine.memory.mem(), addr, len as u32);
@@ -71,11 +65,7 @@ pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn FreeEnvironmentStringsW(machine: &mut Machine, penv: u32) -> bool {
-    machine
-        .memory
-        .process_heap
-        .borrow_mut()
-        .free(machine.memory.mem(), penv);
+    machine.memory.process_heap.free(machine.memory.mem(), penv);
     true // success
 }
 

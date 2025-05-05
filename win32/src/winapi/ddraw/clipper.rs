@@ -35,11 +35,7 @@ pub mod IDirectDrawClipper {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let clipper = machine
-            .memory
-            .process_heap
-            .borrow_mut()
-            .alloc(machine.memory.mem(), 4);
+        let clipper = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
         let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawClipper");
         machine.mem().put_pod::<u32>(clipper, vtable);
         clipper

@@ -7,7 +7,7 @@ pub use builtin::DLL;
 
 use crate::{Machine, System};
 use memory::ExtensionsMut;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 use win32_system::Heap;
 use win32_winapi::com::GUID;
 use win32_winapi::vtable;
@@ -30,7 +30,7 @@ const fn make_dhsresult(code: u32) -> u32 {
 
 #[derive(Default)]
 pub struct State {
-    heap: Rc<RefCell<Heap>>,
+    heap: Rc<Heap>,
     buffers: HashMap<u32, Buffer>,
 }
 
@@ -117,7 +117,7 @@ pub mod IDirectSound {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSound = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
+        let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
         let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSound");
         machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
@@ -148,7 +148,6 @@ pub mod IDirectSound {
                 .state
                 .dsound
                 .heap
-                .borrow_mut()
                 .alloc(machine.memory.mem(), desc.dwBufferBytes);
             buffer.size = desc.dwBufferBytes;
         }
@@ -183,7 +182,7 @@ pub mod IDirectSoundBuffer {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
+        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
         let vtable = crate::loader::get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
         machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
@@ -336,7 +335,7 @@ pub fn DirectSoundCreate(
     if DISABLE {
         return DSERR_NODRIVER;
     }
-    if machine.state.dsound.heap.borrow().size == 0 {
+    if machine.state.dsound.heap.size == 0 {
         machine.state.dsound = State::new_init(machine);
     }
     let lpDirectSound = IDirectSound::new(machine);

@@ -116,7 +116,7 @@ impl Surface {
         }
     }
 
-    pub fn lock(&mut self, mem: Mem, heap: &mut Heap) -> u32 {
+    pub fn lock(&mut self, mem: Mem, heap: &Heap) -> u32 {
         if self.pixels == 0 {
             self.pixels = heap.alloc(mem, self.width * self.height * self.bytes_per_pixel);
         }
@@ -127,7 +127,7 @@ impl Surface {
         self.flush(mem);
     }
 
-    pub fn fill(&mut self, mem: Mem, heap: &mut Heap, color: u32) {
+    pub fn fill(&mut self, mem: Mem, heap: &Heap, color: u32) {
         let pixels = self.lock(mem, heap);
         let pixels = mem.sub32_mut(pixels, self.width * self.height * self.bytes_per_pixel);
         match self.bytes_per_pixel {
