@@ -63,7 +63,7 @@ impl System for Machine {
         Box::pin(self.call_x86(func, args))
     }
 
-    fn get_symbol(&mut self, dll: &str, name: &str) -> u32 {
+    fn get_symbol(&self, dll: &str, name: &str) -> u32 {
         loader::get_symbol(self, dll, name)
     }
 

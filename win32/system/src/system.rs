@@ -17,7 +17,7 @@ pub trait System {
         args: Vec<u32>,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>>;
 
-    fn get_symbol(&mut self, dll: &str, name: &str) -> u32;
+    fn get_symbol(&self, dll: &str, name: &str) -> u32;
     fn get_resources(&self, module: u32) -> Option<&[u8]>;
 
     fn exit(&mut self, status: u32);

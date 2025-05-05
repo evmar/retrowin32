@@ -423,7 +423,7 @@ pub struct Exports {
 }
 
 impl Exports {
-    pub fn resolve(&mut self, sym: &pe::ImportSymbol) -> Option<u32> {
+    pub fn resolve(&self, sym: &pe::ImportSymbol) -> Option<u32> {
         match *sym {
             pe::ImportSymbol::Name(name) => self.names.get(name).copied(),
             pe::ImportSymbol::Ordinal(ord) => {
@@ -458,7 +458,7 @@ impl DLLResolution {
 
 /// Given an imported DLL name, find the name of the DLL file we'll load for it.
 /// Handles normalizing the name, aliases, and builtins.
-pub fn resolve_dll(machine: &mut Machine, filename: &str) -> DLLResolution {
+pub fn resolve_dll(machine: &Machine, filename: &str) -> DLLResolution {
     let mut filename = normalize_module_name(filename);
     if filename.starts_with("api-") {
         match winapi::builtin::apiset(&filename) {
@@ -545,7 +545,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
     }
 }
 
-pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
+pub fn get_symbol(machine: &Machine, dll: &str, name: &str) -> u32 {
     let res = resolve_dll(machine, dll);
     let dll_name = res.name();
 
@@ -553,7 +553,7 @@ pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
         .state
         .kernel32
         .modules
-        .values_mut()
+        .values()
         .find(|m| m.name == dll_name)
         .unwrap();
     module
