@@ -1,48 +1,36 @@
-use crate::{Machine, System, calling_convention::VarArgs, winapi::CStr};
+use crate::{Machine, System, calling_convention::VarArgs};
 use win32_system::host;
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _exit(machine: &mut Machine, status: u32) {
-    machine.exit(status);
+pub fn _exit(sys: &mut dyn System, status: u32) {
+    sys.exit(status);
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn exit(machine: &mut Machine, status: u32) {
-    machine.exit(status);
+pub fn exit(sys: &mut dyn System, status: u32) {
+    sys.exit(status);
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _onexit(machine: &mut Machine, func: u32) -> u32 {
+pub fn _onexit(sys: &mut dyn System, func: u32) -> u32 {
     // register onexit handler
     func
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn atexit(machine: &mut Machine, func: u32) -> u32 {
+pub fn atexit(sys: &mut dyn System, func: u32) -> u32 {
     // register onexit handler
     0 // success
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _cexit(machine: &mut Machine) {
+pub fn _cexit(sys: &mut dyn System) {
     // call atexit handlers but don't exit
 }
 
 #[win32_derive::dllexport(cdecl, symbol = "?terminate@@YAXXZ")]
 pub fn terminate(sys: &dyn System) {
     todo!()
-}
-
-#[win32_derive::dllexport(cdecl)]
-pub fn strlen(sys: &dyn System, lpString: Option<&CStr>) -> u32 {
-    // The mapping to str already computes the string length.
-    lpString.unwrap().count_bytes() as u32
-}
-
-#[win32_derive::dllexport(cdecl)]
-pub fn memcpy(machine: &mut Machine, dest: u32, src: u32, count: u32) -> u32 {
-    machine.mem().copy(src, dest, count);
-    dest
 }
 
 struct HostStdout<'a>(&'a dyn host::Host);
@@ -66,12 +54,12 @@ pub fn printf(machine: &mut Machine, fmt: Option<&str>, args: VarArgs) -> i32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn sprintf(machine: &mut Machine, buf: u32, fmt: Option<&str>, args: VarArgs) -> i32 {
+pub fn sprintf(sys: &mut dyn System, buf: u32, fmt: Option<&str>, args: VarArgs) -> i32 {
     todo!()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn vfprintf(machine: &mut Machine, buf: u32, fmt: Option<&str>, args: VarArgs) -> i32 {
+pub fn vfprintf(sys: &mut dyn System, buf: u32, fmt: Option<&str>, args: VarArgs) -> i32 {
     todo!()
 }
 
@@ -84,16 +72,16 @@ pub const _iob: &'static str = "_iob";
 pub const _winmajor: &'static str = "_winmajor";
 
 #[win32_derive::dllexport(cdecl)]
-pub fn abort(machine: &mut Machine) {
+pub fn abort(sys: &mut dyn System) {
     todo!()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn fwrite(machine: &mut Machine, filename: Option<&str>, mode: Option<&str>) -> u32 {
+pub fn fwrite(sys: &mut dyn System, filename: Option<&str>, mode: Option<&str>) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn signal(machine: &mut Machine, sig: u32, func: u32) {
+pub fn signal(sys: &mut dyn System, sig: u32, func: u32) {
     todo!()
 }

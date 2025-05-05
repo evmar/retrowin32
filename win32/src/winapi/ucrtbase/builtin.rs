@@ -21,7 +21,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_EH_prolog(&mut *(sys.machine() as *mut crate::Machine));
+            let result = ucrtbase::_EH_prolog(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -74,13 +74,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__CxxFrameHandler(
-                &mut *(sys.machine() as *mut crate::Machine),
-                pExcept,
-                pRN,
-                pContext,
-                pDC,
-            );
+            let result = ucrtbase::__CxxFrameHandler(sys, pExcept, pRN, pContext, pDC);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -270,8 +264,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::__setusermatherr(&mut *(sys.machine() as *mut crate::Machine), pf);
+            let result = ucrtbase::__setusermatherr(sys, pf);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -286,7 +279,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_cexit(&mut *(sys.machine() as *mut crate::Machine));
+            let result = ucrtbase::_cexit(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -461,7 +454,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_exit(&mut *(sys.machine() as *mut crate::Machine), status);
+            let result = ucrtbase::_exit(sys, status);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -628,7 +621,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_onexit(&mut *(sys.machine() as *mut crate::Machine), func);
+            let result = ucrtbase::_onexit(sys, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -776,7 +769,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::abort(&mut *(sys.machine() as *mut crate::Machine));
+            let result = ucrtbase::abort(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -798,7 +791,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::atexit(&mut *(sys.machine() as *mut crate::Machine), func);
+            let result = ucrtbase::atexit(sys, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -821,8 +814,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::calloc(&mut *(sys.machine() as *mut crate::Machine), count, size);
+            let result = ucrtbase::calloc(sys, count, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -838,7 +830,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::cos(&mut *(sys.machine() as *mut crate::Machine), x);
+            let result = ucrtbase::cos(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -860,7 +852,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::exit(&mut *(sys.machine() as *mut crate::Machine), status);
+            let result = ucrtbase::exit(sys, status);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -877,7 +869,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::floor(&mut *(sys.machine() as *mut crate::Machine), x);
+            let result = ucrtbase::floor(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -899,7 +891,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::free(&mut *(sys.machine() as *mut crate::Machine), ptr);
+            let result = ucrtbase::free(sys, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -922,8 +914,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::fwrite(&mut *(sys.machine() as *mut crate::Machine), filename, mode);
+            let result = ucrtbase::fwrite(sys, filename, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -945,7 +936,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::malloc(&mut *(sys.machine() as *mut crate::Machine), size);
+            let result = ucrtbase::malloc(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -958,10 +949,10 @@ mod wrappers {
             let dest = <u32>::from_stack(mem, stack_args + 0u32);
             let src = <u32>::from_stack(mem, stack_args + 4u32);
             let count = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("ucrtbase/misc") {
+            let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
                     ucrtbase::memcpy_pos,
-                    "ucrtbase/misc",
+                    "ucrtbase/memory",
                     "memcpy",
                     &[("dest", &dest), ("src", &src), ("count", &count)],
                 )
@@ -969,12 +960,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::memcpy(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dest,
-                src,
-                count,
-            );
+            let result = ucrtbase::memcpy(sys, dest, src, count);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -998,8 +984,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::memset(&mut *(sys.machine() as *mut crate::Machine), dst, val, len);
+            let result = ucrtbase::memset(sys, dst, val, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1021,8 +1006,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::operator_delete(&mut *(sys.machine() as *mut crate::Machine), size);
+            let result = ucrtbase::operator_delete(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1044,7 +1028,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::operator_new(&mut *(sys.machine() as *mut crate::Machine), size);
+            let result = ucrtbase::operator_new(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1105,7 +1089,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::signal(&mut *(sys.machine() as *mut crate::Machine), sig, func);
+            let result = ucrtbase::signal(sys, sig, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1121,7 +1105,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::sin(&mut *(sys.machine() as *mut crate::Machine), x);
+            let result = ucrtbase::sin(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1145,8 +1129,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::sprintf(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
+            let result = ucrtbase::sprintf(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1163,7 +1146,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::sqrt(&mut *(sys.machine() as *mut crate::Machine), x);
+            let result = ucrtbase::sqrt(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1196,10 +1179,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("ucrtbase/misc") {
+            let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
                     ucrtbase::strlen_pos,
-                    "ucrtbase/misc",
+                    "ucrtbase/memory",
                     "strlen",
                     &[("lpString", &lpString)],
                 )
@@ -1269,8 +1252,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ucrtbase::vfprintf(&mut *(sys.machine() as *mut crate::Machine), buf, fmt, args);
+            let result = ucrtbase::vfprintf(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

@@ -157,7 +157,7 @@ pub fn __getmainargs(
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _XcptFilter(machine: &mut dyn System, xcptnum: u32, pxcptinfoptrs: u32) -> u32 {
+pub fn _XcptFilter(sys: &mut dyn System, xcptnum: u32, pxcptinfoptrs: u32) -> u32 {
     todo!();
 }
 

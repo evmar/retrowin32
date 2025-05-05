@@ -1,7 +1,8 @@
 use crate::Machine;
+use win32_system::System;
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __setusermatherr(machine: &mut Machine, pf: u32) {
+pub fn __setusermatherr(sys: &mut dyn System, pf: u32) {
     todo!();
 }
 
@@ -31,21 +32,21 @@ pub fn _ftol(machine: &mut Machine) -> u64 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn sqrt(machine: &mut Machine, x: f64) -> f64 {
+pub fn sqrt(sys: &mut dyn System, x: f64) -> f64 {
     x.sqrt()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn sin(machine: &mut Machine, x: f64) -> f64 {
+pub fn sin(sys: &mut dyn System, x: f64) -> f64 {
     x.sin()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn cos(machine: &mut Machine, x: f64) -> f64 {
+pub fn cos(sys: &mut dyn System, x: f64) -> f64 {
     x.cos()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn floor(machine: &mut Machine, x: f64) -> f64 {
+pub fn floor(sys: &mut dyn System, x: f64) -> f64 {
     x.floor()
 }

@@ -75,6 +75,10 @@ impl System for Machine {
             .get(&winapi::kernel32::HMODULE::from_raw(module))?;
         module.resources(self.mem())
     }
+
+    fn exit(&mut self, status: u32) {
+        Machine::exit(self, status);
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
