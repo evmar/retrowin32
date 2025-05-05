@@ -90,13 +90,13 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
 
     let defn = if dllexport.func.sig.asyncness.is_some() {
         quote! {
-            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
                 unsafe {
                     #body
-                    let machine: *mut crate::Machine = sys.machine() as *mut _;
+                    let sys = sys as *mut dyn System;
                     Box::pin(async move {
-                        let machine = &mut *machine;
-                        let result = #impls_mod::#base_name(machine, #(#args),*).await;
+                        let sys = &mut *sys;
+                        let result = #impls_mod::#base_name(#self_arg, #(#args),*).await;
                         #return_result
                     })
                 }

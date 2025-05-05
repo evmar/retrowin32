@@ -141,6 +141,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-retrowin32_test"
+version = "0.1.0"
+dependencies = [
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-shlwapi"
 version = "0.1.0"
 dependencies = [
@@ -692,6 +702,7 @@ dependencies = [
  "builtin-dinput",
  "builtin-ole32",
  "builtin-oleaut32",
+ "builtin-retrowin32_test",
  "builtin-shlwapi",
  "builtin-vcruntime140",
  "builtin-version",

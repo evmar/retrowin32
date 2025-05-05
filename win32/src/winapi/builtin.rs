@@ -23,7 +23,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_version::DLL,
     builtin_wininet::DLL,
     crate::winapi::winmm::DLL,
-    crate::winapi::retrowin32_test::DLL,
+    builtin_retrowin32_test::DLL,
 ];
 
 pub fn dll_alias(name: &str) -> Option<&'static str> {

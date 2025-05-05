@@ -599,7 +599,7 @@ mod wrappers {
     pub unsafe fn CreateThread(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let lpThreadAttributes = <u32>::from_stack(mem, stack_args + 0u32);
@@ -626,11 +626,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
+                let sys = &mut *sys;
                 let result = kernel32::CreateThread(
-                    machine,
+                    &mut *(sys.machine() as *mut crate::Machine),
                     lpThreadAttributes,
                     dwStackSize,
                     lpStartAddress,
@@ -4038,7 +4038,7 @@ mod wrappers {
     pub unsafe fn LoadLibraryA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4053,10 +4053,12 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::LoadLibraryA(machine, filename).await;
+                let sys = &mut *sys;
+                let result =
+                    kernel32::LoadLibraryA(&mut *(sys.machine() as *mut crate::Machine), filename)
+                        .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4067,7 +4069,7 @@ mod wrappers {
     pub unsafe fn LoadLibraryExW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let lpLibFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4088,10 +4090,16 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).await;
+                let sys = &mut *sys;
+                let result = kernel32::LoadLibraryExW(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    lpLibFileName,
+                    hFile,
+                    dwFlags,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4102,7 +4110,7 @@ mod wrappers {
     pub unsafe fn LoadLibraryW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4117,10 +4125,12 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::LoadLibraryW(machine, filename).await;
+                let sys = &mut *sys;
+                let result =
+                    kernel32::LoadLibraryW(&mut *(sys.machine() as *mut crate::Machine), filename)
+                        .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5496,7 +5506,7 @@ mod wrappers {
     pub unsafe fn Sleep(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5511,10 +5521,12 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::Sleep(machine, dwMilliseconds).await;
+                let sys = &mut *sys;
+                let result =
+                    kernel32::Sleep(&mut *(sys.machine() as *mut crate::Machine), dwMilliseconds)
+                        .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5525,7 +5537,7 @@ mod wrappers {
     pub unsafe fn SleepEx(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5544,10 +5556,15 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::SleepEx(machine, dwMilliseconds, bAlertable).await;
+                let sys = &mut *sys;
+                let result = kernel32::SleepEx(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    dwMilliseconds,
+                    bAlertable,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5927,7 +5944,7 @@ mod wrappers {
     pub unsafe fn WaitForMultipleObjects(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5950,11 +5967,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
+                let sys = &mut *sys;
                 let result = kernel32::WaitForMultipleObjects(
-                    machine,
+                    &mut *(sys.machine() as *mut crate::Machine),
                     nCount,
                     lpHandles,
                     bWaitAll,
@@ -5971,7 +5988,7 @@ mod wrappers {
     pub unsafe fn WaitForSingleObject(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -5987,10 +6004,15 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::WaitForSingleObject(machine, handle, dwMilliseconds).await;
+                let sys = &mut *sys;
+                let result = kernel32::WaitForSingleObject(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    handle,
+                    dwMilliseconds,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -6434,7 +6456,7 @@ mod wrappers {
     pub unsafe fn retrowin32_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6449,10 +6471,14 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::retrowin32_main(machine, entry_point).await;
+                let sys = &mut *sys;
+                let result = kernel32::retrowin32_main(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    entry_point,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -6463,7 +6489,7 @@ mod wrappers {
     pub unsafe fn retrowin32_thread_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6479,10 +6505,15 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = kernel32::retrowin32_thread_main(machine, entry_point, param).await;
+                let sys = &mut *sys;
+                let result = kernel32::retrowin32_thread_main(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    entry_point,
+                    param,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

@@ -3,22 +3,23 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::retrowin32_test::{self, *};
+    use crate as retrowin32_test;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn retrowin32_test_callback1(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let data = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("retrowin32_test") {
+            let __trace_record = if trace::enabled("src/lib") {
                 trace::Record::new(
                     retrowin32_test::retrowin32_test_callback1_pos,
-                    "retrowin32_test",
+                    "src/lib",
                     "retrowin32_test_callback1",
                     &[("func", &func), ("data", &data)],
                 )
@@ -26,10 +27,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
+                let sys = &mut *sys;
+                let result = retrowin32_test::retrowin32_test_callback1(sys, func, data).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -45,5 +46,5 @@ const SHIMS: [Shim; 1usize] = [Shim {
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "retrowin32_test.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/retrowin32_test.dll"),
+    raw: std::include_bytes!("../retrowin32_test.dll"),
 };

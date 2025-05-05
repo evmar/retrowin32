@@ -59,8 +59,9 @@ impl Mappings {
             .position(|m| m.addr > mapping.addr)
             .unwrap_or(self.0.len());
         if pos > 0 {
-            let prev = &mut self.0[pos - 1];
+            let prev = &self.0[pos - 1];
             if prev.addr + prev.size > mapping.addr {
+                self.dump();
                 panic!("mapping conflict loading {mapping:x?} conflicts with {prev:x?}",);
             }
         }

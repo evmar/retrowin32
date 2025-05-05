@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::System;
+use win32_system::System;
 
 #[win32_derive::dllexport]
 pub async fn retrowin32_test_callback1(sys: &mut dyn System, func: u32, data: u32) -> u32 {

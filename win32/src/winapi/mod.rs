@@ -11,7 +11,6 @@ pub mod gdi32;
 pub mod kernel32;
 mod ntdll;
 mod printf;
-mod retrowin32_test;
 mod ucrtbase;
 pub mod user32;
 mod winmm;

@@ -534,7 +534,7 @@ mod wrappers {
     pub unsafe fn _initterm(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let start = <u32>::from_stack(mem, stack_args + 0u32);
@@ -550,10 +550,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = ucrtbase::_initterm(machine, start, end).await;
+                let sys = &mut *sys;
+                let result = ucrtbase::_initterm(sys, start, end).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -564,7 +564,7 @@ mod wrappers {
     pub unsafe fn _initterm_e(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let start = <u32>::from_stack(mem, stack_args + 0u32);
@@ -580,10 +580,10 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result = ucrtbase::_initterm_e(machine, start, end).await;
+                let sys = &mut *sys;
+                let result = ucrtbase::_initterm_e(sys, start, end).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

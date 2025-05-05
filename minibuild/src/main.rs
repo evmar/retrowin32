@@ -87,7 +87,7 @@ fn main() -> anyhow::Result<()> {
         ("ntdll", false),
         ("ole32", true),
         ("oleaut32", true),
-        ("retrowin32_test", false),
+        ("retrowin32_test", true),
         ("shlwapi", true),
         ("ucrtbase", false),
         ("vcruntime140", true),

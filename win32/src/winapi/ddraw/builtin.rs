@@ -148,7 +148,7 @@ mod wrappers {
     pub unsafe fn IDirectDraw2_EnumDisplayModes(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -173,11 +173,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
+                let sys = &mut *sys;
                 let result = ddraw::IDirectDraw2::EnumDisplayModes(
-                    machine,
+                    &mut *(sys.machine() as *mut crate::Machine),
                     this,
                     dwFlags,
                     lpSurfaceDesc,
@@ -411,7 +411,7 @@ mod wrappers {
     pub unsafe fn IDirectDraw7_EnumDisplayModes(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -436,11 +436,11 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
+                let sys = &mut *sys;
                 let result = ddraw::IDirectDraw7::EnumDisplayModes(
-                    machine,
+                    &mut *(sys.machine() as *mut crate::Machine),
                     this,
                     dwFlags,
                     lpSurfaceDesc,
@@ -528,7 +528,7 @@ mod wrappers {
     pub unsafe fn IDirectDraw7_SetCooperativeLevel(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -545,11 +545,16 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut crate::Machine = sys.machine() as *mut _;
+            let sys = sys as *mut dyn System;
             Box::pin(async move {
-                let machine = &mut *machine;
-                let result =
-                    ddraw::IDirectDraw7::SetCooperativeLevel(machine, this, hwnd, flags).await;
+                let sys = &mut *sys;
+                let result = ddraw::IDirectDraw7::SetCooperativeLevel(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    this,
+                    hwnd,
+                    flags,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
