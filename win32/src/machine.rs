@@ -128,7 +128,7 @@ impl System for Machine {
             &self.state.gdi32
         } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
             &self.state.dsound
-        } else if id == &TypeId::of::<ddraw::State>() {
+        } else if id == &TypeId::of::<std::cell::RefCell<ddraw::State>>() {
             &self.state.ddraw
         } else {
             panic!();

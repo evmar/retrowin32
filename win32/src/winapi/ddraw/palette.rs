@@ -1,8 +1,9 @@
-use std::cell::RefCell;
-
-use crate::{Machine, System, winapi::ddraw::DD};
+use super::ddraw::get_state;
+use crate::winapi::ddraw::DD;
 use builtin_gdi32::PALETTEENTRY;
-use memory::{Extensions, ExtensionsMut};
+use memory::Extensions;
+use std::cell::RefCell;
+use win32_system::System;
 use win32_winapi::vtable;
 
 pub struct Palette {
@@ -24,11 +25,9 @@ pub mod IDirectDrawPalette {
         SetEntries: ok,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawPalette = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
-        machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
-        lpDirectDrawPalette
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDrawPalette");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
@@ -39,26 +38,17 @@ pub mod IDirectDrawPalette {
 
     #[win32_derive::dllexport]
     pub fn SetEntries(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         unused: u32,
         start: u32,
         count: u32,
         entries: u32,
     ) -> DD {
-        let mut dst = machine
-            .state
-            .ddraw
-            .palettes
-            .get(&this)
-            .unwrap()
-            .entries
-            .borrow_mut();
+        let state = get_state(sys);
+        let mut dst = state.palettes.get(&this).unwrap().entries.borrow_mut();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
-        let src = machine
-            .memory
-            .mem()
-            .iter_pod::<PALETTEENTRY>(entries, count);
+        let src = sys.mem().iter_pod::<PALETTEENTRY>(entries, count);
         for (dst, src) in dst[start as usize..][..count as usize].iter_mut().zip(src) {
             *dst = src;
         }

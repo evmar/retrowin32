@@ -1,19 +1,16 @@
-use crate::{
-    Machine, System,
-    winapi::{HWND, ddraw::DD},
-};
-use memory::ExtensionsMut;
+use crate::winapi::{HWND, ddraw::DD};
+use win32_system::System;
 use win32_winapi::com::vtable;
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateClipper(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     dwFlags: u32,
     lplpDDClipper: Option<&mut u32>,
     pUnkOuter: u32,
 ) -> DD {
     assert!(dwFlags == 0);
-    *lplpDDClipper.unwrap() = IDirectDrawClipper::new(machine);
+    *lplpDDClipper.unwrap() = IDirectDrawClipper::new(sys);
     DD::OK
 }
 
@@ -34,11 +31,9 @@ pub mod IDirectDrawClipper {
         SetHWnd: ok,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let clipper = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawClipper");
-        machine.mem().put_pod::<u32>(clipper, vtable);
-        clipper
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDrawClipper");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]

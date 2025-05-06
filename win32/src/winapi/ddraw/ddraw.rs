@@ -3,17 +3,18 @@
 
 use super::palette::Palette;
 pub use super::types::*;
-use crate::{
-    Machine,
-    winapi::{
-        HWND, RECT,
-        ddraw::{ddraw1, ddraw7},
-    },
+use crate::winapi::{
+    HWND, RECT,
+    ddraw::{ddraw1, ddraw7},
 };
 use builtin_gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut};
 use builtin_user32 as user32;
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    cell::{RefCell, RefMut},
+    collections::HashMap,
+    rc::Rc,
+};
 use win32_system::{Heap, System, host};
 pub use win32_winapi::com::GUID;
 
@@ -31,12 +32,12 @@ pub struct Surface {
 }
 
 impl Surface {
-    fn new(machine: &mut Machine, hwnd: HWND, opts: &host::SurfaceOptions) -> Self {
+    fn new(sys: &mut dyn System, hwnd: HWND, opts: &host::SurfaceOptions) -> Self {
         if opts.width == 0 || opts.height == 0 {
             panic!("cannot create 0-sized surface");
         }
         Surface {
-            host: machine.host.create_surface(hwnd.to_raw(), &opts),
+            host: sys.host().create_surface(hwnd.to_raw(), &opts),
             width: opts.width,
             height: opts.height,
             palette: None,
@@ -47,7 +48,7 @@ impl Surface {
         }
     }
 
-    pub fn create(machine: &mut Machine, hwnd: HWND, desc: &DDSURFACEDESC2) -> Vec<Surface> {
+    pub fn create(sys: &mut dyn System, hwnd: HWND, desc: &DDSURFACEDESC2) -> Vec<Surface> {
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
 
         let mut surfaces = Vec::new();
@@ -68,7 +69,7 @@ impl Surface {
 
         if opts.width == 0 || opts.height == 0 {
             // Take width/height from window dimensions
-            if let Some(wnd) = user32::get_state(machine).windows.get(hwnd) {
+            if let Some(wnd) = user32::get_state(sys).windows.get(hwnd) {
                 let wnd = wnd.borrow();
                 opts.width = wnd.width;
                 opts.height = wnd.height;
@@ -76,15 +77,15 @@ impl Surface {
         }
 
         if opts.bytes_per_pixel == 0 {
-            opts.bytes_per_pixel = machine.state.ddraw.screen_bytes_per_pixel;
+            opts.bytes_per_pixel = get_state(sys).screen_bytes_per_pixel;
         }
 
-        surfaces.push(Surface::new(machine, hwnd, &opts));
+        surfaces.push(Surface::new(sys, hwnd, &opts));
 
         if let Some(count) = desc.back_buffer_count() {
             opts.primary = false;
             for _ in 0..count {
-                surfaces.push(Surface::new(machine, hwnd, &opts));
+                surfaces.push(Surface::new(sys, hwnd, &opts));
             }
         }
 
@@ -227,25 +228,26 @@ impl Default for State {
     }
 }
 
-pub fn get_state(sys: &dyn System) -> &State {
-    sys.state(&std::any::TypeId::of::<State>())
-        .downcast_ref::<State>()
+pub(crate) fn get_state(sys: &dyn System) -> RefMut<State> {
+    sys.state(&std::any::TypeId::of::<RefCell<State>>())
+        .downcast_ref::<RefCell<State>>()
         .unwrap()
+        .borrow_mut()
 }
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreate(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpGuid: Option<&GUID>,
     lplpDD: Option<&mut u32>,
     pUnkOuter: u32,
 ) -> DD {
-    DirectDrawCreateEx(machine, lpGuid, lplpDD, None, pUnkOuter)
+    DirectDrawCreateEx(sys, lpGuid, lplpDD, None, pUnkOuter)
 }
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateEx(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpGuid: Option<&GUID>,
     lplpDD: Option<&mut u32>,
     iid: Option<&GUID>,
@@ -257,11 +259,11 @@ pub fn DirectDrawCreateEx(
     match iid {
         None => {
             // DirectDrawCreate
-            *lplpDD.unwrap() = ddraw1::IDirectDraw::new(machine);
+            *lplpDD.unwrap() = ddraw1::IDirectDraw::new(sys);
             return DD::OK;
         }
         Some(&ddraw7::IID_IDirectDraw7) => {
-            *lplpDD.unwrap() = ddraw7::IDirectDraw7::new(machine);
+            *lplpDD.unwrap() = ddraw7::IDirectDraw7::new(sys);
             DD::OK
         }
         _ => {

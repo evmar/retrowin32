@@ -1,5 +1,4 @@
-use crate::{Machine, System};
-use memory::ExtensionsMut;
+use win32_system::System;
 use win32_winapi::{com::GUID, vtable};
 
 pub const IID_IDirectDraw3: GUID = GUID((
@@ -58,11 +57,9 @@ pub mod IDirectDrawSurface3 {
         SetSurfaceDesc: todo,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawSurface = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface3");
-        machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
-        lpDirectDrawSurface
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDrawSurface3");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]

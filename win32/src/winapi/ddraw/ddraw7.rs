@@ -1,16 +1,13 @@
 //! Implementation of DirectDraw7 interfaces.
 
-use crate::{
-    Machine, System,
-    winapi::{
-        ddraw::{
-            IDirectDrawClipper, get_state,
-            palette::{IDirectDrawPalette, Palette},
-            types::*,
-            {self},
-        },
-        *,
+use crate::winapi::{
+    ddraw::{
+        IDirectDrawClipper, get_state,
+        palette::{IDirectDrawPalette, Palette},
+        types::*,
+        {self},
     },
+    *,
 };
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
@@ -18,6 +15,7 @@ use builtin_user32 as user32;
 use gdi32::{PALETTEENTRY, bitmap::Bitmap};
 use memory::{Extensions, ExtensionsMut, Pod};
 use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
 use win32_winapi::{com::GUID, vtable};
 
 pub const IID_IDirectDraw7: GUID = GUID((
@@ -108,11 +106,9 @@ pub mod IDirectDraw7 {
         EvaluateMode: todo,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDraw = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDraw7");
-        machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
-        lpDirectDraw
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDraw7");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
@@ -123,19 +119,19 @@ pub mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     pub fn CreateClipper(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         unused: u32,
         lplpClipper: Option<&mut u32>,
         reserved: u32,
     ) -> DD {
-        *lplpClipper.unwrap() = IDirectDrawClipper::new(machine);
+        *lplpClipper.unwrap() = IDirectDrawClipper::new(sys);
         DD::OK
     }
 
     #[win32_derive::dllexport]
     pub fn CreatePalette(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         flags: Result<DDPCAPS, u32>,
         entries: u32,
@@ -148,40 +144,42 @@ pub mod IDirectDraw7 {
         }
         // TODO: if palette is DDPCAPS_8BITENTRIES then SetEntries needs change too.
 
-        let ptr = IDirectDrawPalette::new(machine);
-        let entries = machine
+        let ptr = IDirectDrawPalette::new(sys);
+        let entries = sys
             .mem()
             .iter_pod::<PALETTEENTRY>(entries, 256)
             .collect::<Box<_>>();
-        machine.state.ddraw.palettes.insert(
+        get_state(sys).palettes.insert(
             ptr,
             Rc::new(Palette {
                 ptr,
                 entries: RefCell::new(entries),
             }),
         );
-        machine.mem().put_pod::<u32>(lplpPalette, ptr);
+        sys.mem().put_pod::<u32>(lplpPalette, ptr);
         DD::OK
     }
 
     #[win32_derive::dllexport]
     pub fn CreateSurface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         desc: Option<&DDSURFACEDESC2>,
         lpDirectDrawSurface7: Option<&mut u32>,
         unused: u32,
     ) -> DD {
-        let surfaces = ddraw::Surface::create(machine, machine.state.ddraw.hwnd, desc.unwrap());
+        let hwnd = get_state(sys).hwnd;
+        let surfaces = ddraw::Surface::create(sys, hwnd, desc.unwrap());
         if surfaces.len() > 2 {
             todo!()
         }
 
+        let mut state = get_state(sys);
         let mut prev = 0;
         for mut surface in surfaces.into_iter().rev() {
-            let ptr = IDirectDrawSurface7::new(machine);
+            let ptr = IDirectDrawSurface7::new(sys);
             surface.attached = prev;
-            machine.state.ddraw.surfaces.insert(ptr, surface);
+            state.surfaces.insert(ptr, surface);
             prev = ptr;
         }
 
@@ -192,7 +190,7 @@ pub mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     pub async fn EnumDisplayModes(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         dwFlags: u32,
         lpSurfaceDesc: Option<&DDSURFACEDESC2>,
@@ -219,21 +217,14 @@ pub mod IDirectDraw7 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        let mem = machine.memory.mem();
-        let desc_addr = machine
-            .memory
-            .process_heap
-            .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
-        mem.put_pod::<DDSURFACEDESC2>(desc_addr, desc);
+        let memory = sys.memory();
+        let desc_addr = memory.store(desc);
 
-        machine
-            .call_x86(lpEnumCallback, vec![desc_addr, lpContext])
+        sys.call_x86(lpEnumCallback, vec![desc_addr, lpContext])
             .await;
 
-        machine
-            .memory
-            .process_heap
-            .free(machine.memory.mem(), desc_addr);
+        let memory = sys.memory();
+        memory.process_heap.free(memory.mem(), desc_addr);
 
         DD::OK
     }
@@ -257,17 +248,17 @@ pub mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     pub async fn SetCooperativeLevel(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         hwnd: HWND,
         flags: Result<DDSCL, u32>,
     ) -> DD {
         // TODO: this triggers behaviors like fullscreen.
-        machine.state.ddraw.hwnd = hwnd;
+        get_state(sys).hwnd = hwnd;
         let flags = flags.unwrap();
         if flags.contains(DDSCL::FULLSCREEN) {
-            user32::activate_window(machine, hwnd).await; // dispatches WM_ACTIVATE{,APP} if needed
-            let user32_state = user32::get_state(machine);
+            user32::activate_window(sys, hwnd).await; // dispatches WM_ACTIVATE{,APP} if needed
+            let user32_state = user32::get_state(sys);
             let mut window = user32_state.windows.get(hwnd).unwrap().borrow_mut();
             window.expect_toplevel_mut().host.fullscreen();
         }
@@ -276,7 +267,7 @@ pub mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     pub fn SetDisplayMode(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         width: u32,
         height: u32,
@@ -284,14 +275,11 @@ pub mod IDirectDraw7 {
         refresh: u32,
         flags: u32,
     ) -> DD {
-        if let Some(wnd) = user32::get_state(machine)
-            .windows
-            .get(machine.state.ddraw.hwnd)
-        {
-            wnd.borrow_mut()
-                .set_client_size(&*machine.host, width, height);
+        let mut state = get_state(sys);
+        if let Some(wnd) = user32::get_state(sys).windows.get(state.hwnd) {
+            wnd.borrow_mut().set_client_size(sys.host(), width, height);
         }
-        machine.state.ddraw.screen_bytes_per_pixel = bpp / 8;
+        state.screen_bytes_per_pixel = bpp / 8;
         DD::OK
     }
 
@@ -360,11 +348,9 @@ pub mod IDirectDrawSurface7 {
         GetLOD: todo,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawSurface7 = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
-        machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
-        lpDirectDrawSurface7
+    pub fn new(sys: &dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDrawSurface7");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
@@ -375,7 +361,7 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn Blt(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpDstRect: Option<&RECT>,
         lpSrc: u32,
@@ -383,26 +369,23 @@ pub mod IDirectDrawSurface7 {
         flags: Result<DDBLT, u32>,
         lpDDBLTFX: Option<&DDBLTFX>,
     ) -> DD {
-        let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        let mut state = get_state(sys);
+        let dst = state.surfaces.get_mut(&this).unwrap();
 
         let mut flags = flags.unwrap();
         flags.remove(DDBLT::WAIT); // ignored
         if flags.contains(DDBLT::COLORFILL) {
             let fx = lpDDBLTFX.unwrap();
             // TODO: obey dst rect
-            dst.fill(
-                machine.memory.mem(),
-                &machine.memory.process_heap,
-                fx.dwFillColor,
-            );
+            dst.fill(sys.mem(), &sys.memory().process_heap, fx.dwFillColor);
             return DD::OK;
         }
         if !flags.is_empty() {
             log::warn!("Blt: ignoring flags: {flags:?}");
         }
 
-        let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap();
+        let dst = state.surfaces.get(&this).unwrap();
+        let src = state.surfaces.get(&lpSrc).unwrap();
 
         let src_rect = lpSrcRect.copied().unwrap_or(RECT {
             left: 0,
@@ -426,7 +409,7 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn BltFast(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         x: u32,
         y: u32,
@@ -439,8 +422,9 @@ pub mod IDirectDrawSurface7 {
             log::warn!("BltFast: ignoring flags: {:?}", flags);
         }
 
-        let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap();
+        let state = get_state(sys);
+        let dst = state.surfaces.get(&this).unwrap();
+        let src = state.surfaces.get(&lpSrc).unwrap();
 
         let src_rect = lpRect.copied().unwrap_or(RECT {
             left: 0,
@@ -464,40 +448,42 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> DD {
+    pub fn Flip(sys: &mut dyn System, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> DD {
         // Swap the back buffer's pixels with the front buffer.
         if lpSurf != 0 {
             todo!();
         }
 
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let mut state = get_state(sys);
+        let surface = state.surfaces.get(&this).unwrap();
         if !surface.primary {
             // TODO: surface can be an arbitrary surface in the flip chain, not just the back buffer.
             todo!();
         }
         let old_pixels = surface.pixels;
         let attached = surface.attached;
-        let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
+        let back = state.surfaces.get_mut(&attached).unwrap();
         let new_pixels = back.pixels;
         back.pixels = old_pixels;
 
-        let surface = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        let surface = state.surfaces.get_mut(&this).unwrap();
         assert!(new_pixels != 0);
         surface.pixels = new_pixels;
-        surface.flush(machine.memory.mem());
+        surface.flush(sys.mem());
 
         DD::OK
     }
 
     #[win32_derive::dllexport]
     pub fn GetAttachedSurface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpDDSCaps2: Option<&DDSCAPS2>,
         lpDirectDrawSurface7: Option<&mut u32>,
     ) -> DD {
         // TODO: consider caps.
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let state = get_state(sys);
+        let surface = state.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface7.unwrap() = surface.attached;
         DD::OK
     }
@@ -508,10 +494,11 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> DD {
-        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+    pub fn GetDC(sys: &mut dyn System, this: u32, lpHDC: u32) -> DD {
+        let mut state = get_state(sys);
+        let surf = state.surfaces.get_mut(&this).unwrap();
         // Ensure surface has backing store, since DC is for drawing on it.
-        surf.lock(machine.memory.mem(), &machine.memory.process_heap);
+        surf.lock(sys.mem(), &sys.memory().process_heap);
 
         struct SurfaceAsGDI(u32);
         impl gdi32::DCTarget for SurfaceAsGDI {
@@ -528,8 +515,8 @@ pub mod IDirectDrawSurface7 {
             }
         }
 
-        let handle = gdi32::get_state(machine).new_dc(Box::new(SurfaceAsGDI(this)));
-        machine.mem().put_pod::<u32>(lpHDC, handle.to_raw());
+        let handle = gdi32::get_state(sys).new_dc(Box::new(SurfaceAsGDI(this)));
+        sys.mem().put_pod::<u32>(lpHDC, handle.to_raw());
         DD::OK
     }
 
@@ -554,11 +541,12 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn GetSurfaceDesc(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpDesc: Option<&mut DDSURFACEDESC2>,
     ) -> DD {
-        let surf = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let state = get_state(sys);
+        let surf = state.surfaces.get(&this).unwrap();
         let desc = lpDesc.unwrap();
         assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
         // TODO: a trace of a ddraw2 program had the result contain
@@ -578,13 +566,13 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn IsLost(machine: &mut Machine, this: u32) -> DD {
+    pub fn IsLost(sys: &mut dyn System, this: u32) -> DD {
         DD::OK
     }
 
     #[win32_derive::dllexport]
     pub fn Lock(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC2>,
@@ -597,8 +585,9 @@ pub mod IDirectDrawSurface7 {
             todo!();
         }
         let desc = desc.unwrap();
-        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        let pixels = surf.lock(machine.memory.mem(), &machine.memory.process_heap);
+        let mut state = get_state(sys);
+        let surf = state.surfaces.get_mut(&this).unwrap();
+        let pixels = surf.lock(sys.mem(), &sys.memory().process_heap);
         // It seems callers (effect, monolife) don't provide flags for what they want,
         // and instead expect all fields to be included.
         desc.lpSurface = pixels;
@@ -636,15 +625,17 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> DD {
-        let palette = machine.state.ddraw.palettes.get(&palette).unwrap();
-        machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = Some(palette.clone());
+    pub fn SetPalette(sys: &mut dyn System, this: u32, palette: u32) -> DD {
+        let mut state = get_state(sys);
+        let palette = state.palettes.get(&palette).unwrap();
+        state.surfaces.get_mut(&this).unwrap().palette = Some(palette.clone());
         DD::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> DD {
-        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+    pub fn Unlock(sys: &mut dyn System, this: u32, rect: Option<&mut RECT>) -> DD {
+        let mut state = get_state(sys);
+        let surf = state.surfaces.get_mut(&this).unwrap();
         if let Some(rect) = rect {
             // TODO: needs to match the rect passed in Lock.
             rect.left = 0;
@@ -652,7 +643,7 @@ pub mod IDirectDrawSurface7 {
             rect.right = surf.width as i32;
             rect.bottom = surf.height as i32;
         }
-        surf.unlock(machine.memory.mem());
+        surf.unlock(sys.mem());
 
         DD::OK
     }

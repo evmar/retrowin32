@@ -28,12 +28,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::DirectDrawCreate(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpGuid,
-                lplpDD,
-                pUnkOuter,
-            );
+            let result = ddraw::DirectDrawCreate(sys, lpGuid, lplpDD, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -61,12 +56,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::DirectDrawCreateClipper(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwFlags,
-                lplpDDClipper,
-                pUnkOuter,
-            );
+            let result = ddraw::DirectDrawCreateClipper(sys, dwFlags, lplpDDClipper, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -96,13 +86,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::DirectDrawCreateEx(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpGuid,
-                lplpDD,
-                iid,
-                pUnkOuter,
-            );
+            let result = ddraw::DirectDrawCreateEx(sys, lpGuid, lplpDD, iid, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -132,13 +116,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw2::CreateSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                desc,
-                lplpDDSurface,
-                pUnkOuter,
-            );
+            let result =
+                ddraw::IDirectDraw2::CreateSurface(sys, this, desc, lplpDDSurface, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -177,7 +156,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = ddraw::IDirectDraw2::EnumDisplayModes(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     this,
                     dwFlags,
                     lpSurfaceDesc,
@@ -284,13 +263,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw2::SetDisplayMode(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                width,
-                height,
-                bpp,
-            );
+            let result = ddraw::IDirectDraw2::SetDisplayMode(sys, this, width, height, bpp);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -320,13 +293,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw7::CreateClipper(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                unused,
-                lplpClipper,
-                reserved,
-            );
+            let result =
+                ddraw::IDirectDraw7::CreateClipper(sys, this, unused, lplpClipper, reserved);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -358,14 +326,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw7::CreatePalette(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                flags,
-                entries,
-                lplpPalette,
-                unused,
-            );
+            let result =
+                ddraw::IDirectDraw7::CreatePalette(sys, this, flags, entries, lplpPalette, unused);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -395,13 +357,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw7::CreateSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                desc,
-                lpDirectDrawSurface7,
-                unused,
-            );
+            let result =
+                ddraw::IDirectDraw7::CreateSurface(sys, this, desc, lpDirectDrawSurface7, unused);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -440,7 +397,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = ddraw::IDirectDraw7::EnumDisplayModes(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     this,
                     dwFlags,
                     lpSurfaceDesc,
@@ -548,13 +505,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = ddraw::IDirectDraw7::SetCooperativeLevel(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    this,
-                    hwnd,
-                    flags,
-                )
-                .await;
+                let result = ddraw::IDirectDraw7::SetCooperativeLevel(sys, this, hwnd, flags).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -589,15 +540,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw7::SetDisplayMode(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                width,
-                height,
-                bpp,
-                refresh,
-                flags,
-            );
+            let result =
+                ddraw::IDirectDraw7::SetDisplayMode(sys, this, width, height, bpp, refresh, flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -727,14 +671,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawPalette::SetEntries(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                unused,
-                start,
-                count,
-                entries,
-            );
+            let result =
+                ddraw::IDirectDrawPalette::SetEntries(sys, this, unused, start, count, entries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -766,7 +704,7 @@ mod wrappers {
                 None
             };
             let result = ddraw::IDirectDrawSurface2::GetAttachedSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpDDSCaps,
                 lpDirectDrawSurface,
@@ -819,11 +757,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface2::GetSurfaceDesc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                desc,
-            );
+            let result = ddraw::IDirectDrawSurface2::GetSurfaceDesc(sys, this, desc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -855,14 +789,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface2::Lock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                rect,
-                desc,
-                flags,
-                event,
-            );
+            let result = ddraw::IDirectDrawSurface2::Lock(sys, this, rect, desc, flags, event);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -907,11 +834,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface2::Unlock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                ptr,
-            );
+            let result = ddraw::IDirectDrawSurface2::Unlock(sys, this, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -968,13 +891,7 @@ mod wrappers {
                 None
             };
             let result = ddraw::IDirectDrawSurface7::Blt(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpDstRect,
-                lpSrc,
-                lpSrcRect,
-                flags,
-                lpDDBLTFX,
+                sys, this, lpDstRect, lpSrc, lpSrcRect, flags, lpDDBLTFX,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -1009,15 +926,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::BltFast(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                x,
-                y,
-                lpSrc,
-                lpRect,
-                flags,
-            );
+            let result = ddraw::IDirectDrawSurface7::BltFast(sys, this, x, y, lpSrc, lpRect, flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1041,12 +950,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::Flip(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpSurf,
-                flags,
-            );
+            let result = ddraw::IDirectDrawSurface7::Flip(sys, this, lpSurf, flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1078,7 +982,7 @@ mod wrappers {
                 None
             };
             let result = ddraw::IDirectDrawSurface7::GetAttachedSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpDDSCaps2,
                 lpDirectDrawSurface7,
@@ -1128,11 +1032,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::GetDC(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpHDC,
-            );
+            let result = ddraw::IDirectDrawSurface7::GetDC(sys, this, lpHDC);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1184,11 +1084,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::GetSurfaceDesc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                lpDesc,
-            );
+            let result = ddraw::IDirectDrawSurface7::GetSurfaceDesc(sys, this, lpDesc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1210,10 +1106,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::IsLost(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-            );
+            let result = ddraw::IDirectDrawSurface7::IsLost(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1245,14 +1138,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::Lock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                rect,
-                desc,
-                flags,
-                unused,
-            );
+            let result = ddraw::IDirectDrawSurface7::Lock(sys, this, rect, desc, flags, unused);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1401,11 +1287,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::SetPalette(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                palette,
-            );
+            let result = ddraw::IDirectDrawSurface7::SetPalette(sys, this, palette);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1428,11 +1310,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface7::Unlock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                rect,
-            );
+            let result = ddraw::IDirectDrawSurface7::Unlock(sys, this, rect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1464,7 +1342,7 @@ mod wrappers {
                 None
             };
             let result = ddraw::IDirectDrawSurface::GetAttachedSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 this,
                 lpDDSCaps,
                 lpDirectDrawSurface,
@@ -1523,14 +1401,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface::Lock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                rect,
-                desc,
-                flags,
-                event,
-            );
+            let result = ddraw::IDirectDrawSurface::Lock(sys, this, rect, desc, flags, event);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1557,12 +1428,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface::QueryInterface(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                riid,
-                ppvObject,
-            );
+            let result = ddraw::IDirectDrawSurface::QueryInterface(sys, this, riid, ppvObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1607,11 +1473,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDrawSurface::Unlock(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                ptr,
-            );
+            let result = ddraw::IDirectDrawSurface::Unlock(sys, this, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1641,13 +1503,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw::CreateSurface(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                desc,
-                lplpDDSurface,
-                pUnkOuter,
-            );
+            let result =
+                ddraw::IDirectDraw::CreateSurface(sys, this, desc, lplpDDSurface, pUnkOuter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1671,12 +1528,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw::QueryInterface(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                riid,
-                ppvObject,
-            );
+            let result = ddraw::IDirectDraw::QueryInterface(sys, this, riid, ppvObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1728,13 +1580,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ddraw::IDirectDraw::SetDisplayMode(
-                &mut *(sys.machine() as *mut crate::Machine),
-                this,
-                width,
-                height,
-                bpp,
-            );
+            let result = ddraw::IDirectDraw::SetDisplayMode(sys, this, width, height, bpp);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

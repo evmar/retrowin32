@@ -14,7 +14,7 @@ pub use win32_winapi::{
 };
 
 pub struct State {
-    pub ddraw: ddraw::State,
+    pub ddraw: std::cell::RefCell<ddraw::State>,
     pub dsound: std::cell::RefCell<builtin_dsound::State>,
     pub gdi32: std::cell::RefCell<builtin_gdi32::State>,
     pub kernel32: kernel32::State,
@@ -25,7 +25,7 @@ pub struct State {
 impl State {
     pub fn new(kernel32: kernel32::State) -> Self {
         State {
-            ddraw: ddraw::State::default(),
+            ddraw: Default::default(),
             dsound: Default::default(),
             gdi32: Default::default(),
             kernel32,

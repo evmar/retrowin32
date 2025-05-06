@@ -2,16 +2,13 @@
 //! a "1" suffix but contrast with intefaces with names like IDirectDraw7.
 
 use super::{
+    ddraw::{self, get_state},
     ddraw2, ddraw3,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
 };
-use crate::{
-    Machine, System,
-    winapi::{ddraw, *},
-};
-use memory::ExtensionsMut;
-use win32_winapi::{com::GUID, vtable};
+use win32_system::System;
+use win32_winapi::{RECT, com::GUID, vtable};
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw {
@@ -43,23 +40,21 @@ pub mod IDirectDraw {
         WaitForVerticalBlank: (IDirectDraw7::WaitForVerticalBlank),
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDraw = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDraw");
-        machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
-        lpDirectDraw
+    pub fn new(sys: &mut dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDraw");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
     pub fn QueryInterface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         riid: Option<&GUID>,
         ppvObject: Option<&mut u32>,
     ) -> DD {
         match riid.unwrap() {
             &ddraw2::IID_IDirectDraw2 => {
-                *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(machine);
+                *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(sys);
                 DD::OK
             }
             _ => DD::E_NOINTERFACE,
@@ -68,33 +63,31 @@ pub mod IDirectDraw {
 
     #[win32_derive::dllexport]
     pub fn CreateSurface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> DD {
-        if machine.state.ddraw.hwnd.is_null() {
+        let hwnd = get_state(sys).hwnd;
+        if hwnd.is_null() {
             // This can happen if the app never called SetCooperativeLevel, but it
             // can also happen if it called SetCooperativeLevel with DDSCL_NORMAL and
             // passed a null hwnd.  In that case it appears at least in 5days it is
             // just probing for DirectDraw capability and doesn't even have a window(?).
-            *lplpDDSurface.unwrap() = IDirectDrawSurface::new(machine);
+            *lplpDDSurface.unwrap() = IDirectDrawSurface::new(sys);
             // TODO: register surface in surfaces list?
             return DD::OK;
         }
 
-        let surfaces = ddraw::Surface::create(
-            machine,
-            machine.state.ddraw.hwnd,
-            &DDSURFACEDESC2::from_desc(desc.unwrap()),
-        );
+        let surfaces = ddraw::Surface::create(sys, hwnd, &DDSURFACEDESC2::from_desc(desc.unwrap()));
 
+        let mut state = get_state(sys);
         let mut prev = 0;
         for mut surface in surfaces.into_iter().rev() {
-            let ptr = IDirectDrawSurface::new(machine);
+            let ptr = IDirectDrawSurface::new(sys);
             surface.attached = prev;
-            machine.state.ddraw.surfaces.insert(ptr, surface);
+            state.surfaces.insert(ptr, surface);
             prev = ptr;
         }
 
@@ -111,13 +104,13 @@ pub mod IDirectDraw {
 
     #[win32_derive::dllexport]
     pub fn SetDisplayMode(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         width: u32,
         height: u32,
         bpp: u32,
     ) -> DD {
-        IDirectDraw7::SetDisplayMode(machine, 0, width, height, bpp, 0, 0)
+        IDirectDraw7::SetDisplayMode(sys, 0, width, height, bpp, 0, 0)
     }
 }
 
@@ -164,23 +157,21 @@ pub mod IDirectDrawSurface {
         UpdateOverlayZOrder: todo,
     ];
 
-    pub fn new(machine: &mut Machine) -> u32 {
-        let lpDirectDrawSurface = machine.memory.process_heap.alloc(machine.memory.mem(), 4);
-        let vtable = crate::loader::get_symbol(machine, "ddraw.dll", "IDirectDrawSurface");
-        machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
-        lpDirectDrawSurface
+    pub fn new(sys: &dyn System) -> u32 {
+        let vtable = sys.get_symbol("ddraw.dll", "IDirectDrawSurface");
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
     pub fn QueryInterface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         riid: Option<&GUID>,
         ppvObject: Option<&mut u32>,
     ) -> DD {
         match riid.unwrap() {
             &ddraw3::IID_IDirectDraw3 => {
-                let ptr = ddraw3::IDirectDrawSurface3::new(machine);
+                let ptr = ddraw3::IDirectDrawSurface3::new(sys);
                 // TODO: register ptr as a surface, but we need to share the same surface
                 // between multiple ptrs then?
                 *ppvObject.unwrap() = ptr;
@@ -197,13 +188,14 @@ pub mod IDirectDrawSurface {
 
     #[win32_derive::dllexport]
     pub fn GetAttachedSurface(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         lpDDSCaps: Option<&DDSCAPS>,
         lpDirectDrawSurface: Option<&mut u32>,
     ) -> DD {
         // TODO: consider caps.
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let state = get_state(sys);
+        let surface = state.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface.unwrap() = surface.attached;
         DD::OK
     }
@@ -215,7 +207,7 @@ pub mod IDirectDrawSurface {
 
     #[win32_derive::dllexport]
     pub fn Lock(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         this: u32,
         rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC>,
@@ -228,7 +220,7 @@ pub mod IDirectDrawSurface {
         let desc = desc.unwrap();
         let mut desc2 = DDSURFACEDESC2::from_desc(desc);
         desc2.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
-        let ret = IDirectDrawSurface7::Lock(machine, this, rect, Some(&mut desc2), flags, 0);
+        let ret = IDirectDrawSurface7::Lock(sys, this, rect, Some(&mut desc2), flags, 0);
         if ret != DD::OK {
             return ret;
         }
@@ -239,7 +231,7 @@ pub mod IDirectDrawSurface {
     }
 
     #[win32_derive::dllexport]
-    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> DD {
-        IDirectDrawSurface7::Unlock(machine, this, None)
+    pub fn Unlock(sys: &mut dyn System, this: u32, ptr: u32) -> DD {
+        IDirectDrawSurface7::Unlock(sys, this, None)
     }
 }
