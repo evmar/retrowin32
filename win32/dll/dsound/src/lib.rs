@@ -5,7 +5,6 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use memory::ExtensionsMut;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use win32_system::{Heap, System};
 use win32_winapi::{com::GUID, vtable};
@@ -122,12 +121,8 @@ pub mod IDirectSound {
     use super::*;
 
     pub fn new(sys: &mut dyn System) -> u32 {
-        let heap = get_state(sys).borrow().heap.clone();
-        let mem = sys.mem();
-        let lpDirectSound = heap.alloc(mem, 4);
         let vtable = sys.get_symbol("dsound.dll", "IDirectSound");
-        mem.put_pod::<u32>(lpDirectSound, vtable);
-        lpDirectSound
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]
@@ -184,12 +179,8 @@ pub mod IDirectSoundBuffer {
     use super::*;
 
     pub fn new(sys: &mut dyn System) -> u32 {
-        let heap = get_state(sys).borrow().heap.clone();
-        let mem = sys.mem();
-        let lpDirectSoundBuffer = heap.alloc(mem, 4);
         let vtable = sys.get_symbol("dsound.dll", "IDirectSoundBuffer");
-        mem.put_pod::<u32>(lpDirectSoundBuffer, vtable);
-        lpDirectSoundBuffer
+        sys.memory().store(vtable)
     }
 
     #[win32_derive::dllexport]

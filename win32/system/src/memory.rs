@@ -200,4 +200,14 @@ impl Memory {
         self.heaps.insert(mapping.addr, heap.clone());
         heap
     }
+
+    /// Store some Pod data in the process heap.
+    pub fn store<T: memory::Pod>(&mut self, data: T) -> u32 {
+        use memory::ExtensionsMut;
+        let size = std::mem::size_of::<T>();
+        let mem = self.mem();
+        let addr = self.process_heap.alloc(mem, size as u32);
+        mem.put_pod::<T>(addr, data);
+        addr
+    }
 }

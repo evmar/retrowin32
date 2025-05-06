@@ -1,4 +1,3 @@
-use memory::ExtensionsMut;
 use win32_system::System;
 use win32_winapi::{HWND, calling_convention, vtable};
 
@@ -51,10 +50,7 @@ pub mod IDirectInput {
 
     pub fn new(sys: &mut dyn System) -> u32 {
         let vtable = sys.get_symbol("dinput.dll", "IDirectInput");
-        let memory = sys.memory();
-        let lpDirectInput = memory.process_heap.alloc(memory.mem(), 4);
-        memory.mem().put_pod::<u32>(lpDirectInput, vtable);
-        lpDirectInput
+        sys.memory().store(vtable)
     }
 
     vtable![
@@ -118,10 +114,7 @@ pub mod IDirectInputDevice {
 
     pub fn new(sys: &mut dyn System) -> u32 {
         let vtable = sys.get_symbol("dinput.dll", "IDirectInputDevice");
-        let memory = sys.memory();
-        let lpDirectInputDevice = memory.process_heap.alloc(memory.mem(), 4);
-        memory.mem().put_pod::<u32>(lpDirectInputDevice, vtable);
-        lpDirectInputDevice
+        sys.memory().store(vtable)
     }
 
     vtable![
