@@ -1116,14 +1116,16 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
             let rcwindow = machine.state.user32.windows.get(hwnd).unwrap();
             let window = rcwindow.borrow();
             match &window.typ {
-                WindowType::TopLevel(_) => machine.state.gdi32.new_dc(Box::new(rcwindow.clone())),
+                WindowType::TopLevel(_) => {
+                    gdi32::get_state(machine).new_dc(Box::new(rcwindow.clone()))
+                }
                 _ => {
                     log::warn!("GetDC for non-top-level window");
                     HDC::null()
                 }
             }
         }
-        None => machine.state.gdi32.screen_dc,
+        None => gdi32::get_state(machine).screen_dc,
     }
 }
 

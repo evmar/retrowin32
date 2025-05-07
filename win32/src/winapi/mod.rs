@@ -27,7 +27,7 @@ pub struct State {
 
     pub ddraw: ddraw::State,
     pub dsound: std::cell::RefCell<builtin_dsound::State>,
-    pub gdi32: gdi32::State,
+    pub gdi32: std::cell::RefCell<gdi32::State>,
     pub kernel32: kernel32::State,
     pub user32: user32::State,
     pub winmm: winmm::State,
@@ -41,7 +41,7 @@ impl State {
             scratch,
             ddraw: ddraw::State::default(),
             dsound: Default::default(),
-            gdi32: gdi32::State::default(),
+            gdi32: Default::default(),
             kernel32,
             user32: user32::State::default(),
             winmm: winmm::State::default(),

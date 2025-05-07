@@ -89,7 +89,7 @@ impl System for Machine {
     fn state(&self, id: &TypeId) -> &dyn Any {
         if id == &TypeId::of::<winapi::user32::State>() {
             &self.state.user32
-        } else if id == &TypeId::of::<winapi::gdi32::State>() {
+        } else if id == &TypeId::of::<std::cell::RefCell<winapi::gdi32::State>>() {
             &self.state.gdi32
         } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
             &self.state.dsound

@@ -1,11 +1,10 @@
-use super::{BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ, Object};
+use super::{BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ, Object, get_state};
 use crate::{
-    Machine, System,
+    System,
     winapi::{
         POINT, RECT,
         bitmap::{BI, Bitmap, PixelData, PixelFormat},
         gdi32::GDIHandles,
-        kernel32,
     },
 };
 use memory::{Extensions, Mem};
@@ -76,7 +75,7 @@ impl RasterOp {
 
 #[win32_derive::dllexport]
 pub fn StretchBlt(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdcDst: HDC,
     xDst: i32,
     yDst: i32,
@@ -91,7 +90,7 @@ pub fn StretchBlt(
 ) -> bool {
     let rop = rop.unwrap();
     if !rop.uses_src() {
-        return PatBlt(machine, hdcDst, xDst, yDst, wDst, hDst, Ok(rop));
+        return PatBlt(sys, hdcDst, xDst, yDst, wDst, hDst, Ok(rop));
     }
     let op = rop.to_binop();
 
@@ -109,12 +108,13 @@ pub fn StretchBlt(
         bottom: ySrc + hSrc,
     };
 
-    let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap().borrow();
-    let src_bitmap = src_dc.target.get_bitmap(machine);
+    let state = get_state(sys);
+    let src_dc = state.dcs.get(hdcSrc).unwrap().borrow();
+    let src_bitmap = src_dc.target.get_bitmap(sys);
     let src_bitmap = src_bitmap.borrow();
 
-    let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap().borrow();
-    let dst_bitmap = dst_dc.target.get_bitmap(machine);
+    let dst_dc = state.dcs.get(hdcDst).unwrap().borrow();
+    let dst_bitmap = dst_dc.target.get_bitmap(sys);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
 
     // What does it mean when the src_rect isn't within the src bitmap?
@@ -129,7 +129,7 @@ pub fn StretchBlt(
     // log::info!("dst_bitmap.to_rect()={:x?}", dst_bitmap.to_rect());
     // log::info!("copy_rect={:x?}", copy_rect);
 
-    let mem = machine.memory.mem();
+    let mem = sys.mem();
 
     let mut row: Vec<COLORREF> = Vec::with_capacity((src_rect.right - src_rect.left) as usize);
     row.resize_with(row.capacity(), || COLORREF::from_rgb(0xff, 0, 0));
@@ -150,13 +150,13 @@ pub fn StretchBlt(
     }
     drop(dst_bitmap);
 
-    dst_dc.target.flush(machine);
+    dst_dc.target.flush(sys);
     true
 }
 
 #[win32_derive::dllexport]
 pub fn BitBlt(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdcDst: HDC,
     xDst: i32,
     yDst: i32,
@@ -167,14 +167,12 @@ pub fn BitBlt(
     ySrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
-    StretchBlt(
-        machine, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, w, h, rop,
-    )
+    StretchBlt(sys, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, w, h, rop)
 }
 
 #[win32_derive::dllexport]
 pub fn PatBlt(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdc: HDC,
     x: i32,
     y: i32,
@@ -187,14 +185,15 @@ pub fn PatBlt(
         return false;
     }
     let rop = rop.unwrap();
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
+    let state = get_state(sys);
+    let dc = state.dcs.get(hdc).unwrap().borrow();
 
     const DEFAULT_COLOR: [u8; 4] = [0xFF, 0xFF, 0xFF, 0xFF];
 
     let color = match rop {
         RasterOp::PATCOPY => {
             // get brush color
-            match machine.state.gdi32.objects.get(dc.brush) {
+            match state.objects.get(dc.brush) {
                 Some(Object::Brush(brush)) => match brush.color {
                     Some(color) => color.to_pixel(),
                     None => DEFAULT_COLOR,
@@ -206,7 +205,7 @@ pub fn PatBlt(
         _ => todo!("unimplemented PatBlt with rop={rop:?}"),
     };
 
-    let dst_bitmap = dc.target.get_bitmap(machine);
+    let dst_bitmap = dc.target.get_bitmap(sys);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
     let dst_rect = RECT {
@@ -217,15 +216,15 @@ pub fn PatBlt(
     }
     .clip(&dst_bitmap.to_rect());
 
-    fill_pixels(machine.mem(), &mut *dst_bitmap, &dst_rect, |_, _| color);
+    fill_pixels(sys.mem(), &mut *dst_bitmap, &dst_rect, |_, _| color);
     drop(dst_bitmap);
-    dc.target.flush(machine);
+    dc.target.flush(sys);
     true
 }
 
 #[win32_derive::dllexport]
 pub fn CreateBitmap(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     nWidth: u32,
     nHeight: u32,
     nPlanes: u32,
@@ -240,7 +239,7 @@ pub fn CreateBitmap(
             let len = (nHeight * stride) as usize;
             let mut pixels = Vec::with_capacity(len);
             pixels.resize(len, 0);
-            pixels.copy_from_slice(machine.mem().sub32(lpBits, len as u32));
+            pixels.copy_from_slice(sys.mem().sub32(lpBits, len as u32));
             Bitmap {
                 width: nWidth,
                 height: nHeight,
@@ -250,7 +249,7 @@ pub fn CreateBitmap(
         }
         _ => unimplemented!(),
     };
-    machine.state.gdi32.objects.add_bitmap(bitmap)
+    get_state(sys).objects.add_bitmap(bitmap)
 }
 
 const DIB_RGB_COLORS: u32 = 0;
@@ -258,7 +257,7 @@ const DIB_RGB_COLORS: u32 = 0;
 
 #[win32_derive::dllexport]
 pub fn CreateDIBSection(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdc: HDC,
     pbmi: Option<&BITMAPINFOHEADER>,
     usage: u32,
@@ -294,13 +293,7 @@ pub fn CreateDIBSection(
     };
 
     let byte_count = bi.stride() as u32 * bi.height();
-    let heap = kernel32::GetProcessHeap(machine);
-    let pixels = kernel32::HeapAlloc(
-        machine,
-        heap,
-        Ok(kernel32::HeapAllocFlags::default()),
-        byte_count,
-    );
+    let pixels = sys.memory().process_heap.alloc(sys.mem(), byte_count);
 
     *ppvBits.unwrap() = pixels;
 
@@ -310,29 +303,33 @@ pub fn CreateDIBSection(
         format,
         pixels: PixelData::Ptr(pixels, byte_count),
     };
-    machine.state.gdi32.objects.add_bitmap(bitmap)
+    get_state(sys).objects.add_bitmap(bitmap)
 }
 
 #[win32_derive::dllexport]
-pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
+pub fn CreateCompatibleBitmap(sys: &mut dyn System, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
+    let mut state = get_state(sys);
+    let format = {
+        let dc = state.dcs.get(hdc).unwrap().borrow();
 
-    let bitmap = dc.target.get_bitmap(machine);
-    let bitmap = bitmap.borrow();
-    assert_eq!(bitmap.format, PixelFormat::RGBA32);
+        let bitmap = dc.target.get_bitmap(sys);
+        let bitmap = bitmap.borrow();
+        assert_eq!(bitmap.format, PixelFormat::RGBA32);
+        bitmap.format
+    };
 
     let bitmap = Bitmap {
         width: cx,
         height: cy,
-        format: PixelFormat::RGBA32,
+        format,
         pixels: PixelData::new_owned((cx * cy * 4) as usize),
     };
-    machine.state.gdi32.objects.add_bitmap(bitmap)
+    state.objects.add_bitmap(bitmap)
 }
 
 #[win32_derive::dllexport]
 pub fn SetDIBitsToDevice(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdc: HDC,
     xDst: i32,
     yDst: i32,
@@ -353,12 +350,13 @@ pub fn SetDIBitsToDevice(
         todo!();
     }
     let src_bitmap = Bitmap::parse(
-        machine.mem().slice(lpBmi..),
-        Some((machine.mem().slice(lpBits..), cLines as usize)),
+        sys.mem().slice(lpBmi..),
+        Some((sys.mem().slice(lpBits..), cLines as usize)),
     );
 
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap(machine);
+    let state = get_state(sys);
+    let dc = state.dcs.get(hdc).unwrap().borrow();
+    let dst_bitmap = dc.target.get_bitmap(sys);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -383,7 +381,7 @@ pub fn SetDIBitsToDevice(
         dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
     let dst_to_src = src_rect.origin().sub(dst_rect.origin());
 
-    let mem = machine.mem();
+    let mem = sys.mem();
     let src = src_bitmap.as_rgba(mem);
     fill_pixels(mem, &mut *dst_bitmap, &copy_rect, |p, _| {
         let p = p.add(dst_to_src);
@@ -392,14 +390,14 @@ pub fn SetDIBitsToDevice(
         pixel
     });
     drop(dst_bitmap);
-    dc.target.flush(machine);
+    dc.target.flush(sys);
 
     cLines
 }
 
 #[win32_derive::dllexport]
 pub fn StretchDIBits(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdc: HDC,
     xDst: i32,
     yDst: i32,
@@ -420,12 +418,13 @@ pub fn StretchDIBits(
     }
 
     let src_bitmap = Bitmap::parse(
-        machine.mem().slice(lpBmi..),
-        Some((machine.mem().slice(lpBits..), hSrc as usize)),
+        sys.mem().slice(lpBmi..),
+        Some((sys.mem().slice(lpBits..), hSrc as usize)),
     );
 
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap(machine);
+    let state = get_state(sys);
+    let dc = state.dcs.get(hdc).unwrap().borrow();
+    let dst_bitmap = dc.target.get_bitmap(sys);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -447,7 +446,7 @@ pub fn StretchDIBits(
 
     let copy_rect = dst_rect;
 
-    let mem = machine.mem();
+    let mem = sys.mem();
     let src = src_bitmap.as_rgba(mem);
     fill_pixels(mem, &mut *dst_bitmap, &dst_rect, |p, _| {
         // Translate p from dst to src space.
@@ -463,7 +462,7 @@ pub fn StretchDIBits(
     });
     drop(dst_bitmap);
 
-    dc.target.flush(machine);
+    dc.target.flush(sys);
 
     hSrc
 }

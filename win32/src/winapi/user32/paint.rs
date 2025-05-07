@@ -104,15 +104,18 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         log::warn!("TODO: BeginPaint for child windows");
         return HDC::null();
     };
-    let hdc = machine.state.gdi32.new_dc(Box::new(rcwindow.clone()));
+    let mut gdi_state = gdi32::get_state(machine);
+    let hdc = gdi_state.new_dc(Box::new(rcwindow.clone()));
     let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {
+        // TODO: move this to a helper in gdi32; we need it also for WM_ERASEBKGND
         let background = window.wndclass.borrow().background;
         if let Some(hbrush) = background.clone().to_option() {
-            if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
+            if let gdi32::Object::Brush(brush) = gdi_state.objects.get(hbrush).unwrap() {
                 if let Some(color) = brush.color {
                     drop(window);
+                    drop(gdi_state);
                     gdi32::fill_rect(machine, hdc, &dirty_rect, color);
                     background_drawn = true;
                 }
@@ -201,9 +204,7 @@ impl BrushOrColor {
                     COLOR::APPWORKSPACE => Some(COLORREF::from_rgb(0x80, 0x80, 0x80)),
                     _ => todo!("{c:?}"),
                 };
-                machine
-                    .state
-                    .gdi32
+                gdi32::get_state(machine)
                     .objects
                     .add(gdi32::Object::Brush(gdi32::Brush { color }))
             }
@@ -214,7 +215,7 @@ impl BrushOrColor {
 #[win32_derive::dllexport]
 pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: BrushOrColor) -> bool {
     let brush = hbr.to_brush(machine);
-    let color = match machine.state.gdi32.objects.get(brush).unwrap() {
+    let color = match gdi32::get_state(machine).objects.get(brush).unwrap() {
         gdi32::Object::Brush(brush) => match brush.color {
             Some(color) => color,
             None => return true,

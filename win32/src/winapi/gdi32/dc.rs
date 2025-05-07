@@ -1,6 +1,6 @@
-use super::{DCHandles, GDIHandles, HGDIOBJ, R2};
+use super::{DCHandles, GDIHandles, HGDIOBJ, R2, get_state};
 use crate::{
-    Machine, System,
+    System,
     winapi::{
         HANDLE, POINT,
         bitmap::{self, Bitmap, PixelData},
@@ -86,16 +86,15 @@ impl DC {
 }
 
 #[win32_derive::dllexport]
-pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
-    let format = machine
-        .state
-        .gdi32
+pub fn CreateCompatibleDC(sys: &dyn System, hdc: HDC) -> HDC {
+    let mut state = get_state(sys);
+    let format = state
         .dcs
         .get(hdc)
         .unwrap()
         .borrow()
         .target
-        .get_bitmap(machine)
+        .get_bitmap(sys)
         .borrow()
         .format;
 
@@ -108,17 +107,11 @@ pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
         pixels: PixelData::Ptr(0, 0),
     };
 
-    let hobj = machine.state.gdi32.objects.add_bitmap(bitmap);
-    let bmp = machine
-        .state
-        .gdi32
-        .objects
-        .get_bitmap(hobj)
-        .unwrap()
-        .clone();
+    let hobj = state.objects.add_bitmap(bitmap);
+    let bmp = state.objects.get_bitmap(hobj).unwrap().clone();
     let dc = DC::new(Box::new(bmp));
 
-    let handle = machine.state.gdi32.dcs.add_dc(dc);
+    let handle = state.dcs.add_dc(dc);
     handle
 }
 
@@ -197,8 +190,9 @@ pub fn SetLayout(sys: &dyn System, hdc: HDC, l: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GetDCOrgEx(machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap().borrow();
+pub fn GetDCOrgEx(sys: &dyn System, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
+    let mut state = get_state(sys);
+    let dc = state.dcs.get_mut(hdc).unwrap().borrow();
     if let Some(lpPoint) = lpPoint {
         *lpPoint = dc.pos;
         return true;

@@ -523,7 +523,7 @@ pub mod IDirectDrawSurface7 {
             }
         }
 
-        let handle = machine.state.gdi32.new_dc(Box::new(SurfaceAsGDI(this)));
+        let handle = gdi32::get_state(machine).new_dc(Box::new(SurfaceAsGDI(this)));
         machine.mem().put_pod::<u32>(lpHDC, handle.to_raw());
         DD::OK
     }

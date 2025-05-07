@@ -1,8 +1,8 @@
 //! Pens, brushes, color.
 
-use super::{HDC, HGDIOBJ, Object};
+use super::{HDC, HGDIOBJ, Object, get_state};
 use crate::{
-    Machine, System,
+    System,
     winapi::{POINT, RECT},
 };
 
@@ -81,7 +81,7 @@ pub enum PS {
 
 #[win32_derive::dllexport]
 pub fn CreatePen(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     iStyle: Result<PS, u32>,
     cWidth: u32,
     color: COLORREF,
@@ -91,12 +91,13 @@ pub fn CreatePen(
         todo!();
     }
 
-    machine.state.gdi32.objects.add(Object::Pen(Pen { color }))
+    get_state(sys).objects.add(Object::Pen(Pen { color }))
 }
 
 #[win32_derive::dllexport]
-pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&mut POINT>) -> bool {
-    let mut dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap().borrow_mut();
+pub fn MoveToEx(sys: &mut dyn System, hdc: HDC, x: i32, y: i32, lppt: Option<&mut POINT>) -> bool {
+    let state = get_state(sys);
+    let mut dc = state.dcs.get(hdc).unwrap().borrow_mut();
     if let Some(pt) = lppt {
         *pt = dc.pos;
     }
@@ -105,11 +106,11 @@ pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&m
 }
 
 #[win32_derive::dllexport]
-pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
-    let mut dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow_mut();
-
+pub fn LineTo(sys: &mut dyn System, hdc: HDC, x: i32, y: i32) -> bool {
+    let state = get_state(sys);
+    let mut dc = state.dcs.get(hdc).unwrap().borrow_mut();
     let color = match dc.rop2 {
-        R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
+        R2::COPYPEN => match state.objects.get(dc.pen).unwrap() {
             Object::Pen(pen) => pen.color.to_pixel(),
             _ => todo!(),
         },
@@ -122,10 +123,10 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         if a > b { (b, a) } else { (a, b) }
     }
 
-    let bitmap = dc.target.get_bitmap(machine);
+    let bitmap = dc.target.get_bitmap(sys);
     let mut bitmap = bitmap.borrow_mut();
     let stride = bitmap.width;
-    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
+    let pixels = bitmap.as_rgba_mut(sys.mem());
     let (dstX, dstY) = (x, y);
     if dstX == dc.pos.x {
         let x = x.max(0) as u32;
@@ -156,63 +157,65 @@ pub enum R2 {
 }
 
 #[win32_derive::dllexport]
-pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
-    let mut dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow_mut();
+pub fn SetROP2(sys: &mut dyn System, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
+    let sys = get_state(sys);
+    let mut dc = sys.dcs.get(hdc).unwrap().borrow_mut();
     std::mem::replace(&mut dc.rop2, rop2.unwrap()) as u32
 }
 
-pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF) {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
+pub fn fill_rect(sys: &mut dyn System, hdc: HDC, _rect: &RECT, color: COLORREF) {
+    let dc = get_state(sys).dcs.get(hdc).unwrap().clone();
+    let dc = dc.borrow();
     // TODO: obey rect
-    let bitmap = dc.target.get_bitmap(machine);
+    let bitmap = dc.target.get_bitmap(sys);
     let mut bitmap = bitmap.borrow_mut();
-    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
+    let pixels = bitmap.as_rgba_mut(sys.mem());
     pixels.fill(color.to_pixel());
     drop(bitmap);
-    dc.target.flush(machine);
+    dc.target.flush(sys);
 }
 
 #[win32_derive::dllexport]
-pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF) -> COLORREF {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let bitmap = dc.target.get_bitmap(machine);
+pub fn SetPixel(sys: &mut dyn System, hdc: HDC, x: u32, y: u32, color: COLORREF) -> COLORREF {
+    let state = get_state(sys);
+    let dc = state.dcs.get(hdc).unwrap().borrow();
+    let bitmap = dc.target.get_bitmap(sys);
     let mut bitmap = bitmap.borrow_mut();
     if x >= bitmap.width || y >= bitmap.height {
         return CLR_INVALID;
     }
     let stride = bitmap.width;
-    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
+    let pixels = bitmap.as_rgba_mut(sys.mem());
     pixels[((y * stride) + x) as usize] = color.to_pixel();
 
     // TODO: don't need to flush whole window for just one pixel
-    dc.target.flush(machine);
+    dc.target.flush(sys);
 
     color
 }
 
 #[win32_derive::dllexport]
-pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let bitmap = dc.target.get_bitmap(machine);
+pub fn GetPixel(sys: &mut dyn System, hdc: HDC, x: u32, y: u32) -> COLORREF {
+    let state = get_state(sys);
+    let dc = state.dcs.get(hdc).unwrap().borrow();
+    let bitmap = dc.target.get_bitmap(sys);
     let bitmap = bitmap.borrow();
     let stride = bitmap.width;
-    let pixels = bitmap.as_rgba(machine.memory.mem());
+    let pixels = bitmap.as_rgba(sys.mem());
     let pixel = pixels[((y * stride) + x) as usize];
     COLORREF::from_rgb(pixel[0], pixel[1], pixel[2])
 }
 
 #[win32_derive::dllexport]
-pub fn CreateSolidBrush(machine: &mut Machine, color: COLORREF) -> HGDIOBJ {
-    machine
-        .state
-        .gdi32
+pub fn CreateSolidBrush(sys: &mut dyn System, color: COLORREF) -> HGDIOBJ {
+    get_state(sys)
         .objects
         .add(Object::Brush(Brush { color: Some(color) }))
 }
 
 #[win32_derive::dllexport]
 pub fn SetBrushOrgEx(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hdc: HDC,
     x: i32,
     y: i32,

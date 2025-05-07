@@ -21,3 +21,13 @@ pub use state::*;
 pub use text::*;
 
 pub use super::bitmap::BITMAPINFOHEADER;
+
+use win32_system::System;
+
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    type SysState = std::cell::RefCell<State>;
+    sys.state(&std::any::TypeId::of::<SysState>())
+        .downcast_ref::<SysState>()
+        .unwrap()
+        .borrow_mut()
+}

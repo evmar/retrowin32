@@ -1,5 +1,5 @@
 use super::{HDC, HGDIOBJ};
-use crate::{Machine, System};
+use crate::System;
 
 pub type HPALETTE = u32; // TODO
 
@@ -14,7 +14,7 @@ pub struct PALETTEENTRY {
 unsafe impl memory::Pod for PALETTEENTRY {}
 
 #[win32_derive::dllexport]
-pub fn CreatePalette(machine: &mut Machine, plpal: u32) -> HGDIOBJ {
+pub fn CreatePalette(sys: &dyn System, plpal: u32) -> HGDIOBJ {
     HGDIOBJ::null()
 }
 

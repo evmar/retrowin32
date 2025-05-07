@@ -1,6 +1,6 @@
-use super::{BITMAP, Brush, COLORREF, HDC, Pen};
+use super::{BITMAP, Brush, COLORREF, HDC, Pen, get_state};
 use crate::{
-    Machine, System,
+    System,
     winapi::{HANDLE, bitmap::Bitmap},
 };
 use memory::ExtensionsMut;
@@ -44,27 +44,24 @@ pub enum GetStockObjectArg {
 }
 
 #[win32_derive::dllexport]
-pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
+pub fn GetStockObject(sys: &dyn System, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
     use GetStockObjectArg::*;
+    let mut state = get_state(sys);
     let obj = match i.unwrap() {
-        WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        WHITE_BRUSH => state.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::white()),
         })),
-        LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        LTGRAY_BRUSH => state.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
         })),
         GRAY_BRUSH => todo!(),
-        DKGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        DKGRAY_BRUSH => state.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0x40, 0x40, 0x40)),
         })),
-        BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        BLACK_BRUSH => state.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0x00, 0x00, 0x00)),
         })),
-        NULL_BRUSH => machine
-            .state
-            .gdi32
-            .objects
-            .add(Object::Brush(Brush { color: None })),
+        NULL_BRUSH => state.objects.add(Object::Brush(Brush { color: None })),
         DC_BRUSH => todo!(),
 
         WHITE_PEN | BLACK_PEN | NULL_PEN | DC_PEN => HGDIOBJ::null(),
@@ -82,14 +79,15 @@ pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) 
 }
 
 #[win32_derive::dllexport]
-pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOBJ {
-    let mut dc = match machine.state.gdi32.dcs.get(hdc) {
+pub fn SelectObject(sys: &dyn System, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOBJ {
+    let state = get_state(sys);
+    let mut dc = match state.dcs.get(hdc) {
         None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
         Some(dc) => dc,
     }
     .borrow_mut();
 
-    let obj = match machine.state.gdi32.objects.get(hGdiObj) {
+    let obj = match state.objects.get(hGdiObj) {
         None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
         Some(obj) => obj,
     };
@@ -105,8 +103,9 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
 }
 
 #[win32_derive::dllexport]
-pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) -> u32 {
-    let obj = match machine.state.gdi32.objects.get(handle) {
+pub fn GetObjectA(sys: &dyn System, handle: HGDIOBJ, bytes: u32, out: u32) -> u32 {
+    let state = get_state(sys);
+    let obj = match state.objects.get(handle) {
         None => return 0, // fail
         Some(obj) => obj,
     };
@@ -116,7 +115,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
         Object::Bitmap(bitmap) => {
             assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
             let bitmap = bitmap.borrow();
-            machine.mem().put_pod::<BITMAP>(
+            sys.mem().put_pod::<BITMAP>(
                 out,
                 BITMAP {
                     bmType: 0,

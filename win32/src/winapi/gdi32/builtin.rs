@@ -40,18 +40,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::BitBlt(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdcDst,
-                xDst,
-                yDst,
-                w,
-                h,
-                hdcSrc,
-                xSrc,
-                ySrc,
-                rop,
-            );
+            let result = gdi32::BitBlt(sys, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, rop);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -83,14 +72,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::CreateBitmap(
-                &mut *(sys.machine() as *mut crate::Machine),
-                nWidth,
-                nHeight,
-                nPlanes,
-                nBitCount,
-                lpBits,
-            );
+            let result = gdi32::CreateBitmap(sys, nWidth, nHeight, nPlanes, nBitCount, lpBits);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -114,12 +96,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::CreateCompatibleBitmap(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                cx,
-                cy,
-            );
+            let result = gdi32::CreateCompatibleBitmap(sys, hdc, cx, cy);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -141,8 +118,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                gdi32::CreateCompatibleDC(&mut *(sys.machine() as *mut crate::Machine), hdc);
+            let result = gdi32::CreateCompatibleDC(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -176,15 +152,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::CreateDIBSection(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                pbmi,
-                usage,
-                ppvBits,
-                hSection,
-                offset,
-            );
+            let result = gdi32::CreateDIBSection(sys, hdc, pbmi, usage, ppvBits, hSection, offset);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -306,7 +274,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::CreatePalette(&mut *(sys.machine() as *mut crate::Machine), plpal);
+            let result = gdi32::CreatePalette(sys, plpal);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -330,12 +298,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::CreatePen(
-                &mut *(sys.machine() as *mut crate::Machine),
-                iStyle,
-                cWidth,
-                color,
-            );
+            let result = gdi32::CreatePen(sys, iStyle, cWidth, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -357,8 +320,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                gdi32::CreateSolidBrush(&mut *(sys.machine() as *mut crate::Machine), color);
+            let result = gdi32::CreateSolidBrush(sys, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -457,8 +419,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                gdi32::GetDCOrgEx(&mut *(sys.machine() as *mut crate::Machine), hdc, lpPoint);
+            let result = gdi32::GetDCOrgEx(sys, hdc, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -563,12 +524,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::GetObjectA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                handle,
-                bytes,
-                out,
-            );
+            let result = gdi32::GetObjectA(sys, handle, bytes, out);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -622,7 +578,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::GetPixel(&mut *(sys.machine() as *mut crate::Machine), hdc, x, y);
+            let result = gdi32::GetPixel(sys, hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -644,7 +600,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::GetStockObject(&mut *(sys.machine() as *mut crate::Machine), i);
+            let result = gdi32::GetStockObject(sys, i);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -838,7 +794,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::LineTo(&mut *(sys.machine() as *mut crate::Machine), hdc, x, y);
+            let result = gdi32::LineTo(sys, hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -863,13 +819,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::MoveToEx(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                x,
-                y,
-                lppt,
-            );
+            let result = gdi32::MoveToEx(sys, hdc, x, y, lppt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -903,15 +853,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::PatBlt(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                x,
-                y,
-                w,
-                h,
-                rop,
-            );
+            let result = gdi32::PatBlt(sys, hdc, x, y, w, h, rop);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -980,8 +922,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                gdi32::SelectObject(&mut *(sys.machine() as *mut crate::Machine), hdc, hGdiObj);
+            let result = gdi32::SelectObject(sys, hdc, hGdiObj);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1076,13 +1017,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::SetBrushOrgEx(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                x,
-                y,
-                lppt,
-            );
+            let result = gdi32::SetBrushOrgEx(sys, hdc, x, y, lppt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1129,19 +1064,7 @@ mod wrappers {
                 None
             };
             let result = gdi32::SetDIBitsToDevice(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                xDst,
-                yDst,
-                w,
-                h,
-                xSrc,
-                ySrc,
-                StartScan,
-                cLines,
-                lpBits,
-                lpBmi,
-                iUsage,
+                sys, hdc, xDst, yDst, w, h, xSrc, ySrc, StartScan, cLines, lpBits, lpBmi, iUsage,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -1220,13 +1143,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::SetPixel(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                x,
-                y,
-                color,
-            );
+            let result = gdi32::SetPixel(sys, hdc, x, y, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1249,7 +1166,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = gdi32::SetROP2(&mut *(sys.machine() as *mut crate::Machine), hdc, rop2);
+            let result = gdi32::SetROP2(sys, hdc, rop2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1340,18 +1257,7 @@ mod wrappers {
                 None
             };
             let result = gdi32::StretchBlt(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdcDst,
-                xDst,
-                yDst,
-                wDst,
-                hDst,
-                hdcSrc,
-                xSrc,
-                ySrc,
-                wSrc,
-                hSrc,
-                rop,
+                sys, hdcDst, xDst, yDst, wDst, hDst, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -1401,19 +1307,7 @@ mod wrappers {
                 None
             };
             let result = gdi32::StretchDIBits(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hdc,
-                xDst,
-                yDst,
-                wDst,
-                hDst,
-                xSrc,
-                ySrc,
-                wSrc,
-                hSrc,
-                lpBits,
-                lpBmi,
-                iUsage,
+                sys, hdc, xDst, yDst, wDst, hDst, xSrc, ySrc, wSrc, hSrc, lpBits, lpBmi, iUsage,
                 rop,
             );
             if let Some(mut __trace_record) = __trace_record {

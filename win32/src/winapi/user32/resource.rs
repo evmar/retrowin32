@@ -146,7 +146,7 @@ fn load_image(
                 buf
             };
             let bmp = Bitmap::parse(buf, None);
-            machine.state.gdi32.objects.add_bitmap(bmp)
+            gdi32::get_state(machine).objects.add_bitmap(bmp)
         }
         typ => {
             log::error!("LoadImage: unimplemented image type {:?}", typ);
@@ -210,7 +210,7 @@ fn load_bitmap(
     )?;
     let buf = machine.mem().slice(buf);
     let bmp = Bitmap::parse(buf, None);
-    Some(machine.state.gdi32.objects.add_bitmap(bmp))
+    Some(gdi32::get_state(machine).objects.add_bitmap(bmp))
 }
 
 #[win32_derive::dllexport]
