@@ -3,7 +3,8 @@ use memory::Mem;
 
 pub trait System {
     fn mem(&self) -> Mem;
-    fn memory(&mut self) -> &mut crate::memory::Memory;
+    fn memory(&self) -> &crate::memory::Memory;
+    fn memory_mut(&mut self) -> &mut crate::memory::Memory;
 
     /// Escape hatch for users that haven't yet moved to this interface.
     fn machine(&mut self) -> *mut ();

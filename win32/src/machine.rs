@@ -45,7 +45,10 @@ impl System for Machine {
     fn mem(&self) -> memory::Mem {
         self.mem()
     }
-    fn memory(&mut self) -> &mut Memory {
+    fn memory(&self) -> &Memory {
+        &self.memory
+    }
+    fn memory_mut(&mut self) -> &mut Memory {
         &mut self.memory
     }
 

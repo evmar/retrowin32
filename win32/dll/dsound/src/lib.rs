@@ -33,7 +33,7 @@ pub struct State {
 
 impl State {
     pub fn init(sys: &mut dyn System) {
-        let heap = sys.memory().new_heap(
+        let heap = sys.memory_mut().new_heap(
             128 << 10, // chillin needs a 64kb buffer
             "dsound.dll heap".into(),
         );

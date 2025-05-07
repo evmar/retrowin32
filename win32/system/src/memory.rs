@@ -202,7 +202,7 @@ impl Memory {
     }
 
     /// Store some Pod data in the process heap.
-    pub fn store<T: memory::Pod>(&mut self, data: T) -> u32 {
+    pub fn store<T: memory::Pod>(&self, data: T) -> u32 {
         use memory::ExtensionsMut;
         let size = std::mem::size_of::<T>();
         let mem = self.mem();
