@@ -378,25 +378,27 @@ impl win32::host::Host for JsHost {
         JsHost::stdout(self, buf)
     }
 
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::host::Window> {
+    fn create_window(&self, hwnd: u32) -> Box<dyn win32::host::Window> {
         let window = JsHost::create_window(self, hwnd);
         Box::new(window)
     }
 
     fn create_surface(
-        &mut self,
+        &self,
         hwnd: u32,
         opts: &win32::host::SurfaceOptions,
     ) -> Box<dyn win32::host::Surface> {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
     }
 
+    #[allow(mutable_transmutes)]
     fn init_audio(
-        &mut self,
+        &self,
         _sample_rate: u32,
         _callback: win32::host::AudioCallback,
     ) -> Box<dyn win32::host::Audio> {
-        let host: JsHost = self.clone().into();
+        let v: JsValue = self.into();
+        let host: JsHost = v.into();
         Box::new(host)
     }
 }
