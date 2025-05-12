@@ -1,10 +1,8 @@
-use super::{BITMAP, Brush, COLORREF, HDC, Pen, get_state};
-use crate::{
-    System,
-    winapi::{HANDLE, gdi32::bitmap::Bitmap},
-};
+use super::{BITMAP, Brush, COLORREF, HDC, Pen, bitmap::Bitmap, get_state};
 use memory::ExtensionsMut;
 use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
+use win32_winapi::HANDLE;
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]

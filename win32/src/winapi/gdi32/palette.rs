@@ -1,5 +1,6 @@
+use win32_system::System;
+
 use super::{HDC, HGDIOBJ};
-use crate::System;
 
 pub type HPALETTE = u32; // TODO
 

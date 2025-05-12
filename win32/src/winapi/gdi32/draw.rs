@@ -1,9 +1,10 @@
 //! Pens, brushes, color.
 
 use super::{HDC, HGDIOBJ, Object, get_state};
-use crate::{
-    System,
-    winapi::{POINT, RECT},
+use win32_system::System;
+use win32_winapi::{
+    POINT, RECT,
+    calling_convention::{ABIReturn, FromArg},
 };
 
 /// COLORREF is a u32 containing RGB0, modeled specially here because there is the
@@ -45,14 +46,14 @@ impl std::fmt::Debug for COLORREF {
     }
 }
 
-impl<'a> crate::calling_convention::FromArg<'a> for COLORREF {
+impl<'a> FromArg<'a> for COLORREF {
     fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         COLORREF(arg)
     }
 }
 
-impl Into<crate::calling_convention::ABIReturn> for COLORREF {
-    fn into(self) -> crate::calling_convention::ABIReturn {
+impl Into<ABIReturn> for COLORREF {
+    fn into(self) -> ABIReturn {
         self.0.into()
     }
 }

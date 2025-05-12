@@ -1,12 +1,11 @@
-use super::{DCHandles, GDIHandles, HGDIOBJ, R2, get_state};
-use crate::{
-    System,
-    winapi::{
-        HANDLE, POINT,
-        gdi32::bitmap::{self, Bitmap, PixelData},
-    },
+use super::{
+    DCHandles, GDIHandles, HGDIOBJ, R2,
+    bitmap::{self, Bitmap, PixelData},
+    get_state,
 };
 use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
+use win32_winapi::{HANDLE, POINT};
 
 pub type HDC = HANDLE<DC>;
 

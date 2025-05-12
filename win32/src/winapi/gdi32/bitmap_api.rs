@@ -1,15 +1,12 @@
-use super::{COLORREF, HDC, HGDIOBJ, Object, get_state};
-use crate::{
-    System,
-    winapi::{
-        POINT, RECT,
-        gdi32::{
-            GDIHandles,
-            bitmap::{BI, Bitmap, PixelData, PixelFormat},
-        },
-    },
+use super::{
+    COLORREF, HDC, HGDIOBJ, Object,
+    bitmap::{BI, Bitmap, PixelData, PixelFormat},
+    get_state,
+    state::GDIHandles,
 };
 use memory::{Extensions, Mem};
+use win32_system::System;
+use win32_winapi::{POINT, RECT};
 
 pub use super::bitmap::BITMAPINFOHEADER;
 

@@ -1,10 +1,7 @@
-use super::{CLR_INVALID, HDC};
-use crate::{
-    System,
-    calling_convention::Array,
-    winapi::{HANDLE, LPARAM, gdi32::COLORREF},
-};
+use super::{CLR_INVALID, COLORREF, HDC};
 use memory::Pod;
+use win32_system::System;
+use win32_winapi::{HANDLE, LPARAM, calling_convention::Array};
 
 pub struct FONT {}
 pub type HFONT = HANDLE<FONT>;

@@ -1,6 +1,6 @@
-use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object, ScreenDCTarget};
-use crate::winapi::{Handles, gdi32::bitmap::Bitmap};
+use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object, ScreenDCTarget, bitmap::Bitmap};
 use std::{cell::RefCell, rc::Rc};
+use win32_winapi::Handles;
 
 pub struct State {
     pub dcs: Handles<HDC, Rc<RefCell<DC>>>,
