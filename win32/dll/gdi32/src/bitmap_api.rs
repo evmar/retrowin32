@@ -1,3 +1,6 @@
+//! GDI functions working with bitmaps.
+//! The general bitmap-related structures are in bitmap.rs.
+
 use super::{
     COLORREF, HDC, HGDIOBJ, Object,
     bitmap::{BI, Bitmap, PixelData, PixelFormat},
@@ -12,6 +15,8 @@ pub use super::bitmap::BITMAPINFOHEADER;
 
 pub type HBITMAP = HGDIOBJ;
 
+/// This is only used as serialization in GetObject, and is separate from the various
+/// bitmap file headers defined in bitmap.rs.
 #[derive(Clone)]
 pub struct BITMAP {
     pub bmType: u32,

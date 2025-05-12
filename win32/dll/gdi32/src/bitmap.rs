@@ -1,4 +1,4 @@
-//! Code dealing with pixel buffers, as found in both gdi32 and user32.
+//! The bitmap file/memory format and pixel buffers.
 
 use super::COLORREF;
 use memory::{Extensions, ExtensionsMut, Mem};
