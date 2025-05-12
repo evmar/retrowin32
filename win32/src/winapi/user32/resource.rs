@@ -2,9 +2,11 @@ use super::{HINSTANCE, HMENU};
 use crate::{
     Machine, System,
     winapi::{
-        bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
-        gdi32::{GDIHandles, HGDIOBJ},
+        gdi32::{
+            bitmap::{BITMAPFILEHEADER, Bitmap},
+            {GDIHandles, HGDIOBJ},
+        },
         kernel32::ResourceKey,
         *,
     },

@@ -7,8 +7,8 @@ use crate::{
     Machine,
     winapi::{
         HWND, RECT,
-        bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut},
         ddraw::{ddraw1, ddraw7},
+        gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut},
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};

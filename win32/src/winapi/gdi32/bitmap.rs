@@ -1,497 +1,502 @@
-use super::{BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ, Object, get_state};
-use crate::{
-    System,
-    winapi::{
-        POINT, RECT,
-        bitmap::{BI, Bitmap, PixelData, PixelFormat},
-        gdi32::GDIHandles,
-    },
-};
-use memory::{Extensions, Mem};
+//! Code dealing with pixel buffers, as found in both gdi32 and user32.
 
-pub type HBITMAP = HGDIOBJ;
+use super::COLORREF;
+use memory::{Extensions, ExtensionsMut, Mem};
+use std::ops::Range;
+use win32_winapi::RECT;
 
-#[derive(Clone)]
-pub struct BITMAP {
-    pub bmType: u32,
-    pub bmWidth: u32,
-    pub bmHeight: u32,
-    pub bmWidthBytes: u32,
-    pub bmPlanes: u16,
-    pub bmBitsPixel: u16,
-    pub bmBits: u32,
+#[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
+pub enum BI {
+    RGB = 0,
+    RLE8 = 1,
+    RLE4 = 2,
+    BITFIELDS = 3,
+    JPEG = 4,
+    PNG = 5,
 }
-unsafe impl memory::Pod for BITMAP {}
 
-/// For the subset of dst within r, write pixels from op(x, y).
-/// Performs no clipping; caller must have already clipped.
-// TODO: remove me in favor of pattern used in StretchBlt
-fn fill_pixels(
-    mem: Mem,
-    dst: &mut Bitmap,
-    r: &RECT,
-    mut op: impl FnMut(POINT, [u8; 4]) -> [u8; 4],
-) {
-    let stride = dst.width as i32;
-    let pixels = dst.as_rgba_mut(mem);
-    for y in r.top..r.bottom {
-        for x in r.left..r.right {
-            let p = &mut pixels[(y * stride + x) as usize];
-            *p = op(POINT { x, y }, *p);
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct BITMAPFILEHEADER {
+    pub bfType: u16,
+    pub bfSize: u32,
+    pub bfReserved1: u16,
+    pub bfReserved2: u16,
+    pub bfOffBits: u32,
+}
+unsafe impl memory::Pod for BITMAPFILEHEADER {}
+
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct BITMAPCOREHEADER {
+    pub bcSize: u32,
+    pub bcWidth: u16,
+    pub bcHeight: u16,
+    pub bcPlanes: u16,
+    pub bcBitCount: u16,
+}
+unsafe impl memory::Pod for BITMAPCOREHEADER {}
+impl BITMAPCOREHEADER {
+    pub fn stride(&self) -> usize {
+        // Bitmap row stride is padded out to 4 bytes per row.
+        ((((self.bcWidth * self.bcBitCount) as usize) + 31) & !31) >> 3
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct BITMAPINFOHEADER {
+    pub biSize: u32,
+    pub biWidth: u32,
+    pub biHeight: u32,
+    pub biPlanes: u16,
+    pub biBitCount: u16,
+    pub biCompression: u32,
+    pub biSizeImage: u32,
+    pub biXPelsPerMeter: u32,
+    pub biYPelsPerMeter: u32,
+    pub biClrUsed: u32,
+    pub biClrImportant: u32,
+}
+unsafe impl memory::Pod for BITMAPINFOHEADER {}
+impl BITMAPINFOHEADER {
+    pub fn width(&self) -> u32 {
+        self.biWidth
+    }
+    pub fn stride(&self) -> usize {
+        // Bitmap row stride is padded out to 4 bytes per row.
+        (((self.biWidth as usize * self.biBitCount as usize) + 31) & !31) >> 3
+    }
+    pub fn height(&self) -> u32 {
+        // Height is negative if top-down DIB.
+        (self.biHeight as i32).abs() as u32
+    }
+    pub fn is_bottom_up(&self) -> bool {
+        (self.biHeight as i32) > 0
+    }
+    pub fn compression(&self) -> Result<BI, u32> {
+        BI::try_from(self.biCompression)
+    }
+}
+
+/// The parsed header of a bitmap, either v2 (BITMAPCOREHEADER) or v3 (BITMAPINFOHEADER).
+struct BitmapInfo<'a> {
+    pub width: usize,
+    pub height: usize,
+    pub stride: usize,
+    pub is_bottom_up: bool,
+    pub bit_count: u8,
+    pub compression: BI,
+    pub palette_entry_size: usize,
+    pub palette: &'a [u8],
+    /// The total size in memory of the underlying header+palette.
+    pub header_length: usize,
+}
+
+impl<'a> BitmapInfo<'a> {
+    // TODO: when parsing a bitmap from memory it's unclear how much memory we'll need
+    // to read until we've read the bitmap header.  This means the caller cannot know how
+    // big of a slice to provide.
+
+    fn parse(buf: &'a [u8]) -> Self {
+        let header_size = buf.get_pod::<u32>(0);
+        match header_size {
+            12 => Self::parseBMPv2(&buf.get_pod::<BITMAPCOREHEADER>(0), &buf[12..]),
+            40 => Self::parseBMPv3(&buf.get_pod::<BITMAPINFOHEADER>(0), &buf[40..]),
+            _ => unimplemented!("unimplemented bitmap header size {}", header_size),
+        }
+    }
+
+    /// buf is the bytes following the header.
+    fn parseBMPv2(header: &BITMAPCOREHEADER, buf: &'a [u8]) -> Self {
+        let palette_len = if header.bcBitCount <= 8 {
+            2usize.pow(header.bcBitCount as u32)
+        } else {
+            todo!();
+        };
+        let palette_entry_size = 3usize;
+        let palette_size = palette_len * palette_entry_size;
+        let palette = &buf[..palette_size];
+
+        BitmapInfo {
+            width: header.bcWidth as usize,
+            height: header.bcHeight as usize,
+            stride: header.stride(),
+            is_bottom_up: true, // MSDN: "BITMAPCOREHEADER bitmaps cannot be top-down bitmaps"
+            bit_count: header.bcBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette,
+            header_length: 12 + palette_size,
+        }
+    }
+
+    /// buf is the bytes following the header.
+    fn parseBMPv3(header: &BITMAPINFOHEADER, buf: &'a [u8]) -> Self {
+        if header.biCompression != BI::RGB as u32 {
+            todo!("compression {:?}", header.biCompression);
+        }
+        let palette_len = if header.biClrUsed > 0 {
+            header.biClrUsed as usize
+        } else if header.biBitCount <= 8 {
+            2usize.pow(header.biBitCount as u32)
+        } else {
+            todo!()
+        };
+        let palette_entry_size = 4usize;
+        let palette_size = palette_len * palette_entry_size;
+        let palette = &buf[..palette_size];
+
+        BitmapInfo {
+            width: header.biWidth as usize,
+            height: header.height() as usize,
+            stride: header.stride(),
+            is_bottom_up: header.is_bottom_up(),
+            bit_count: header.biBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette,
+            header_length: 40 + palette_size,
         }
     }
 }
 
-#[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
-pub enum RasterOp {
-    SRCCOPY = 0xcc0020,
-    NOTSRCCOPY = 0x330008,
-    SRCAND = 0x8800c6,
-    PATCOPY = 0xf00021,
-    BLACKNESS = 0x000042,
+pub enum PixelData {
+    Owned(Box<[u8]>),
+    Ptr(u32, u32),
 }
 
-impl RasterOp {
-    /// Return true if this uses the src surface at all.
-    fn uses_src(&self) -> bool {
+pub fn transmute_pixels<Tin: memory::Pod, Tout: memory::Pod>(px: &[Tin]) -> &[Tout] {
+    unsafe {
+        std::slice::from_raw_parts(
+            px.as_ptr() as *const _,
+            px.len() * std::mem::size_of::<Tin>() / std::mem::size_of::<Tout>(),
+        )
+    }
+}
+
+pub fn transmute_pixels_mut<Tin: memory::Pod, Tout: memory::Pod>(px: &mut [Tin]) -> &mut [Tout] {
+    unsafe {
+        std::slice::from_raw_parts_mut(
+            px.as_mut_ptr() as *mut _,
+            px.len() * std::mem::size_of::<Tin>() / std::mem::size_of::<Tout>(),
+        )
+    }
+}
+
+impl PixelData {
+    pub fn new_owned(size: usize) -> Self {
+        let buf = {
+            let mut p = Vec::with_capacity(size);
+            p.resize(size, Default::default());
+            p.into_boxed_slice()
+        };
+        PixelData::new_with_owned(buf)
+    }
+
+    pub fn new_with_owned(buf: Box<[u8]>) -> Self {
+        PixelData::Owned(buf)
+    }
+
+    pub fn bytes<'a>(&'a self, mem: Mem<'a>) -> &'a [u8] {
         match *self {
-            RasterOp::PATCOPY | RasterOp::BLACKNESS => false,
-            RasterOp::SRCCOPY | RasterOp::NOTSRCCOPY | RasterOp::SRCAND => true,
+            PixelData::Owned(ref b) => &*b,
+            PixelData::Ptr(addr, len) => mem.sub32(addr, len),
         }
     }
 
-    /// Return a function that combines a dst and src pixel.
-    fn to_binop(&self) -> fn([u8; 4], [u8; 4]) -> [u8; 4] {
+    pub fn bytes_mut<'a>(&'a mut self, mem: Mem<'a>) -> &'a mut [u8] {
+        match *self {
+            PixelData::Owned(ref mut b) => &mut *b,
+            PixelData::Ptr(addr, len) => mem.sub32_mut(addr, len),
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum PixelFormat {
+    RGBA32,
+    RGB555,
+    Mono,
+}
+
+impl PixelFormat {
+    pub fn expect_rgba32(&self) {
         match self {
-            RasterOp::SRCCOPY => |_, src| src,
-            RasterOp::SRCAND => |dst, src| {
-                // https://godbolt.org/z/aT1qc7EKo
-                (u32::from_le_bytes(dst) & u32::from_le_bytes(src)).to_le_bytes()
-            },
-            _ => todo!(),
+            PixelFormat::RGBA32 => {}
+            _ => todo!("expected RGBA32 bitmap"),
         }
     }
+
+    pub fn stride(&self, width: u32) -> u32 {
+        // Align to 2 byte boundary.
+        let bpp = self.bits_per_pixel();
+        ((width * bpp + 0xF) & !0xF) >> 3
+    }
+
+    pub fn bits_per_pixel(&self) -> u32 {
+        match self {
+            PixelFormat::RGBA32 => 32,
+            PixelFormat::RGB555 => 16,
+            PixelFormat::Mono => 1,
+        }
+    }
+
+    fn decode_rgb555(val: u16) -> COLORREF {
+        // xrrr_rrgg_gggb_bbbb
+        let r = ((val >> 10) & 0x1F) as u8;
+        let g = ((val >> 5) & 0x1F) as u8;
+        let b = (val & 0x1F) as u8;
+        COLORREF::from_rgb(r << 3, g << 3, b << 3)
+    }
+
+    fn encode_rgb555(val: COLORREF) -> u16 {
+        let (mut r, mut g, mut b) = val.to_rgb();
+        r = r >> 3;
+        g = g >> 3;
+        b = b >> 3;
+        let out = ((r as u16) << 10) | ((g as u16) << 5) | b as u16;
+        out
+    }
+
+    #[allow(dead_code)]
+    fn decode_rgb565(val: u16) -> COLORREF {
+        // rrrr_rggg_gggb_bbbb
+        let r = ((val >> 11) & 0x1F) as u8;
+        let g = ((val >> 5) & 0x3F) as u8;
+        let b = (val & 0x1F) as u8;
+        COLORREF::from_rgb(r << 3, g << 3, b << 3)
+    }
+
+    #[allow(dead_code)]
+    fn encode_rgb565(val: COLORREF) -> u16 {
+        let (mut r, mut g, mut b) = val.to_rgb();
+        r = r >> 3;
+        g = g >> 2;
+        b = b >> 3;
+        ((r as u16) << 11) | ((g as u16) << 5) | b as u16
+    }
 }
 
-#[win32_derive::dllexport]
-pub fn StretchBlt(
-    sys: &mut dyn System,
-    hdcDst: HDC,
-    xDst: i32,
-    yDst: i32,
-    wDst: i32,
-    hDst: i32,
-    hdcSrc: HDC,
-    xSrc: i32,
-    ySrc: i32,
-    wSrc: i32,
-    hSrc: i32,
-    rop: Result<RasterOp, u32>,
-) -> bool {
-    let rop = rop.unwrap();
-    if !rop.uses_src() {
-        return PatBlt(sys, hdcDst, xDst, yDst, wDst, hDst, Ok(rop));
-    }
-    let op = rop.to_binop();
-
-    let dst_rect = RECT {
-        left: xDst,
-        top: yDst,
-        right: xDst + wDst,
-        bottom: yDst + hDst,
-    };
-
-    let src_rect = RECT {
-        left: xSrc,
-        top: ySrc,
-        right: xSrc + wSrc,
-        bottom: ySrc + hSrc,
-    };
-
-    let state = get_state(sys);
-    let src_dc = state.dcs.get(hdcSrc).unwrap().borrow();
-    let src_bitmap = src_dc.target.get_bitmap(sys);
-    let src_bitmap = src_bitmap.borrow();
-
-    let dst_dc = state.dcs.get(hdcDst).unwrap().borrow();
-    let dst_bitmap = dst_dc.target.get_bitmap(sys);
-    let mut dst_bitmap = dst_bitmap.borrow_mut();
-
-    // What does it mean when the src_rect isn't within the src bitmap?
-    // sol.exe does this when you drag a card off screen.
-    // Clipping here means the xform below will stretch slightly, hrmm.
-    // log::info!("src_rect={:x?}", src_rect);
-    let src_rect = src_rect.clip(&src_bitmap.to_rect());
-    // log::info!("src_rect clipped={:x?}", src_rect);
-
-    let copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
-    // log::info!("dst_rect={:x?}", dst_rect);
-    // log::info!("dst_bitmap.to_rect()={:x?}", dst_bitmap.to_rect());
-    // log::info!("copy_rect={:x?}", copy_rect);
-
-    let mem = sys.mem();
-
-    let mut row: Vec<COLORREF> = Vec::with_capacity((src_rect.right - src_rect.left) as usize);
-    row.resize_with(row.capacity(), || COLORREF::from_rgb(0xff, 0, 0));
-    for dy in copy_rect.top..copy_rect.bottom {
-        let sy = (dy - yDst) * hSrc / hDst + ySrc;
-        src_bitmap.read_row(
-            mem,
-            src_rect.left as u32..src_rect.right as u32,
-            sy as u32,
-            &mut row,
-        );
-        dst_bitmap.write_row(
-            mem,
-            copy_rect.left as u32..copy_rect.right as u32,
-            dy as u32,
-            &row,
-        );
-    }
-    drop(dst_bitmap);
-
-    dst_dc.target.flush(sys);
-    true
+pub struct Bitmap {
+    pub width: u32,
+    pub height: u32,
+    pub format: PixelFormat,
+    pub pixels: PixelData,
 }
 
-#[win32_derive::dllexport]
-pub fn BitBlt(
-    sys: &mut dyn System,
-    hdcDst: HDC,
-    xDst: i32,
-    yDst: i32,
-    w: i32,
-    h: i32,
-    hdcSrc: HDC,
-    xSrc: i32,
-    ySrc: i32,
-    rop: Result<RasterOp, u32>,
-) -> bool {
-    StretchBlt(sys, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, w, h, rop)
-}
-
-#[win32_derive::dllexport]
-pub fn PatBlt(
-    sys: &mut dyn System,
-    hdc: HDC,
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
-    rop: Result<RasterOp, u32>,
-) -> bool {
-    if hdc.is_null() {
-        log::warn!("PatBlt: ignoring null hdc, possibly child window");
-        return false;
+impl Bitmap {
+    pub fn to_rect(&self) -> RECT {
+        RECT {
+            left: 0,
+            right: self.width as i32,
+            top: 0,
+            bottom: self.height as i32,
+        }
     }
-    let rop = rop.unwrap();
-    let state = get_state(sys);
-    let dc = state.dcs.get(hdc).unwrap().borrow();
 
-    const DEFAULT_COLOR: [u8; 4] = [0xFF, 0xFF, 0xFF, 0xFF];
+    /// If pixels is not None, only parse the given number of lines from the given pixels.
+    /// Otherwise pixels are expected to immediately follow the header in memory.
+    pub fn parse(buf: &[u8], pixels: Option<(&[u8], usize)>) -> Bitmap {
+        let header = BitmapInfo::parse(buf);
+        let (pixels, lines) = match pixels {
+            Some((pixels, lines)) => (pixels, Some(lines)),
+            _ => {
+                let len = header.height * header.stride;
+                (&buf[header.header_length..][..len], None)
+            }
+        };
+        Self::parse_pixels(&header, pixels, lines)
+    }
 
-    let color = match rop {
-        RasterOp::PATCOPY => {
-            // get brush color
-            match state.objects.get(dc.brush) {
-                Some(Object::Brush(brush)) => match brush.color {
-                    Some(color) => color.to_pixel(),
-                    None => DEFAULT_COLOR,
-                },
-                _ => DEFAULT_COLOR,
+    /// Parse a BITMAPINFO/HEADER and pixel data.
+    fn parse_pixels(header: &BitmapInfo, pixels: &[u8], lines: Option<usize>) -> Bitmap {
+        match header.compression {
+            BI::RGB => {}
+            BI::RLE8 => todo!(),
+            BI::RLE4 => todo!(),
+            BI::BITFIELDS => {}
+            BI::JPEG => todo!(),
+            BI::PNG => todo!(),
+        };
+
+        // TODO: remove all this; we should be able to use bitmaps in their native pixel format.
+
+        fn get_pixel(header: &BitmapInfo, val: u8) -> [u8; 4] {
+            // BMP palette is BGRx
+            let offset = val as usize * header.palette_entry_size as usize;
+            let slice = &header.palette[offset..][..3];
+            [slice[2], slice[1], slice[0], 0xFF]
+        }
+
+        let src = pixels;
+        let width = header.width;
+        let stride = header.stride;
+        let height = lines.unwrap_or(header.height as usize);
+
+        let mut dst: Vec<[u8; 4]> = Vec::with_capacity(width * height);
+        for y in 0..height {
+            let y_src = if header.is_bottom_up {
+                height - y - 1
+            } else {
+                y
+            };
+            let row = &src[y_src * stride..][..stride];
+            match header.bit_count {
+                32 => {
+                    // TODO: might need to swizzle here, depending on BI::BITFIELDS.
+                    dst.extend_from_slice(transmute_pixels(&row[..width * 4]));
+                }
+                16 => {
+                    let row: &[u16] = transmute_pixels(row);
+                    for &p in row {
+                        dst.push(PixelFormat::decode_rgb555(p).to_pixel());
+                    }
+                }
+                8 => {
+                    for &p in &row[..width] {
+                        dst.push(get_pixel(header, p));
+                    }
+                }
+                4 => {
+                    for i in 0..width {
+                        let p = row[i / 2];
+                        if i % 2 == 0 {
+                            dst.push(get_pixel(header, p >> 4));
+                        } else {
+                            dst.push(get_pixel(header, p & 0xF));
+                        }
+                    }
+                }
+                1 => {
+                    for i in 0..width {
+                        let p = row[i / 8];
+                        let bit = 7 - (i % 8);
+                        let p = (p >> bit) & 1;
+                        dst.push(get_pixel(header, p));
+                    }
+                }
+                _ => unimplemented!(),
             }
         }
-        RasterOp::BLACKNESS => [0, 0, 0, 0xFF],
-        _ => todo!("unimplemented PatBlt with rop={rop:?}"),
-    };
 
-    let dst_bitmap = dc.target.get_bitmap(sys);
-    let mut dst_bitmap = dst_bitmap.borrow_mut();
-    dst_bitmap.format.expect_rgba32();
-    let dst_rect = RECT {
-        left: x,
-        top: y,
-        right: x + w,
-        bottom: y + h,
+        let mut buf: Vec<u8> = Vec::with_capacity(dst.len() * 4);
+        unsafe { buf.set_len(buf.capacity()) };
+        buf.copy_from_slice(transmute_pixels(&dst));
+
+        Bitmap {
+            width: header.width as u32,
+            height: height as u32,
+            format: PixelFormat::RGBA32,
+            pixels: PixelData::new_with_owned(buf.into_boxed_slice()),
+        }
     }
-    .clip(&dst_bitmap.to_rect());
 
-    fill_pixels(sys.mem(), &mut *dst_bitmap, &dst_rect, |_, _| color);
-    drop(dst_bitmap);
-    dc.target.flush(sys);
-    true
-}
+    pub fn as_rgba<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+        self.format.expect_rgba32();
+        let bytes = self.pixels.bytes(mem);
+        transmute_pixels(bytes)
+    }
 
-#[win32_derive::dllexport]
-pub fn CreateBitmap(
-    sys: &mut dyn System,
-    nWidth: u32,
-    nHeight: u32,
-    nPlanes: u32,
-    nBitCount: u32,
-    lpBits: u32,
-) -> HGDIOBJ {
-    assert_eq!(nPlanes, 1);
-    let bitmap = match nBitCount {
-        1 => {
-            let format = PixelFormat::Mono;
-            let stride = format.stride(nWidth);
-            let len = (nHeight * stride) as usize;
-            let mut pixels = Vec::with_capacity(len);
-            pixels.resize(len, 0);
-            pixels.copy_from_slice(sys.mem().sub32(lpBits, len as u32));
-            Bitmap {
-                width: nWidth,
-                height: nHeight,
-                format,
-                pixels: PixelData::new_with_owned(pixels.into_boxed_slice()),
+    pub fn as_rgba_mut<'a>(&'a mut self, mem: Mem<'a>) -> &'a mut [[u8; 4]] {
+        self.format.expect_rgba32();
+        let bytes = self.pixels.bytes_mut(mem);
+        transmute_pixels_mut(bytes)
+    }
+
+    pub fn read_row(&self, mem: Mem, x: Range<u32>, y: u32, out: &mut [COLORREF]) {
+        let stride = self.format.stride(self.width);
+        let pixels = self.pixels.bytes(mem);
+        match self.format {
+            PixelFormat::RGBA32 => {
+                let row = &pixels[((y * stride) + x.start * 4) as usize..]
+                    [..(x.end - x.start) as usize * 4];
+                for (dst, src) in out.iter_mut().zip(row.chunks_exact(4)) {
+                    *dst = COLORREF::from_rgb(src[0], src[1], src[2]);
+                }
+            }
+            PixelFormat::RGB555 => {
+                let row = &pixels[((y * stride) + x.start * 2) as usize..]
+                    [..(x.end - x.start) as usize * 2];
+                for (dst, src) in out.iter_mut().zip(row.chunks_exact(2)) {
+                    *dst = PixelFormat::decode_rgb555(u16::from_le_bytes([src[0], src[1]]));
+                }
+            }
+            PixelFormat::Mono => {
+                let fullrow = &pixels[(y * stride) as usize..][..stride as usize];
+                for (i, dst) in out.iter_mut().enumerate() {
+                    let x = x.start as usize + i;
+                    let byte = fullrow[x / 8];
+                    let bit = 7 - (x % 8);
+                    let val = ((byte >> bit) & 1) * 0xff;
+                    *dst = COLORREF::from_rgb(val, val, val);
+                }
             }
         }
-        _ => unimplemented!(),
-    };
-    get_state(sys).objects.add_bitmap(bitmap)
-}
-
-const DIB_RGB_COLORS: u32 = 0;
-// const DIB_PAL_COLORS: u32 = 1;
-
-#[win32_derive::dllexport]
-pub fn CreateDIBSection(
-    sys: &mut dyn System,
-    hdc: HDC,
-    pbmi: Option<&BITMAPINFOHEADER>,
-    usage: u32,
-    ppvBits: Option<&mut u32>, // **void
-    hSection: u32,
-    offset: u32,
-) -> HGDIOBJ {
-    if usage != DIB_RGB_COLORS {
-        todo!()
-    }
-    if hSection != 0 || offset != 0 {
-        todo!()
     }
 
-    let bi = &pbmi.unwrap();
-    if bi.biSize != std::mem::size_of::<BITMAPINFOHEADER>() as u32 {
-        todo!()
-    }
-    if bi.is_bottom_up() {
-        log::warn!("CreateDIBSection: bottom-up bitmap will need flipping");
-    }
-    let format = match bi.biBitCount {
-        32 => PixelFormat::RGBA32,
-        16 => PixelFormat::RGB555,
-        _ => todo!(),
-    };
-    match bi.compression().unwrap() {
-        BI::BITFIELDS => {
-            // TODO: ought to check that .bmiColors masks are the RGBX we expect.
+    pub fn write_row(&mut self, mem: Mem, x: Range<u32>, y: u32, src: &[COLORREF]) {
+        let stride = self.format.stride(self.width);
+        let pixels = self.pixels.bytes_mut(mem);
+        match self.format {
+            PixelFormat::RGBA32 => {
+                let fullrow = &mut pixels[(y * stride) as usize..][..stride as usize];
+                let row = &mut fullrow[x.start as usize * 4..x.end as usize * 4];
+                let dst_width = (x.end - x.start) as usize;
+                for (i, dst) in row.chunks_exact_mut(4).enumerate() {
+                    let color = src[i * src.len() / dst_width];
+                    dst.copy_from_slice(&color.to_pixel());
+                }
+            }
+            PixelFormat::RGB555 => {
+                let fullrow = &mut pixels[(y * stride) as usize..][..stride as usize];
+                let row = &mut fullrow[x.start as usize * 2..x.end as usize * 2];
+                let dst_width = (x.end - x.start) as usize;
+                for (i, dst) in row.chunks_exact_mut(2).enumerate() {
+                    let color = src[i * src.len() / dst_width];
+                    dst.copy_from_slice(&PixelFormat::encode_rgb555(color).to_le_bytes());
+                }
+            }
+            PixelFormat::Mono => {
+                todo!();
+            }
         }
-        BI::RGB => {} // ok
-        _ => todo!(),
-    };
-
-    let byte_count = bi.stride() as u32 * bi.height();
-    let pixels = sys.memory().process_heap.alloc(sys.mem(), byte_count);
-
-    *ppvBits.unwrap() = pixels;
-
-    let bitmap = Bitmap {
-        width: bi.width(),
-        height: bi.height(),
-        format,
-        pixels: PixelData::Ptr(pixels, byte_count),
-    };
-    get_state(sys).objects.add_bitmap(bitmap)
-}
-
-#[win32_derive::dllexport]
-pub fn CreateCompatibleBitmap(sys: &mut dyn System, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
-    let mut state = get_state(sys);
-    let format = {
-        let dc = state.dcs.get(hdc).unwrap().borrow();
-
-        let bitmap = dc.target.get_bitmap(sys);
-        let bitmap = bitmap.borrow();
-        assert_eq!(bitmap.format, PixelFormat::RGBA32);
-        bitmap.format
-    };
-
-    let bitmap = Bitmap {
-        width: cx,
-        height: cy,
-        format,
-        pixels: PixelData::new_owned((cx * cy * 4) as usize),
-    };
-    state.objects.add_bitmap(bitmap)
-}
-
-#[win32_derive::dllexport]
-pub fn SetDIBitsToDevice(
-    sys: &mut dyn System,
-    hdc: HDC,
-    xDst: i32,
-    yDst: i32,
-    w: i32,
-    h: i32,
-    xSrc: i32,
-    ySrc: i32,
-    StartScan: u32,
-    cLines: u32,
-    lpBits: u32,
-    lpBmi: u32,
-    iUsage: u32,
-) -> u32 {
-    if StartScan as i32 != 0 {
-        todo!()
     }
-    if iUsage != DIB_RGB_COLORS {
-        todo!();
-    }
-    let src_bitmap = Bitmap::parse(
-        sys.mem().slice(lpBmi..),
-        Some((sys.mem().slice(lpBits..), cLines as usize)),
-    );
-
-    let state = get_state(sys);
-    let dc = state.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap(sys);
-    let mut dst_bitmap = dst_bitmap.borrow_mut();
-    dst_bitmap.format.expect_rgba32();
-
-    let src_rect = RECT {
-        left: xSrc,
-        top: ySrc,
-        right: xSrc + w,
-        bottom: ySrc + h,
-    };
-
-    let dst_rect = RECT {
-        left: xDst,
-        top: yDst,
-        right: xDst + w,
-        bottom: yDst + h,
-    };
-
-    // Clip copy region to the relevant bitmap bounds.
-    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
-    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
-    let copy_rect =
-        dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
-    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
-
-    let mem = sys.mem();
-    let src = src_bitmap.as_rgba(mem);
-    fill_pixels(mem, &mut *dst_bitmap, &copy_rect, |p, _| {
-        let p = p.add(dst_to_src);
-        let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
-        pixel[3] = 0xFF;
-        pixel
-    });
-    drop(dst_bitmap);
-    dc.target.flush(sys);
-
-    cLines
 }
 
-#[win32_derive::dllexport]
-pub fn StretchDIBits(
-    sys: &mut dyn System,
-    hdc: HDC,
-    xDst: i32,
-    yDst: i32,
-    wDst: i32,
-    hDst: i32,
-    xSrc: i32,
-    ySrc: i32,
-    wSrc: i32,
-    hSrc: i32,
-    lpBits: u32,
-    lpBmi: u32,
-    iUsage: u32,
-    rop: Result<RasterOp, u32>,
-) -> i32 {
-    match rop.unwrap() {
-        RasterOp::SRCCOPY => {}
-        _ => todo!(),
+impl std::fmt::Debug for Bitmap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bitmap")
+            .field("width", &self.width)
+            .field("height", &self.height)
+            .field("format", &self.format)
+            //.field("pixels", &&self.pixels[0..16])
+            .finish()
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pixel_format_stride() {
+        assert_eq!(PixelFormat::RGBA32.stride(11), 44);
+        assert_eq!(PixelFormat::RGB555.stride(11), 22);
+        assert_eq!(PixelFormat::Mono.stride(11), 2);
     }
 
-    let src_bitmap = Bitmap::parse(
-        sys.mem().slice(lpBmi..),
-        Some((sys.mem().slice(lpBits..), hSrc as usize)),
-    );
+    #[test]
+    fn test_pixel_format_rgb555() {
+        let red = COLORREF::from_rgb(0xff, 0, 0);
+        let enc = PixelFormat::encode_rgb555(red);
+        assert_eq!(enc, 0b0_11111_00000_00000);
+        let dec = PixelFormat::decode_rgb555(enc);
+        assert_eq!(dec.to_rgb(), (0xf8, 0, 0));
 
-    let state = get_state(sys);
-    let dc = state.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap(sys);
-    let mut dst_bitmap = dst_bitmap.borrow_mut();
-    dst_bitmap.format.expect_rgba32();
-
-    let src_rect = RECT {
-        left: xSrc,
-        top: ySrc,
-        right: xSrc + wSrc,
-        bottom: ySrc + hSrc,
-    };
-
-    let dst_rect = RECT {
-        left: xDst,
-        top: yDst,
-        right: xDst + wDst,
-        bottom: yDst + hDst,
-    };
-
-    // TODO: do we need to clip src or dst rect?
-
-    let copy_rect = dst_rect;
-
-    let mem = sys.mem();
-    let src = src_bitmap.as_rgba(mem);
-    fill_pixels(mem, &mut *dst_bitmap, &dst_rect, |p, _| {
-        // Translate p from dst to src space.
-        // Because we're stretching, we scale to src space rather than clipping.
-        let p = p
-            .sub(dst_rect.origin())
-            .mul(src_rect.size())
-            .div(dst_rect.size())
-            .add(src_rect.origin());
-        let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
-        pixel[3] = 0xFF;
-        pixel
-    });
-    drop(dst_bitmap);
-
-    dc.target.flush(sys);
-
-    hSrc
-}
-
-pub type BITMAPINFO = u32; // TODO
-
-#[win32_derive::dllexport]
-pub fn GetDIBits(
-    sys: &dyn System,
-    hdc: HDC,
-    hbm: HBITMAP,
-    start: u32,
-    cLines: u32,
-    lpvBits: Option<&mut u8>,
-    lpbmi: Option<&mut BITMAPINFO>,
-    usage: u32, /* DIB_USAGE */
-) -> i32 {
-    todo!()
-}
-
-#[win32_derive::dllexport]
-pub fn CreateDIBitmap(
-    sys: &dyn System,
-    hdc: HDC,
-    pbmih: Option<&mut BITMAPINFOHEADER>,
-    flInit: u32,
-    pjBits: Option<&mut u8>,
-    pbmi: Option<&mut BITMAPINFO>,
-    iUsage: u32, /* DIB_USAGE */
-) -> HBITMAP {
-    todo!()
+        let cyan = COLORREF::from_rgb(0x20, 0x10, 0);
+        let enc = PixelFormat::encode_rgb555(cyan);
+        assert_eq!(enc, 0b0_00100_00010_00000);
+        let dec = PixelFormat::decode_rgb555(enc);
+        assert_eq!(dec.to_rgb(), (0x20, 0x10, 0));
+    }
 }

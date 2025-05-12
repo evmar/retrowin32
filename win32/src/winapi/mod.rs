@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 mod arena;
-mod bitmap;
 pub mod builtin;
 mod comctl32;
 pub mod ddraw;

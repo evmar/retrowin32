@@ -1,7 +1,7 @@
 use super::{BITMAP, Brush, COLORREF, HDC, Pen, get_state};
 use crate::{
     System,
-    winapi::{HANDLE, bitmap::Bitmap},
+    winapi::{HANDLE, gdi32::bitmap::Bitmap},
 };
 use memory::ExtensionsMut;
 use std::{cell::RefCell, rc::Rc};

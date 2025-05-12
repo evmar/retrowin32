@@ -19,10 +19,10 @@ mod wrappers {
             let xSrc = <i32>::from_stack(mem, stack_args + 24u32);
             let ySrc = <i32>::from_stack(mem, stack_args + 28u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 32u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::BitBlt_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "BitBlt",
                     &[
                         ("hdcDst", &hdcDst),
@@ -55,10 +55,10 @@ mod wrappers {
             let nPlanes = <u32>::from_stack(mem, stack_args + 8u32);
             let nBitCount = <u32>::from_stack(mem, stack_args + 12u32);
             let lpBits = <u32>::from_stack(mem, stack_args + 16u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::CreateBitmap_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "CreateBitmap",
                     &[
                         ("nWidth", &nWidth),
@@ -85,10 +85,10 @@ mod wrappers {
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
             let cx = <u32>::from_stack(mem, stack_args + 4u32);
             let cy = <u32>::from_stack(mem, stack_args + 8u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::CreateCompatibleBitmap_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "CreateCompatibleBitmap",
                     &[("hdc", &hdc), ("cx", &cx), ("cy", &cy)],
                 )
@@ -134,10 +134,10 @@ mod wrappers {
             let ppvBits = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let hSection = <u32>::from_stack(mem, stack_args + 16u32);
             let offset = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::CreateDIBSection_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "CreateDIBSection",
                     &[
                         ("hdc", &hdc),
@@ -168,10 +168,10 @@ mod wrappers {
             let pjBits = <Option<&mut u8>>::from_stack(mem, stack_args + 12u32);
             let pbmi = <Option<&mut BITMAPINFO>>::from_stack(mem, stack_args + 16u32);
             let iUsage = <u32>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::CreateDIBitmap_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "CreateDIBitmap",
                     &[
                         ("hdc", &hdc),
@@ -436,10 +436,10 @@ mod wrappers {
             let lpvBits = <Option<&mut u8>>::from_stack(mem, stack_args + 16u32);
             let lpbmi = <Option<&mut BITMAPINFO>>::from_stack(mem, stack_args + 20u32);
             let usage = <u32>::from_stack(mem, stack_args + 24u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::GetDIBits_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "GetDIBits",
                     &[
                         ("hdc", &hdc),
@@ -835,10 +835,10 @@ mod wrappers {
             let w = <i32>::from_stack(mem, stack_args + 12u32);
             let h = <i32>::from_stack(mem, stack_args + 16u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 20u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::PatBlt_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "PatBlt",
                     &[
                         ("hdc", &hdc),
@@ -1039,10 +1039,10 @@ mod wrappers {
             let lpBits = <u32>::from_stack(mem, stack_args + 36u32);
             let lpBmi = <u32>::from_stack(mem, stack_args + 40u32);
             let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::SetDIBitsToDevice_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "SetDIBitsToDevice",
                     &[
                         ("hdc", &hdc),
@@ -1233,10 +1233,10 @@ mod wrappers {
             let wSrc = <i32>::from_stack(mem, stack_args + 32u32);
             let hSrc = <i32>::from_stack(mem, stack_args + 36u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 40u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::StretchBlt_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "StretchBlt",
                     &[
                         ("hdcDst", &hdcDst),
@@ -1281,10 +1281,10 @@ mod wrappers {
             let lpBmi = <u32>::from_stack(mem, stack_args + 40u32);
             let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 48u32);
-            let __trace_record = if trace::enabled("gdi32/bitmap") {
+            let __trace_record = if trace::enabled("gdi32/bitmap_api") {
                 trace::Record::new(
                     gdi32::StretchDIBits_pos,
-                    "gdi32/bitmap",
+                    "gdi32/bitmap_api",
                     "StretchDIBits",
                     &[
                         ("hdc", &hdc),

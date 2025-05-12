@@ -3,8 +3,10 @@ use crate::{
     Machine, System,
     calling_convention::Array,
     winapi::{
-        bitmap::{Bitmap, PixelData, PixelFormat},
-        gdi32::HDC,
+        gdi32::{
+            HDC,
+            bitmap::{Bitmap, PixelData, PixelFormat},
+        },
         *,
     },
 };

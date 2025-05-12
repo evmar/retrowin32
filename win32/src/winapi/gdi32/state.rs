@@ -1,5 +1,5 @@
 use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object, ScreenDCTarget};
-use crate::winapi::{Handles, bitmap::Bitmap};
+use crate::winapi::{Handles, gdi32::bitmap::Bitmap};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct State {

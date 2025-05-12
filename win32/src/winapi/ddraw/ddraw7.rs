@@ -3,14 +3,13 @@
 use crate::{
     Machine, System,
     winapi::{
-        bitmap::Bitmap,
         ddraw::{
             IDirectDrawClipper, get_state,
             palette::{IDirectDrawPalette, Palette},
             types::*,
             {self},
         },
-        gdi32::PALETTEENTRY,
+        gdi32::{PALETTEENTRY, bitmap::Bitmap},
         *,
     },
 };

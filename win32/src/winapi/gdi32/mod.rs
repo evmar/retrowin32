@@ -5,22 +5,21 @@ mod builtin;
 
 pub use builtin::DLL;
 
-mod bitmap;
+pub mod bitmap;
+mod bitmap_api;
 mod dc;
 mod draw;
 mod object;
 mod palette;
 mod state;
 mod text;
-pub use bitmap::*;
+pub use bitmap_api::*;
 pub use dc::*;
 pub use draw::*;
 pub use object::*;
 pub use palette::*;
 pub use state::*;
 pub use text::*;
-
-pub use super::bitmap::BITMAPINFOHEADER;
 
 use win32_system::System;
 

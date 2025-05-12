@@ -3,7 +3,7 @@ use crate::{
     System,
     winapi::{
         HANDLE, POINT,
-        bitmap::{self, Bitmap, PixelData},
+        gdi32::bitmap::{self, Bitmap, PixelData},
     },
 };
 use std::{cell::RefCell, rc::Rc};
