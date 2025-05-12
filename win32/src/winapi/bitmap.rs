@@ -253,7 +253,7 @@ impl PixelFormat {
     }
 
     fn encode_rgb555(val: COLORREF) -> u16 {
-        let [mut r, mut g, mut b] = val.to_rgb();
+        let (mut r, mut g, mut b) = val.to_rgb();
         r = r >> 3;
         g = g >> 3;
         b = b >> 3;
@@ -272,7 +272,7 @@ impl PixelFormat {
 
     #[allow(dead_code)]
     fn encode_rgb565(val: COLORREF) -> u16 {
-        let [mut r, mut g, mut b] = val.to_rgb();
+        let (mut r, mut g, mut b) = val.to_rgb();
         r = r >> 3;
         g = g >> 2;
         b = b >> 3;
@@ -493,12 +493,12 @@ mod tests {
         let enc = PixelFormat::encode_rgb555(red);
         assert_eq!(enc, 0b0_11111_00000_00000);
         let dec = PixelFormat::decode_rgb555(enc);
-        assert_eq!(dec.to_rgb(), [0xf8, 0, 0]);
+        assert_eq!(dec.to_rgb(), (0xf8, 0, 0));
 
         let cyan = COLORREF::from_rgb(0x20, 0x10, 0);
         let enc = PixelFormat::encode_rgb555(cyan);
         assert_eq!(enc, 0b0_00100_00010_00000);
         let dec = PixelFormat::decode_rgb555(enc);
-        assert_eq!(dec.to_rgb(), [0x20, 0x10, 0]);
+        assert_eq!(dec.to_rgb(), (0x20, 0x10, 0));
     }
 }

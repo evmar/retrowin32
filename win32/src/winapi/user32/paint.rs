@@ -4,7 +4,7 @@ use crate::{
     calling_convention::FromArg,
     winapi::{
         HWND, RECT, Str16,
-        gdi32::{self, COLORREF, HGDIOBJ, LOWEST_HGDIOBJ},
+        gdi32::{self, COLORREF, HGDIOBJ},
     },
 };
 
@@ -176,6 +176,22 @@ pub enum COLOR {
     BTNHIGHLIGHT = 20,
 }
 
+impl COLOR {
+    fn to_rgb(&self) -> (u8, u8, u8) {
+        use COLOR::*;
+        match self {
+            WINDOW => (0xc0, 0xc0, 0xc0),
+            MENU => (0xc0, 0xc0, 0xc0),
+            BTNFACE => (0xc0, 0xc0, 0xc0),
+            APPWORKSPACE => (0x80, 0x80, 0x80),
+            _ => todo!(),
+        }
+    }
+}
+
+/// Some functions take a brush or a color, distinguished by whether the value is
+/// a valid COLOR value.  This also means HBRUSH values must be larger than the
+/// highest COLOR value.
 #[derive(Debug)]
 pub enum BrushOrColor {
     Color(COLOR),
@@ -184,7 +200,7 @@ pub enum BrushOrColor {
 
 impl<'a> FromArg<'a> for BrushOrColor {
     fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
-        if arg > 0 && arg < LOWEST_HGDIOBJ {
+        if arg < gdi32::LOWEST_HGDIOBJ {
             BrushOrColor::Color(COLOR::try_from(arg - 1).unwrap())
         } else {
             BrushOrColor::Brush(HBRUSH::from_raw(arg))
@@ -197,13 +213,7 @@ impl BrushOrColor {
         match self {
             BrushOrColor::Brush(hbr) => *hbr,
             BrushOrColor::Color(c) => {
-                let color = match c {
-                    COLOR::WINDOW => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
-                    COLOR::MENU => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
-                    COLOR::BTNFACE => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
-                    COLOR::APPWORKSPACE => Some(COLORREF::from_rgb(0x80, 0x80, 0x80)),
-                    _ => todo!("{c:?}"),
-                };
+                let color = Some(COLORREF::from_rgb_tuple(c.to_rgb()));
                 gdi32::get_state(machine)
                     .objects
                     .add(gdi32::Object::Brush(gdi32::Brush { color }))
