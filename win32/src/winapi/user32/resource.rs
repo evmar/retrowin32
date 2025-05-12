@@ -3,15 +3,16 @@ use crate::{
     Machine, System,
     winapi::{
         encoding::{Encoder, EncoderAnsi},
-        gdi32::{
-            bitmap::{BITMAPFILEHEADER, Bitmap},
-            {GDIHandles, HGDIOBJ},
-        },
         kernel32::ResourceKey,
         *,
     },
 };
 use bitflags::bitflags;
+use builtin_gdi32 as gdi32;
+use gdi32::{
+    bitmap::{BITMAPFILEHEADER, Bitmap},
+    {GDIHandles, HGDIOBJ},
+};
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
 use win32_system::{host, resource::find_resource};

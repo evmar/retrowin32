@@ -16,6 +16,7 @@ builtin-advapi32 = { path = "dll/advapi32" }
 builtin-bass = { path = "dll/bass" }
 builtin-dinput = { path = "dll/dinput" }
 builtin-dsound = { path = "dll/dsound" }
+builtin-gdi32 = { path = "dll/gdi32" }
 builtin-ole32 = { path = "dll/ole32" }
 builtin-oleaut32 = { path = "dll/oleaut32" }
 builtin-retrowin32_test = { path = "dll/retrowin32_test" }

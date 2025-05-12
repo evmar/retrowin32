@@ -132,6 +132,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-gdi32"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-ole32"
 version = "0.1.0"
 dependencies = [
@@ -712,6 +723,7 @@ dependencies = [
  "builtin-bass",
  "builtin-dinput",
  "builtin-dsound",
+ "builtin-gdi32",
  "builtin-ole32",
  "builtin-oleaut32",
  "builtin-retrowin32_test",

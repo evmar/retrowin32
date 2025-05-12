@@ -1,9 +1,7 @@
 use std::cell::RefCell;
 
-use crate::{
-    Machine, System,
-    winapi::{ddraw::DD, gdi32::PALETTEENTRY},
-};
+use crate::{Machine, System, winapi::ddraw::DD};
+use builtin_gdi32::PALETTEENTRY;
 use memory::{Extensions, ExtensionsMut};
 use win32_winapi::vtable;
 

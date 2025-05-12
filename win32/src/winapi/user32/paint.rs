@@ -1,12 +1,11 @@
-use super::{HBRUSH, HDC, WindowType};
+use super::{DCTarget, HBRUSH, HDC, WindowType};
 use crate::{
     Machine, System,
     calling_convention::FromArg,
-    winapi::{
-        HWND, RECT, Str16,
-        gdi32::{self, COLORREF, HGDIOBJ},
-    },
+    winapi::{HWND, RECT, Str16},
 };
+use builtin_gdi32 as gdi32;
+use builtin_gdi32::{COLORREF, HGDIOBJ};
 
 #[win32_derive::dllexport]
 pub fn InvalidateRect(
@@ -105,7 +104,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         return HDC::null();
     };
     let mut gdi_state = gdi32::get_state(machine);
-    let hdc = gdi_state.new_dc(Box::new(rcwindow.clone()));
+    let hdc = gdi_state.new_dc(DCTarget::new(rcwindow.clone()));
     let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {

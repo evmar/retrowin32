@@ -18,7 +18,8 @@ use std::{cell::RefCell, rc::Rc};
 use super::{HWND, Handles};
 pub use builtin::DLL;
 
-pub use super::{gdi32::HDC, kernel32::ResourceKey};
+pub use super::kernel32::ResourceKey;
+pub use builtin_gdi32::HDC;
 pub use dialog::*;
 pub use menu::*;
 pub use message::*;

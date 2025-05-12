@@ -1,16 +1,11 @@
 use super::*;
-use crate::{
-    Machine, System,
-    calling_convention::Array,
-    winapi::{
-        gdi32::{
-            HDC,
-            bitmap::{Bitmap, PixelData, PixelFormat},
-        },
-        *,
-    },
-};
+use crate::{Machine, System, calling_convention::Array, winapi::*};
 use bitflags::bitflags;
+use builtin_gdi32 as gdi32;
+use gdi32::{
+    HDC,
+    bitmap::{Bitmap, PixelData, PixelFormat},
+};
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{cell::RefCell, rc::Rc};
 use win32_system::host;
@@ -211,13 +206,21 @@ impl Window {
     }
 }
 
-impl gdi32::DCTarget for Rc<RefCell<Window>> {
+pub struct DCTarget(Rc<RefCell<Window>>);
+
+impl DCTarget {
+    pub fn new(window: Rc<RefCell<Window>>) -> Box<Self> {
+        Box::new(DCTarget(window))
+    }
+}
+
+impl gdi32::DCTarget for DCTarget {
     fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
-        self.borrow().bitmap().clone()
+        self.0.borrow().bitmap().clone()
     }
 
     fn flush(&self, sys: &dyn System) {
-        self.borrow_mut().flush_backing_store(sys.mem());
+        self.0.borrow_mut().flush_backing_store(sys.mem());
     }
 }
 
@@ -1119,7 +1122,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
             let window = rcwindow.borrow();
             match &window.typ {
                 WindowType::TopLevel(_) => {
-                    gdi32::get_state(machine).new_dc(Box::new(rcwindow.clone()))
+                    gdi32::get_state(machine).new_dc(DCTarget::new(rcwindow.clone()))
                 }
                 _ => {
                     log::warn!("GetDC for non-top-level window");

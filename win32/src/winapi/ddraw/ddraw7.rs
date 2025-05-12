@@ -9,11 +9,12 @@ use crate::{
             types::*,
             {self},
         },
-        gdi32::{PALETTEENTRY, bitmap::Bitmap},
         *,
     },
 };
 use bitflags::bitflags;
+use builtin_gdi32 as gdi32;
+use gdi32::{PALETTEENTRY, bitmap::Bitmap};
 use memory::{Extensions, ExtensionsMut, Pod};
 use std::{cell::RefCell, rc::Rc};
 use win32_winapi::{com::GUID, vtable};

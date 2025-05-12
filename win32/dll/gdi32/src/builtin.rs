@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::gdi32::{self, *};
+    use crate as gdi32;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -1564,5 +1565,5 @@ const SHIMS: [Shim; 48usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "gdi32.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/gdi32.dll"),
+    raw: std::include_bytes!("../gdi32.dll"),
 };
