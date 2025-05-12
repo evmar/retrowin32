@@ -1,4 +1,4 @@
-use super::{BITMAPINFOHEADER, COLORREF, DCTarget, HDC, HGDIOBJ, Object};
+use super::{BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ, Object};
 use crate::{
     Machine, System,
     winapi::{
@@ -316,18 +316,10 @@ pub fn CreateDIBSection(
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    match &dc.target {
-        DCTarget::Memory(hbitmap) => {
-            // Cryogoat does a series of:
-            //   let dc1 = GetDC(0); // desktop dc
-            //   let dc2 = CreateCompatibleDc(dc1); // memory dc
-            //   CreateCompatibleBitmap(dc2);
-            // The MSDN docs say this sequence should produce a 1bpp bitmap because
-            // the initial state of dc1 is monochrome, but I think cryogoat doesn't expect this (?)
-        }
-        DCTarget::Window(_) => {} // screen has known format
-        _ => todo!(),
-    };
+
+    let bitmap = dc.target.get_bitmap(machine);
+    let bitmap = bitmap.borrow();
+    assert_eq!(bitmap.format, PixelFormat::RGBA32);
 
     let bitmap = Bitmap {
         width: cx,

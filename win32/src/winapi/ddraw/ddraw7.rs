@@ -3,13 +3,14 @@
 use crate::{
     Machine, System,
     winapi::{
+        bitmap::Bitmap,
         ddraw::{
             IDirectDrawClipper,
             palette::{IDirectDrawPalette, Palette},
             types::*,
             {self},
         },
-        gdi32::{DCHandles, PALETTEENTRY},
+        gdi32::PALETTEENTRY,
         *,
     },
 };
@@ -300,7 +301,6 @@ pub mod IDirectDraw7 {
 
 #[win32_derive::dllexport]
 pub mod IDirectDrawSurface7 {
-
     use super::*;
 
     vtable![
@@ -507,9 +507,21 @@ pub mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         // Ensure surface has backing store, since DC is for drawing on it.
         surf.lock(machine.memory.mem(), &machine.memory.process_heap);
-        let dc =
-            crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
-        let handle = machine.state.gdi32.dcs.add_dc(dc);
+
+        struct SurfaceAsGDI(u32);
+        impl gdi32::DCTarget for SurfaceAsGDI {
+            fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>> {
+                let surface = machine.state.ddraw.surfaces.get(&self.0).unwrap();
+                Rc::new(RefCell::new(surface.to_bitmap()))
+            }
+
+            fn flush(&self, machine: &Machine) {
+                let surface = machine.state.ddraw.surfaces.get(&self.0).unwrap();
+                surface.flush(machine.memory.mem());
+            }
+        }
+
+        let handle = machine.state.gdi32.new_dc(Box::new(SurfaceAsGDI(this)));
         machine.mem().put_pod::<u32>(lpHDC, handle.to_raw());
         DD::OK
     }

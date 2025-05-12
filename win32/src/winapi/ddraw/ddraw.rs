@@ -99,6 +99,14 @@ impl Surface {
         }
     }
 
+    pub fn pixel_format(&self) -> PixelFormat {
+        match self.bytes_per_pixel {
+            2 => PixelFormat::RGB555, // TODO: 565 etc.
+            4 => PixelFormat::RGBA32,
+            _ => todo!(),
+        }
+    }
+
     /// Create a Bitmap representing the backing pixel buffer.
     pub fn to_bitmap(&self) -> Bitmap {
         if self.pixels == 0 {
@@ -107,11 +115,7 @@ impl Surface {
         Bitmap {
             width: self.width,
             height: self.height,
-            format: match self.bytes_per_pixel {
-                4 => PixelFormat::RGBA32,
-                2 => PixelFormat::RGB555, // TODO: 565 etc.
-                _ => todo!(),
-            },
+            format: self.pixel_format(),
             pixels: PixelData::Ptr(self.pixels, self.width * self.height * self.bytes_per_pixel),
         }
     }

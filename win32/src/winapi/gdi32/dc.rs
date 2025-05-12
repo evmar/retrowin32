@@ -3,74 +3,65 @@ use crate::{
     Machine, System,
     winapi::{
         HANDLE, POINT,
-        bitmap::{Bitmap, PixelData, PixelFormat},
-        user32::Window,
+        bitmap::{self, Bitmap, PixelData},
     },
 };
 use std::{cell::RefCell, rc::Rc};
 
 pub type HDC = HANDLE<DC>;
 
-/// Target device for a DC.
-#[derive(Clone)]
-pub enum DCTarget {
-    Memory(Rc<RefCell<Bitmap>>),
-    DesktopWindow,
-    Window(Rc<RefCell<Window>>),
-    DirectDrawSurface(u32),
+pub trait DCTarget {
+    // used in SelectObject
+    fn select_bitmap(&mut self, _bitmap: Rc<RefCell<Bitmap>>) {
+        // MSDN: "Bitmaps can only be selected into memory DC's [sic].""
+        // But kill the clone attempts to select one onto a window, just before using
+        // normal drawing calls to draw the same bitmap onto the same window.
+        panic!("select_bitmap not implemented for this target");
+    }
+    fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>>;
+    fn flush(&self, machine: &Machine);
 }
 
-impl std::fmt::Debug for DCTarget {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Memory(_) => f.debug_tuple("Memory").finish(),
-            Self::DesktopWindow => write!(f, "DesktopWindow"),
-            Self::Window(_) => f.debug_tuple("Window").finish(),
-            Self::DirectDrawSurface(arg0) => {
-                f.debug_tuple("DirectDrawSurface").field(arg0).finish()
-            }
-        }
+impl DCTarget for Rc<RefCell<Bitmap>> {
+    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+        self.clone()
+    }
+
+    fn select_bitmap(&mut self, bitmap: Rc<RefCell<Bitmap>>) {
+        *self = bitmap;
+    }
+
+    fn flush(&self, _machine: &Machine) {
+        // In memory only; nothing to flush.
     }
 }
 
-impl DCTarget {
-    /// Get the pixel buffer underlying this target.
-    pub fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>> {
-        match self {
-            DCTarget::Memory(bitmap) => bitmap.clone(),
-            DCTarget::Window(window) => {
-                let window = window.borrow();
-                window.bitmap().clone()
-            }
-            DCTarget::DirectDrawSurface(addr) => {
-                let surface = machine.state.ddraw.surfaces.get(&addr).unwrap();
-                Rc::new(RefCell::new(surface.to_bitmap()))
-            }
-            _ => todo!(),
-        }
+pub struct ScreenDCTarget;
+
+/// An empty target device for a DC, placeholder for the screen DC.
+impl DCTarget for ScreenDCTarget {
+    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+        // We need to return a bitmap here to satisfy CreateCompatibleDC,
+        // which only cares about the pixel format.
+        let bitmap = Bitmap {
+            width: 1,
+            height: 1,
+            format: bitmap::PixelFormat::RGBA32,
+            pixels: PixelData::Ptr(0, 0),
+        };
+        Rc::new(RefCell::new(bitmap))
     }
 
-    pub fn flush(&self, machine: &Machine) {
-        match self {
-            DCTarget::Window(window) => {
-                let mut window = window.borrow_mut();
-                window.flush_backing_store(machine.memory.mem());
-            }
-            DCTarget::DirectDrawSurface(addr) => {
-                let surface = machine.state.ddraw.surfaces.get(addr).unwrap();
-                surface.flush(machine.memory.mem());
-            }
-            _ => {}
-        }
+    fn flush(&self, _machine: &Machine) {
+        // We don't expect any drawing to the screen DC.
+        unimplemented!()
     }
 }
 
+/// DCs are a combination of some functionality shared across all DC types (e.g. "current position"),
+/// and some target-specific functionality made generic via the DCTarget trait.
 pub struct DC {
-    // TODO: it's unclear to me what the representation of a DC ought to be.
-    // DirectDraw can also create a DC, and DirectDraw (as a DLL that came
-    // later) can't retrofit the DC type with a DirectDraw field.
-    // Wine appears to use a vtable (for generic behavior).
-    pub target: DCTarget,
+    pub target: Box<dyn DCTarget>,
 
     pub rop2: R2,
     pub pos: POINT,
@@ -78,50 +69,55 @@ pub struct DC {
     // The SelectObject() API sets a drawing-related field on the DC and returns the
     // previously selected object of a given type, which means we need a storage field
     // per object type.
-    pub bitmap: HGDIOBJ,
     pub brush: HGDIOBJ,
     pub pen: HGDIOBJ,
 }
 
 impl DC {
-    pub fn new(target: DCTarget) -> Self {
+    pub fn new(target: Box<dyn DCTarget>) -> Self {
         DC {
             target,
             rop2: R2::default(),
             pos: Default::default(),
-            bitmap: Default::default(),
             brush: Default::default(),
             pen: Default::default(),
         }
-    }
-
-    pub fn new_memory(machine: &mut Machine) -> Self {
-        // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
-        // SkiFree depends on this!
-        let bitmap = Bitmap {
-            width: 1,
-            height: 1,
-            format: PixelFormat::Mono,
-            pixels: PixelData::Ptr(0, 0),
-        };
-        let hobj = machine.state.gdi32.objects.add_bitmap(bitmap);
-        let mut dc = DC::new(DCTarget::Memory(
-            machine
-                .state
-                .gdi32
-                .objects
-                .get_bitmap(hobj)
-                .unwrap()
-                .clone(),
-        ));
-        dc.bitmap = hobj;
-        dc
     }
 }
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
-    let dc = DC::new_memory(machine);
+    let format = machine
+        .state
+        .gdi32
+        .dcs
+        .get(hdc)
+        .unwrap()
+        .borrow()
+        .target
+        .get_bitmap(machine)
+        .borrow()
+        .format;
+
+    // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
+    // SkiFree depends on this!
+    let bitmap = Bitmap {
+        width: 1,
+        height: 1,
+        format,
+        pixels: PixelData::Ptr(0, 0),
+    };
+
+    let hobj = machine.state.gdi32.objects.add_bitmap(bitmap);
+    let bmp = machine
+        .state
+        .gdi32
+        .objects
+        .get_bitmap(hobj)
+        .unwrap()
+        .clone();
+    let dc = DC::new(Box::new(bmp));
+
     let handle = machine.state.gdi32.dcs.add_dc(dc);
     handle
 }

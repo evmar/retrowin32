@@ -209,6 +209,16 @@ impl Window {
     }
 }
 
+impl gdi32::DCTarget for Rc<RefCell<Window>> {
+    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+        self.borrow().bitmap().clone()
+    }
+
+    fn flush(&self, machine: &Machine) {
+        self.borrow_mut().flush_backing_store(machine.memory.mem());
+    }
+}
+
 pub struct Dirty {
     pub erase_background: bool,
     // TODO: region
@@ -1106,7 +1116,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
             let rcwindow = machine.state.user32.windows.get(hwnd).unwrap();
             let window = rcwindow.borrow();
             match &window.typ {
-                WindowType::TopLevel(_) => machine.state.gdi32.new_window_dc(rcwindow.clone()),
+                WindowType::TopLevel(_) => machine.state.gdi32.new_dc(Box::new(rcwindow.clone())),
                 _ => {
                     log::warn!("GetDC for non-top-level window");
                     HDC::null()

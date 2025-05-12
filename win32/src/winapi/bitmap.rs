@@ -215,7 +215,7 @@ impl PixelData {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum PixelFormat {
     RGBA32,
     RGB555,

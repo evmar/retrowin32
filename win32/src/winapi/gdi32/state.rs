@@ -1,5 +1,5 @@
-use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object};
-use crate::winapi::{Handles, bitmap::Bitmap, user32::Window};
+use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object, ScreenDCTarget};
+use crate::winapi::{Handles, bitmap::Bitmap};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct State {
@@ -38,7 +38,7 @@ impl GDIHandles for Handles<HGDIOBJ, Object> {
 impl Default for State {
     fn default() -> Self {
         let mut dcs: Handles<HDC, Rc<RefCell<DC>>> = Default::default();
-        let screen_dc = dcs.add_dc(DC::new(DCTarget::DesktopWindow));
+        let screen_dc = dcs.add_dc(DC::new(Box::new(ScreenDCTarget)));
         State {
             dcs,
             screen_dc,
@@ -48,7 +48,7 @@ impl Default for State {
 }
 
 impl State {
-    pub fn new_window_dc(&mut self, window: Rc<RefCell<Window>>) -> HDC {
-        self.dcs.add_dc(DC::new(DCTarget::Window(window)))
+    pub fn new_dc(&mut self, target: Box<dyn DCTarget>) -> HDC {
+        self.dcs.add_dc(DC::new(target))
     }
 }

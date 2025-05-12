@@ -1,6 +1,6 @@
 //! Pens, brushes, color.
 
-use super::{DCTarget, HDC, HGDIOBJ, Object};
+use super::{HDC, HGDIOBJ, Object};
 use crate::{
     Machine, System,
     winapi::{POINT, RECT},
@@ -107,11 +107,6 @@ pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&m
 #[win32_derive::dllexport]
 pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     let mut dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow_mut();
-    let window = match dc.target {
-        DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(ref window) => window.borrow(),
-        _ => todo!(),
-    };
 
     let color = match dc.rop2 {
         R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
@@ -127,8 +122,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         if a > b { (b, a) } else { (a, b) }
     }
 
-    let bitmap = window.bitmap().clone();
-    drop(window);
+    let bitmap = dc.target.get_bitmap(machine);
     let mut bitmap = bitmap.borrow_mut();
     let stride = bitmap.width;
     let pixels = bitmap.as_rgba_mut(machine.memory.mem());
@@ -169,40 +163,29 @@ pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
 
 pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF) {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    match &dc.target {
-        DCTarget::Window(window) => {
-            let window = window.borrow();
-            // TODO: obey rect
-            let mut bitmap = window.bitmap().borrow_mut();
-            let pixels = bitmap.as_rgba_mut(machine.memory.mem());
-            pixels.fill(color.to_pixel());
-        }
-        _ => todo!(),
-    }
-    dc.target.clone().flush(machine);
+    // TODO: obey rect
+    let bitmap = dc.target.get_bitmap(machine);
+    let mut bitmap = bitmap.borrow_mut();
+    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
+    pixels.fill(color.to_pixel());
+    drop(bitmap);
+    dc.target.flush(machine);
 }
 
 #[win32_derive::dllexport]
 pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF) -> COLORREF {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    match &dc.target {
-        DCTarget::Window(window) => {
-            let window = window.borrow();
-            if x >= window.width || y >= window.height {
-                return CLR_INVALID;
-            }
-            let stride = window.width;
-            let mut bitmap = window.bitmap().borrow_mut();
-            let pixels = bitmap.as_rgba_mut(machine.memory.mem());
-            pixels[((y * stride) + x) as usize] = color.to_pixel();
-        }
-        _ => {
-            log::warn!("TODO: SetPixel unimplemented");
-        }
+    let bitmap = dc.target.get_bitmap(machine);
+    let mut bitmap = bitmap.borrow_mut();
+    if x >= bitmap.width || y >= bitmap.height {
+        return CLR_INVALID;
     }
+    let stride = bitmap.width;
+    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
+    pixels[((y * stride) + x) as usize] = color.to_pixel();
 
     // TODO: don't need to flush whole window for just one pixel
-    dc.target.clone().flush(machine);
+    dc.target.flush(machine);
 
     color
 }
@@ -210,20 +193,12 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
 #[win32_derive::dllexport]
 pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    match &dc.target {
-        DCTarget::Window(window) => {
-            let window = window.borrow();
-            let stride = window.width;
-            let bitmap = window.bitmap().borrow();
-            let pixels = bitmap.as_rgba(machine.memory.mem());
-            let pixel = pixels[((y * stride) + x) as usize];
-            COLORREF::from_rgb(pixel[0], pixel[1], pixel[2])
-        }
-        _ => {
-            // TODO: actually read
-            COLORREF::from_rgb(0, 0, 0)
-        }
-    }
+    let bitmap = dc.target.get_bitmap(machine);
+    let bitmap = bitmap.borrow();
+    let stride = bitmap.width;
+    let pixels = bitmap.as_rgba(machine.memory.mem());
+    let pixel = pixels[((y * stride) + x) as usize];
+    COLORREF::from_rgb(pixel[0], pixel[1], pixel[2])
 }
 
 #[win32_derive::dllexport]
