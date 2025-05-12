@@ -18,12 +18,12 @@ pub trait DCTarget {
         // normal drawing calls to draw the same bitmap onto the same window.
         panic!("select_bitmap not implemented for this target");
     }
-    fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>>;
-    fn flush(&self, machine: &Machine);
+    fn get_bitmap(&self, sys: &dyn System) -> Rc<RefCell<Bitmap>>;
+    fn flush(&self, sys: &dyn System);
 }
 
 impl DCTarget for Rc<RefCell<Bitmap>> {
-    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+    fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
         self.clone()
     }
 
@@ -31,7 +31,7 @@ impl DCTarget for Rc<RefCell<Bitmap>> {
         *self = bitmap;
     }
 
-    fn flush(&self, _machine: &Machine) {
+    fn flush(&self, _sys: &dyn System) {
         // In memory only; nothing to flush.
     }
 }
@@ -40,7 +40,7 @@ pub struct ScreenDCTarget;
 
 /// An empty target device for a DC, placeholder for the screen DC.
 impl DCTarget for ScreenDCTarget {
-    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+    fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
         // We need to return a bitmap here to satisfy CreateCompatibleDC,
         // which only cares about the pixel format.
         let bitmap = Bitmap {
@@ -52,7 +52,7 @@ impl DCTarget for ScreenDCTarget {
         Rc::new(RefCell::new(bitmap))
     }
 
-    fn flush(&self, _machine: &Machine) {
+    fn flush(&self, _sys: &dyn System) {
         // We don't expect any drawing to the screen DC.
         unimplemented!()
     }

@@ -4,6 +4,7 @@ use win32_system::host;
 use win32_system::memory::Memory;
 
 use crate::System;
+use crate::winapi::ddraw;
 use crate::{loader, winapi};
 
 #[cfg(feature = "x86-emu")]
@@ -92,6 +93,8 @@ impl System for Machine {
             &self.state.gdi32
         } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
             &self.state.dsound
+        } else if id == &TypeId::of::<ddraw::State>() {
+            &self.state.ddraw
         } else {
             panic!();
         }

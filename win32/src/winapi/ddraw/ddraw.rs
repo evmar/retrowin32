@@ -13,7 +13,7 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, rc::Rc};
-use win32_system::{Heap, host};
+use win32_system::{Heap, System, host};
 pub use win32_winapi::com::GUID;
 
 pub struct Surface {
@@ -224,6 +224,12 @@ impl Default for State {
             palettes: HashMap::new(),
         }
     }
+}
+
+pub fn get_state(sys: &dyn System) -> &State {
+    sys.state(&std::any::TypeId::of::<State>())
+        .downcast_ref::<State>()
+        .unwrap()
 }
 
 #[win32_derive::dllexport]

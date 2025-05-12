@@ -210,12 +210,12 @@ impl Window {
 }
 
 impl gdi32::DCTarget for Rc<RefCell<Window>> {
-    fn get_bitmap(&self, _machine: &Machine) -> Rc<RefCell<Bitmap>> {
+    fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
         self.borrow().bitmap().clone()
     }
 
-    fn flush(&self, machine: &Machine) {
-        self.borrow_mut().flush_backing_store(machine.memory.mem());
+    fn flush(&self, sys: &dyn System) {
+        self.borrow_mut().flush_backing_store(sys.mem());
     }
 }
 

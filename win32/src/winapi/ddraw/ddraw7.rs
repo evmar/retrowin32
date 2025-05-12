@@ -5,7 +5,7 @@ use crate::{
     winapi::{
         bitmap::Bitmap,
         ddraw::{
-            IDirectDrawClipper,
+            IDirectDrawClipper, get_state,
             palette::{IDirectDrawPalette, Palette},
             types::*,
             {self},
@@ -510,14 +510,16 @@ pub mod IDirectDrawSurface7 {
 
         struct SurfaceAsGDI(u32);
         impl gdi32::DCTarget for SurfaceAsGDI {
-            fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>> {
-                let surface = machine.state.ddraw.surfaces.get(&self.0).unwrap();
+            fn get_bitmap(&self, sys: &dyn System) -> Rc<RefCell<Bitmap>> {
+                let state = get_state(sys);
+                let surface = state.surfaces.get(&self.0).unwrap();
                 Rc::new(RefCell::new(surface.to_bitmap()))
             }
 
-            fn flush(&self, machine: &Machine) {
-                let surface = machine.state.ddraw.surfaces.get(&self.0).unwrap();
-                surface.flush(machine.memory.mem());
+            fn flush(&self, sys: &dyn System) {
+                let state = get_state(sys);
+                let surface = state.surfaces.get(&self.0).unwrap();
+                surface.flush(sys.mem());
             }
         }
 
