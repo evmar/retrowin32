@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::ddraw::{self, *};
+    use crate as ddraw;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -1821,5 +1822,5 @@ const SHIMS: [Shim; 57usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "ddraw.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/ddraw.dll"),
+    raw: std::include_bytes!("../ddraw.dll"),
 };

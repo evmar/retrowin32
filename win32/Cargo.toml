@@ -15,6 +15,7 @@ x86 = { workspace = true, optional = true }
 builtin-advapi32 = { path = "dll/advapi32" }
 builtin-bass = { path = "dll/bass" }
 builtin-comctl32 = { path = "dll/comctl32" }
+builtin-ddraw = { path = "dll/ddraw" }
 builtin-dinput = { path = "dll/dinput" }
 builtin-dsound = { path = "dll/dsound" }
 builtin-gdi32 = { path = "dll/gdi32" }

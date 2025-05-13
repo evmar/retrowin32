@@ -1,0 +1,15 @@
+[package]
+name = "builtin-ddraw"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitflags = { workspace = true }
+log = { workspace = true }
+memory = { workspace = true }
+win32-derive = { workspace = true }
+win32-system = { workspace = true }
+win32-winapi = { workspace = true }
+
+builtin-gdi32 = { path = "../gdi32" }
+builtin-user32 = { path = "../user32" }

@@ -79,7 +79,7 @@ fn main() -> anyhow::Result<()> {
         ("advapi32", true),
         ("bass", true),
         ("comctl32", true),
-        ("ddraw", false),
+        ("ddraw", true),
         ("dinput", true),
         ("dsound", true),
         ("gdi32", true),

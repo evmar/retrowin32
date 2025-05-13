@@ -1,6 +1,5 @@
 mod arena;
 pub mod builtin;
-pub mod ddraw;
 pub mod kernel32;
 mod ntdll;
 mod ucrtbase;
@@ -14,7 +13,7 @@ pub use win32_winapi::{
 };
 
 pub struct State {
-    pub ddraw: std::cell::RefCell<ddraw::State>,
+    pub ddraw: std::cell::RefCell<builtin_ddraw::State>,
     pub dsound: std::cell::RefCell<builtin_dsound::State>,
     pub gdi32: std::cell::RefCell<builtin_gdi32::State>,
     pub kernel32: kernel32::State,

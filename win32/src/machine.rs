@@ -1,5 +1,5 @@
 use crate::System;
-use crate::winapi::{ddraw, kernel32};
+use crate::winapi::kernel32;
 use crate::{loader, winapi};
 use std::any::{Any, TypeId};
 use win32_system::memory::Memory;
@@ -128,7 +128,7 @@ impl System for Machine {
             &self.state.gdi32
         } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
             &self.state.dsound
-        } else if id == &TypeId::of::<std::cell::RefCell<ddraw::State>>() {
+        } else if id == &TypeId::of::<std::cell::RefCell<builtin_ddraw::State>>() {
             &self.state.ddraw
         } else {
             panic!();

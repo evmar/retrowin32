@@ -15,6 +15,7 @@ members = [
   "win32/dll/advapi32",
   "win32/dll/bass",
   "win32/dll/comctl32",
+  "win32/dll/ddraw",
   "win32/dll/dinput",
   "win32/dll/dsound",
   "win32/dll/gdi32",

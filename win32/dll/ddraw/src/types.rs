@@ -2,7 +2,7 @@
 
 use bitflags::bitflags;
 use memory::Pod;
-use win32_winapi::DWORD;
+use win32_winapi::{DWORD, calling_convention::ABIReturn};
 
 // TODO: maybe make some shared const fn for errors that sets high bit?
 // TODO: share constants with winapi ERROR type?
@@ -14,8 +14,8 @@ pub enum DD {
     ERR_GENERIC = 0x80004005,
 }
 
-impl Into<crate::calling_convention::ABIReturn> for DD {
-    fn into(self) -> crate::calling_convention::ABIReturn {
+impl Into<ABIReturn> for DD {
+    fn into(self) -> ABIReturn {
         (self as u32).into()
     }
 }

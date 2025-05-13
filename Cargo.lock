@@ -122,6 +122,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-ddraw"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.9.0",
+ "builtin-gdi32",
+ "builtin-user32",
+ "log",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-dinput"
 version = "0.1.0"
 dependencies = [
@@ -749,6 +763,7 @@ dependencies = [
  "builtin-advapi32",
  "builtin-bass",
  "builtin-comctl32",
+ "builtin-ddraw",
  "builtin-dinput",
  "builtin-dsound",
  "builtin-gdi32",
