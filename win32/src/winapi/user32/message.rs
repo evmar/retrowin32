@@ -1,8 +1,5 @@
 use super::{Timers, Window, get_state};
-use crate::{
-    Machine, System,
-    winapi::{self},
-};
+use crate::System;
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
@@ -547,29 +544,29 @@ pub fn CallWindowProcA(
 }
 
 #[win32_derive::dllexport]
-pub fn PostMessageA(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
+pub fn PostMessageA(sys: &mut dyn System, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
     if hWnd.is_null() {
-        let thread_id = winapi::kernel32::GetCurrentThreadId(machine);
-        return PostThreadMessageA(machine, thread_id, Msg, wParam, lParam);
+        let thread_id = sys.get_thread_id();
+        return PostThreadMessageA(sys, thread_id, Msg, wParam, lParam);
     }
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn PostThreadMessageA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     idThread: u32,
     Msg: u32,
     wParam: u32,
     lParam: u32,
 ) -> bool {
-    let thread_id = winapi::kernel32::GetCurrentThreadId(machine);
+    let thread_id = sys.get_thread_id();
     if idThread != thread_id {
         // TODO: per-thread queues
         todo!();
     }
 
-    get_state(machine).messages.push(MSG {
+    get_state(sys).messages.push(MSG {
         hwnd: HWND::null(),
         message: Msg,
         wParam,

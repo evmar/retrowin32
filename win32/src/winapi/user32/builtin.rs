@@ -2733,13 +2733,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::PostMessageA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hWnd,
-                Msg,
-                wParam,
-                lParam,
-            );
+            let result = user32::PostMessageA(sys, hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2821,13 +2815,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = user32::PostThreadMessageA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                idThread,
-                Msg,
-                wParam,
-                lParam,
-            );
+            let result = user32::PostThreadMessageA(sys, idThread, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

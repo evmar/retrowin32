@@ -32,6 +32,7 @@ pub trait System {
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
     fn get_resources(&self, module: u32) -> Option<&[u8]>;
+    fn get_thread_id(&self) -> u32;
 
     fn exit(&mut self, status: u32);
 

@@ -113,6 +113,10 @@ impl System for Machine {
         module.resources(self.mem())
     }
 
+    fn get_thread_id(&self) -> u32 {
+        kernel32::current_thread(self).to_raw()
+    }
+
     fn exit(&mut self, status: u32) {
         Machine::exit(self, status);
     }
