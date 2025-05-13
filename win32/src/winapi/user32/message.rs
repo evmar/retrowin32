@@ -512,17 +512,16 @@ pub async fn SendMessageW(
 
 #[win32_derive::dllexport]
 pub async fn MsgWaitForMultipleObjects(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     nCount: u32,
     pHandles: u32,
     fWaitAll: bool,
     dwMilliseconds: u32,
     dwWakeMask: Result<QS, u32>,
 ) -> u32 {
-    let objects = machine
+    let objects = sys
         .mem()
         .iter_pod::<HANDLE<()>>(pHandles, nCount)
-        .map(|handle| machine.state.kernel32.objects.get(handle).unwrap().clone())
         .collect::<Vec<_>>();
     let mask = dwWakeMask.unwrap();
     if !mask.is_empty() {
@@ -530,14 +529,9 @@ pub async fn MsgWaitForMultipleObjects(
         // TODO: e.g. handles.push(msgqueueevent)
     }
 
-    winapi::kernel32::wait_for_objects(
-        machine,
-        objects.into(),
-        fWaitAll,
-        Wait::from_millis(dwMilliseconds),
-    )
-    .await
-    .to_code()
+    sys.wait_for_objects(&objects, fWaitAll, Wait::from_millis(dwMilliseconds))
+        .await
+        .to_code()
 }
 
 #[win32_derive::dllexport]

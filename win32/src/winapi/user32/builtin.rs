@@ -2606,7 +2606,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = user32::MsgWaitForMultipleObjects(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     nCount,
                     pHandles,
                     fWaitAll,
