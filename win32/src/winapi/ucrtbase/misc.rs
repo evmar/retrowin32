@@ -1,4 +1,4 @@
-use crate::{Machine, System, calling_convention::VarArgs};
+use crate::{System, calling_convention::VarArgs};
 use win32_system::host;
 
 #[win32_derive::dllexport(cdecl)]
@@ -47,9 +47,9 @@ impl<'a> std::io::Write for HostStdout<'a> {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn printf(machine: &mut Machine, fmt: Option<&str>, args: VarArgs) -> i32 {
-    let mut out = HostStdout(machine.host.as_ref());
-    builtin_user32::printf::printf(&mut out, fmt.unwrap(), args, machine.mem()).unwrap();
+pub fn printf(sys: &dyn System, fmt: Option<&str>, args: VarArgs) -> i32 {
+    let mut out = HostStdout(sys.host());
+    builtin_user32::printf::printf(&mut out, fmt.unwrap(), args, sys.mem()).unwrap();
     1 // TODO: compute length written
 }
 

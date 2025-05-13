@@ -1051,7 +1051,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::printf(&mut *(sys.machine() as *mut crate::Machine), fmt, args);
+            let result = ucrtbase::printf(sys, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
