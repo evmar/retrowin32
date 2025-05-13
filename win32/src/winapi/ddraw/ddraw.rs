@@ -1,12 +1,8 @@
 //! DirectDraw shared API.  All the ddraw1 through ddraw7 interfaces back onto shared
 //! implementation defined here.
 
-use super::palette::Palette;
-pub use super::types::*;
-use crate::winapi::{
-    HWND, RECT,
-    ddraw::{ddraw1, ddraw7},
-};
+use super::types::*;
+use super::{ddraw1, ddraw7, palette::Palette};
 use builtin_gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut};
 use builtin_user32 as user32;
 use memory::{Extensions, ExtensionsMut, Mem};
@@ -17,6 +13,7 @@ use std::{
 };
 use win32_system::{Heap, System, host};
 pub use win32_winapi::com::GUID;
+use win32_winapi::{HWND, RECT};
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,

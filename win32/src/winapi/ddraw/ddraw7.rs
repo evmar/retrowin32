@@ -1,14 +1,7 @@
 //! Implementation of DirectDraw7 interfaces.
 
-use crate::winapi::{
-    ddraw::{
-        IDirectDrawClipper, get_state,
-        palette::{IDirectDrawPalette, Palette},
-        types::*,
-        {self},
-    },
-    *,
-};
+use super::types::*;
+use super::{IDirectDrawClipper, IDirectDrawPalette, ddraw, get_state, palette::Palette};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
 use builtin_user32 as user32;
@@ -16,7 +9,7 @@ use gdi32::{PALETTEENTRY, bitmap::Bitmap};
 use memory::{Extensions, ExtensionsMut, Pod};
 use std::{cell::RefCell, rc::Rc};
 use win32_system::System;
-use win32_winapi::{com::GUID, vtable};
+use win32_winapi::{HWND, RECT, com::GUID, vtable};
 
 pub const IID_IDirectDraw7: GUID = GUID((
     0x15e65ec0,
@@ -71,6 +64,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
+
     use super::*;
 
     vtable![

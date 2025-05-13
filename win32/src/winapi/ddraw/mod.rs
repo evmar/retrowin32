@@ -21,3 +21,4 @@ pub use ddraw2::*;
 pub use ddraw3::*;
 pub use ddraw7::*;
 pub use palette::IDirectDrawPalette;
+pub use types::*;

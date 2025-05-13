@@ -1,8 +1,8 @@
 //! Types defined in the DirectDraw API.
 
-use crate::winapi::*;
 use bitflags::bitflags;
 use memory::Pod;
+use win32_winapi::DWORD;
 
 // TODO: maybe make some shared const fn for errors that sets high bit?
 // TODO: share constants with winapi ERROR type?

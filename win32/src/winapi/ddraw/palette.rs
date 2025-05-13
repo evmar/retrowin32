@@ -1,5 +1,5 @@
 use super::ddraw::get_state;
-use crate::winapi::ddraw::DD;
+use super::types::*;
 use builtin_gdi32::PALETTEENTRY;
 use memory::Extensions;
 use std::cell::RefCell;

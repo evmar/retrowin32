@@ -1,7 +1,7 @@
 //! Implementation of DirectDraw2 interfaces.
 
+use super::types::*;
 use super::{
-    GUID,
     ddraw::{self, *},
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
 };

@@ -1,6 +1,6 @@
-use crate::winapi::{HWND, ddraw::DD};
+use super::types::*;
 use win32_system::System;
-use win32_winapi::com::vtable;
+use win32_winapi::{HWND, com::vtable};
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateClipper(
