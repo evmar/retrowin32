@@ -6,7 +6,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
-use win32_system::host;
+use win32_system::{Wait, host};
 use win32_winapi::*;
 
 #[repr(C)]
@@ -532,11 +532,12 @@ pub async fn MsgWaitForMultipleObjects(
 
     winapi::kernel32::wait_for_objects(
         machine,
-        &objects,
+        objects.into(),
         fWaitAll,
-        winapi::kernel32::Wait::from_millis(dwMilliseconds),
+        Wait::from_millis(dwMilliseconds),
     )
     .await
+    .to_code()
 }
 
 #[win32_derive::dllexport]

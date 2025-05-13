@@ -6,40 +6,7 @@ use crate::{
     winapi::{HANDLE, kernel32::KernelObject},
 };
 use memory::Extensions;
-
-pub const WAIT_OBJECT_0: u32 = 0;
-//const WAIT_ABANDONED_0: u32 = 0x80;
-const WAIT_TIMEOUT: u32 = 0x102;
-const INFINITE: u32 = 0xffff_ffff;
-
-pub enum Wait {
-    None,
-    Forever,
-    Millis(u32),
-}
-
-impl Wait {
-    pub fn from_millis(ms: u32) -> Self {
-        if ms == 0 {
-            Wait::None
-        } else if ms == INFINITE {
-            Wait::Forever
-        } else {
-            Wait::Millis(ms)
-        }
-    }
-
-    pub fn to_absolute(self, machine: &mut Machine) -> Self {
-        match self {
-            Wait::None => Wait::None,
-            Wait::Forever => Wait::Forever,
-            Wait::Millis(ms) => {
-                assert!(ms > 0);
-                Wait::Millis(machine.host.ticks() + ms)
-            }
-        }
-    }
-}
+use win32_system::{Wait, WaitResult};
 
 impl KernelObject {
     pub fn get_event(&self) -> &EventObject {
@@ -53,15 +20,15 @@ impl KernelObject {
 /// The primitive beneath WaitForMultipleObjects etc.
 pub async fn wait_for_objects(
     machine: &mut Machine,
-    objects: &[KernelObject],
+    objects: Box<[KernelObject]>,
     wait_all: bool,
     wait: Wait,
-) -> u32 {
+) -> WaitResult {
     if wait_all {
         todo!("WaitForMultipleObjects: bWaitAll");
     }
 
-    let wait = wait.to_absolute(machine);
+    let wait = wait.to_absolute(&*machine.host);
     loop {
         for (i, object) in objects.iter().enumerate() {
             let event = object.get_event();
@@ -71,15 +38,15 @@ pub async fn wait_for_objects(
                     // TODO: this should wake up exactly one waiting thread
                     *signaled = false;
                 }
-                return WAIT_OBJECT_0 + i as u32;
+                return WaitResult::Object(i as u32);
             }
         }
 
         let until = match wait {
-            Wait::None => return WAIT_TIMEOUT,
+            Wait::None => return WaitResult::Timeout,
             Wait::Millis(until) => {
                 if machine.host.ticks() >= until {
-                    return WAIT_TIMEOUT;
+                    return WaitResult::Timeout;
                 }
                 Some(until)
             }
@@ -110,11 +77,12 @@ pub async fn WaitForSingleObject(
     let object = machine.state.kernel32.objects.get(handle).unwrap();
     wait_for_objects(
         machine,
-        &[object.clone()],
+        Box::new([object.clone()]),
         false,
         Wait::from_millis(dwMilliseconds),
     )
     .await
+    .to_code()
 }
 
 #[win32_derive::dllexport]
@@ -130,5 +98,12 @@ pub async fn WaitForMultipleObjects(
         .iter_pod::<HANDLE<()>>(lpHandles, nCount)
         .map(|handle| machine.state.kernel32.objects.get(handle).unwrap().clone())
         .collect::<Vec<_>>();
-    wait_for_objects(machine, &objects, false, Wait::from_millis(dwMilliseconds)).await
+    wait_for_objects(
+        machine,
+        objects.into(),
+        false,
+        Wait::from_millis(dwMilliseconds),
+    )
+    .await
+    .to_code()
 }

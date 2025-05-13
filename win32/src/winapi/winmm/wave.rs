@@ -6,7 +6,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
-use win32_system::host;
+use win32_system::{Wait, host};
 
 pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 
@@ -44,9 +44,9 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
         let host_ready = wave_out.host_ready.clone();
         let ready = winapi::kernel32::wait_for_objects(
             machine,
-            &[winapi::kernel32::KernelObject::Event(host_ready)],
+            Box::new([winapi::kernel32::KernelObject::Event(host_ready)]),
             false,
-            winapi::kernel32::Wait::Forever,
+            Wait::Forever,
         )
         .await;
 
@@ -57,9 +57,9 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
 
             let ready = winapi::kernel32::wait_for_objects(
                 machine,
-                &[winapi::kernel32::KernelObject::Event(block_ready)],
+                Box::new([winapi::kernel32::KernelObject::Event(block_ready)]),
                 false,
-                winapi::kernel32::Wait::Forever,
+                Wait::Forever,
             )
             .await;
         }

@@ -1,5 +1,11 @@
-use crate::host;
+use std::pin::Pin;
+
+use crate::{
+    host,
+    wait::{Wait, WaitResult},
+};
 use memory::Mem;
+use win32_winapi::HANDLE;
 
 pub trait System {
     fn mem(&self) -> Mem;
@@ -12,17 +18,17 @@ pub trait System {
 
     // TODO: I'd like this to just return a future, but because we make System a trait object
     // we use the workaround from https://github.com/dtolnay/async-trait.
-    fn call_x86(
-        &mut self,
-        func: u32,
-        args: Vec<u32>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>>;
+    fn call_x86(&mut self, func: u32, args: Vec<u32>) -> Pin<Box<dyn Future<Output = u32> + '_>>;
 
     // TODO: figure out relationship between blocking and event objects.
-    fn block(
+    fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;
+
+    fn wait_for_objects(
         &mut self,
-        wait: Option<u32>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + '_>>;
+        objects: &[HANDLE<()>],
+        wait_all: bool,
+        wait: Wait,
+    ) -> Pin<Box<dyn Future<Output = WaitResult> + '_>>;
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
     fn get_resources(&self, module: u32) -> Option<&[u8]>;

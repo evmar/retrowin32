@@ -1,11 +1,9 @@
-use std::any::{Any, TypeId};
-
-use win32_system::host;
-use win32_system::memory::Memory;
-
 use crate::System;
-use crate::winapi::ddraw;
+use crate::winapi::{ddraw, kernel32};
 use crate::{loader, winapi};
+use std::any::{Any, TypeId};
+use win32_system::memory::Memory;
+use win32_system::{Wait, WaitResult, host};
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::Machine;
@@ -82,6 +80,24 @@ impl System for Machine {
         {
             Box::pin(self.host.block(wait))
         }
+    }
+
+    fn wait_for_objects(
+        &mut self,
+        objects: &[winapi::HANDLE<()>],
+        wait_all: bool,
+        wait: Wait,
+    ) -> std::pin::Pin<Box<dyn Future<Output = WaitResult> + '_>> {
+        let objects = objects
+            .into_iter()
+            .map(|&handle| self.state.kernel32.objects.get(handle).unwrap().clone())
+            .collect::<Vec<_>>();
+        Box::pin(kernel32::wait_for_objects(
+            self,
+            objects.into(),
+            wait_all,
+            wait.to_absolute(&*self.host),
+        ))
     }
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32 {
