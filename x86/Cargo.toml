@@ -10,7 +10,7 @@ memory = { workspace = true }
 bitflags = { workspace = true }
 extended = "0.1.0"
 iced-x86 = "1.17.0"
-num-traits = "0.2"
+num-traits = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]

@@ -1,12 +1,9 @@
 use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE, get_state};
-use crate::{
-    System,
-    calling_convention::FromArg,
-    winapi::{HWND, Str16},
-};
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
+use win32_winapi::{HWND, Str16, calling_convention::FromArg};
 
 bitflags! {
     /// CS_ class style flags for window classes.

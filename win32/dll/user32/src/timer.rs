@@ -1,4 +1,5 @@
-use crate::{System, winapi::*};
+use win32_system::System;
+use win32_winapi::HWND;
 
 use super::{MSG, WM, get_state};
 

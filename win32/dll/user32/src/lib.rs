@@ -7,6 +7,7 @@ mod menu;
 mod message;
 mod misc;
 mod paint;
+pub mod printf;
 mod rect;
 mod resource;
 mod timer;
@@ -15,11 +16,10 @@ mod wndclass;
 
 pub use builtin::DLL;
 
-use super::{HWND, Handles};
 use std::{cell::RefCell, rc::Rc};
 use win32_system::System;
+use win32_winapi::{HWND, Handles};
 
-pub use super::kernel32::ResourceKey;
 pub use builtin_gdi32::HDC;
 pub use dialog::*;
 pub use menu::*;
@@ -29,6 +29,7 @@ pub use paint::*;
 pub use rect::*;
 pub use resource::*;
 pub use timer::*;
+pub use win32_system::resource::ResourceKey;
 pub use window::*;
 pub use wndclass::*;
 

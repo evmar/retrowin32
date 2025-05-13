@@ -1,7 +1,5 @@
-use crate::{
-    System,
-    winapi::{POINT, RECT},
-};
+use win32_system::System;
+use win32_winapi::{POINT, RECT};
 
 #[win32_derive::dllexport]
 pub fn SetRect(

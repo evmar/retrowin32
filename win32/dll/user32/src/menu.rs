@@ -1,8 +1,6 @@
-use crate::{
-    System,
-    winapi::{HWND, RECT},
-};
 use bitflags::bitflags;
+use win32_system::System;
+use win32_winapi::{HWND, RECT};
 
 pub type HMENU = u32;
 

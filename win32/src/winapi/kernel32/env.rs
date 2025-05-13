@@ -1,8 +1,5 @@
-use crate::{
-    Machine, System,
-    calling_convention::ArrayOut,
-    winapi::{Str16, encoding::*},
-};
+use crate::{Machine, System, calling_convention::ArrayOut, winapi::Str16};
+use win32_system::encoding::*;
 
 /// Encode environment variables in the environment block format.
 fn encode_env(w: &mut dyn Encoder, env: &[(String, String)]) {

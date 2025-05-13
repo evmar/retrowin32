@@ -49,7 +49,7 @@ impl<'a> std::io::Write for HostStdout<'a> {
 #[win32_derive::dllexport(cdecl)]
 pub fn printf(machine: &mut Machine, fmt: Option<&str>, args: VarArgs) -> i32 {
     let mut out = HostStdout(machine.host.as_ref());
-    crate::winapi::printf::printf(&mut out, fmt.unwrap(), args, machine.mem()).unwrap();
+    builtin_user32::printf::printf(&mut out, fmt.unwrap(), args, machine.mem()).unwrap();
     1 // TODO: compute length written
 }
 

@@ -1,4 +1,5 @@
-use crate::{System, calling_convention::ArrayOut, winapi::*};
+use win32_system::System;
+use win32_winapi::{CStr, HWND, Str16, StrExt, calling_convention::ArrayOut};
 
 /*
 pub mod MessageBoxFlags {

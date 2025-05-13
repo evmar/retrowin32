@@ -1,5 +1,5 @@
-use crate::calling_convention::VarArgs;
 use memory::{Extensions, Mem};
+use win32_winapi::calling_convention::VarArgs;
 
 /// An implementation of the C `printf` function, used in DLLs that need one;
 /// both user32 and msvcrt expose variations.

@@ -3,16 +3,12 @@
 use super::{HFILE, teb_mut};
 use crate::{
     Machine, System,
-    winapi::{
-        ERROR,
-        encoding::{Encoder, EncoderWide},
-        kernel32::CURRENT_PROCESS_HANDLE,
-        *,
-    },
+    winapi::{ERROR, kernel32::CURRENT_PROCESS_HANDLE, *},
 };
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
+use win32_system::encoding::*;
 
 pub type SECURITY_ATTRIBUTES = u32; // TODO
 

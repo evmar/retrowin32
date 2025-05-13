@@ -21,6 +21,7 @@ members = [
   "win32/dll/oleaut32",
   "win32/dll/retrowin32_test",
   "win32/dll/shlwapi",
+  "win32/dll/user32",
   "win32/dll/vcruntime140",
   "win32/dll/version",
   "win32/dll/wininet",
@@ -37,6 +38,7 @@ x86 = { path = "x86" }
 
 bitflags = { version = "2.9.0", features = ["serde"] }
 log = "0.4"
+num-traits = "0.2"
 tsify = "0.4.1"
 # Must match version of wasm-bindgen-cli, with version pinned in CI.
 wasm-bindgen = "=0.2.100"

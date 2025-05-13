@@ -14,6 +14,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
+use builtin_user32 as user32;
 use gdi32::{PALETTEENTRY, bitmap::Bitmap};
 use memory::{Extensions, ExtensionsMut, Pod};
 use std::{cell::RefCell, rc::Rc};

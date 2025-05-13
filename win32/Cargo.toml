@@ -21,6 +21,7 @@ builtin-ole32 = { path = "dll/ole32" }
 builtin-oleaut32 = { path = "dll/oleaut32" }
 builtin-retrowin32_test = { path = "dll/retrowin32_test" }
 builtin-shlwapi = { path = "dll/shlwapi" }
+builtin-user32 = { path = "dll/user32" }
 builtin-vcruntime140 = { path = "dll/vcruntime140" }
 builtin-version = { path = "dll/version" }
 builtin-wininet = { path = "dll/wininet" }
@@ -30,7 +31,7 @@ bincode = "1.3.3"
 bitflags = { workspace = true }
 chrono = "0.4.38"
 num-derive = "0.4"
-num-traits = "0.2"
+num-traits = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 
 [dependencies.unicorn-engine]

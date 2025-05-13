@@ -1,11 +1,9 @@
 use super::{DCTarget, HBRUSH, HDC, WindowType, get_state};
-use crate::{
-    System,
-    calling_convention::FromArg,
-    winapi::{HWND, RECT, Str16},
-};
 use builtin_gdi32 as gdi32;
 use builtin_gdi32::{COLORREF, HGDIOBJ};
+use win32_system::System;
+use win32_winapi::calling_convention::FromArg;
+use win32_winapi::{HWND, RECT, Str16};
 
 #[win32_derive::dllexport]
 pub fn InvalidateRect(

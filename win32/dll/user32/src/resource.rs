@@ -1,12 +1,4 @@
 use super::{HINSTANCE, HMENU};
-use crate::{
-    System,
-    winapi::{
-        encoding::{Encoder, EncoderAnsi},
-        kernel32::ResourceKey,
-        *,
-    },
-};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
 use gdi32::{
@@ -15,7 +7,13 @@ use gdi32::{
 };
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
-use win32_system::{host, resource::find_resource};
+use win32_system::{
+    System,
+    encoding::{Encoder, EncoderAnsi},
+    host,
+    resource::{ResourceKey, find_resource},
+};
+use win32_winapi::{Str16, WindowsPath};
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;

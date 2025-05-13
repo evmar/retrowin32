@@ -1,10 +1,9 @@
-use crate::{
-    System,
-    calling_convention::VarArgs,
-    winapi::{HWND, POINT, RECT, Str16},
-};
 use memory::ExtensionsMut;
 use std::io::{Cursor, Write};
+use win32_system::System;
+use win32_winapi::{HWND, POINT, RECT, Str16, calling_convention::VarArgs};
+
+use crate::printf;
 
 pub type HINSTANCE = u32;
 pub type HKL = u32;
@@ -148,7 +147,7 @@ pub fn wsprintfA(sys: &mut dyn System, buf: u32, fmt: Option<&str>, args: VarArg
     let buf = mem.sub32_mut(buf, BUF_LEN);
 
     let mut out = Cursor::new(buf);
-    crate::winapi::printf::printf(&mut out, fmt.unwrap(), args, mem).unwrap();
+    printf::printf(&mut out, fmt.unwrap(), args, mem).unwrap();
     out.write(&[0]).unwrap();
 
     // let len = out.position() as usize;

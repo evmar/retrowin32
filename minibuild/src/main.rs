@@ -92,7 +92,7 @@ fn main() -> anyhow::Result<()> {
         ("ucrtbase", false),
         ("vcruntime140", true),
         ("version", true),
-        ("user32", false),
+        ("user32", true),
         ("wininet", true),
         ("winmm", false),
     ];

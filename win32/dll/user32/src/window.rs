@@ -1,5 +1,4 @@
-use super::*;
-use crate::{System, calling_convention::Array, winapi::*};
+use crate::{HINSTANCE, HMENU, HRGN, MSG, WM, WndClass, dispatch_message, get_state};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
 use gdi32::{
@@ -8,11 +7,15 @@ use gdi32::{
 };
 use memory::{Extensions, Mem};
 use std::{cell::RefCell, rc::Rc};
-use win32_system::host;
+use win32_system::{System, host};
+use win32_winapi::{
+    HWND, POINT, RECT, Str16, String16,
+    calling_convention::{Array, FromArg},
+};
 
 /*
 
-## Window initalization
+## Window initialization
 
 A small test app that created a window and printed the messages received
 had this sequence of events, where the braced message lists are messages
@@ -291,7 +294,8 @@ pub enum CreateWindowClassName<'a, Str: ?Sized> {
     Atom(u16),
     Name(&'a Str),
 }
-impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, str> {
+
+impl<'a> FromArg<'a> for CreateWindowClassName<'a, str> {
     fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
@@ -300,7 +304,8 @@ impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, st
         }
     }
 }
-impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, Str16> {
+
+impl<'a> FromArg<'a> for CreateWindowClassName<'a, Str16> {
     fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
@@ -315,7 +320,8 @@ pub struct CreateWindowStyle {
     ws: WS,
     rest: u16,
 }
-impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowStyle {
+
+impl<'a> FromArg<'a> for CreateWindowStyle {
     fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         let ws = WS::from_bits(arg & 0xFFFF_0000).unwrap();
         let rest = (arg & 0xFFFF) as u16;

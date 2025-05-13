@@ -8,10 +8,10 @@ use crate::{
     winapi::{
         HWND, RECT,
         ddraw::{ddraw1, ddraw7},
-        user32,
     },
 };
 use builtin_gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut};
+use builtin_user32 as user32;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, rc::Rc};
 use win32_system::{Heap, System, host};

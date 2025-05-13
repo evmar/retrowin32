@@ -1,0 +1,17 @@
+[package]
+name = "builtin-user32"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0"
+bitflags = { workspace = true }
+log = { workspace = true }
+memory = { workspace = true }
+num-traits = { workspace = true }
+pe = { workspace = true }
+win32-derive = { workspace = true }
+win32-system = { workspace = true }
+win32-winapi = { workspace = true }
+
+builtin-gdi32 = { path = "../gdi32" }

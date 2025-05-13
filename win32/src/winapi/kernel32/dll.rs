@@ -2,15 +2,11 @@ use crate::{
     Machine, System,
     calling_convention::{self, ArrayOut},
     loader,
-    winapi::{
-        self,
-        encoding::{Encoder, EncoderAnsi, EncoderWide},
-        kernel32::set_last_error,
-        *,
-    },
+    winapi::{self, kernel32::set_last_error, *},
 };
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
+use win32_system::encoding::*;
 
 use super::HFILE;
 

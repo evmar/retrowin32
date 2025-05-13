@@ -183,6 +183,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-user32"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bitflags 2.9.0",
+ "builtin-gdi32",
+ "log",
+ "memory",
+ "num-traits",
+ "pe",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-vcruntime140"
 version = "0.1.0"
 dependencies = [
@@ -728,6 +744,7 @@ dependencies = [
  "builtin-oleaut32",
  "builtin-retrowin32_test",
  "builtin-shlwapi",
+ "builtin-user32",
  "builtin-vcruntime140",
  "builtin-version",
  "builtin-wininet",
