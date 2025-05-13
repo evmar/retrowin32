@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::comctl32::{self, *};
+    use crate as comctl32;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -64,5 +65,5 @@ const SHIMS: [Shim; 2usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "comctl32.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/comctl32.dll"),
+    raw: std::include_bytes!("../comctl32.dll"),
 };

@@ -1,6 +1,5 @@
 mod arena;
 pub mod builtin;
-mod comctl32;
 pub mod ddraw;
 pub mod kernel32;
 mod ntdll;

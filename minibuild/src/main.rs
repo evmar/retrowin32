@@ -78,7 +78,7 @@ fn main() -> anyhow::Result<()> {
     let dlls = [
         ("advapi32", true),
         ("bass", true),
-        ("comctl32", false),
+        ("comctl32", true),
         ("ddraw", false),
         ("dinput", true),
         ("dsound", true),

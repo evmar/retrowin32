@@ -7,7 +7,7 @@ use win32_system::dll::BuiltinDLL;
 pub const DLLS: [BuiltinDLL; 19] = [
     builtin_advapi32::DLL,
     builtin_bass::DLL,
-    crate::winapi::comctl32::DLL,
+    builtin_comctl32::DLL,
     crate::winapi::ddraw::DLL,
     builtin_dinput::DLL,
     builtin_dsound::DLL,

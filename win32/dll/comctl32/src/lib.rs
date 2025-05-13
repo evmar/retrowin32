@@ -4,10 +4,10 @@
 
 mod builtin;
 
-use crate::System;
 pub use builtin::DLL;
 
 pub use builtin_user32::TRACKMOUSEEVENT;
+use win32_system::System;
 
 #[win32_derive::dllexport(ordinal = 17)]
 pub fn InitCommonControls(sys: &dyn System) {}
