@@ -252,14 +252,8 @@ fn poll_message(
     }
 }
 
-#[cfg(feature = "x86-emu")]
 async fn await_message(machine: &mut Machine, wait: Option<u32>) {
-    machine.emu.x86.cpu_mut().block(wait).await;
-}
-
-#[cfg(not(feature = "x86-emu"))]
-async fn await_message(machine: &mut Machine, wait: Option<u32>) {
-    machine.host.block(wait);
+    machine.block(wait).await;
 }
 
 bitflags! {

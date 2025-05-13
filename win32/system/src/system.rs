@@ -18,6 +18,12 @@ pub trait System {
         args: Vec<u32>,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>>;
 
+    // TODO: figure out relationship between blocking and event objects.
+    fn block(
+        &mut self,
+        wait: Option<u32>,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + '_>>;
+
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
     fn get_resources(&self, module: u32) -> Option<&[u8]>;
 
