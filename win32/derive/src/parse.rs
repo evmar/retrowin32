@@ -8,26 +8,32 @@ pub enum CallConv {
     Cdecl,
 }
 
+/// Export-related metadata, as expressed in the macro arguments.
 pub struct DllExportMeta {
+    /// If specified, the DLL ordinal for this function.
+    /// Specify with #[dllexport(ordinal = 123)].
     pub ordinal: Option<usize>,
     pub callconv: CallConv,
     /// Exported name, if specified.  Useful for C++-mangled names.
+    /// Will use the Rust function name otherwise.
     pub symbol: Option<String>,
 }
 
-/// A dllexport function.
+/// A function tagged as dllexport.
 pub struct DllExport<'a> {
     /// Module name as used in tracing, e.g. "kernel32/file".
     pub trace_module: &'a str,
     pub meta: DllExportMeta,
     /// Whether the first arg is Machine (old API) or System (new API).
     pub sys_arg: bool,
+    /// Arguments to the function other than then first one.
     pub args: Vec<Argument<'a>>,
     /// If this function is part of a vtable, this is the name of the vtable.
     pub vtable: Option<&'a syn::Ident>,
-    // The internal identifer to use for the function.
-    // Might get namespaced for symbols within a module, e.g. IDirectDraw_QueryInterface.
+    /// The internal identifier to use for the function.
+    /// Might get namespaced for symbols within a module, e.g. IDirectDraw_QueryInterface.
     pub flat_name: syn::Ident,
+    /// The original function itself.
     pub func: &'a syn::ItemFn,
 }
 
@@ -40,6 +46,9 @@ impl<'a> DllExport<'a> {
     }
 }
 
+/// A const tagged as dllexport.
+/// This triggers generation of an data symbol in the DLL.
+/// This is used for exports like _adjust_fdiv, which are not functions.
 pub struct DllExportData<'a> {
     pub name: &'a syn::Ident,
 }
@@ -98,6 +107,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
     }))
 }
 
+/// Look through a list of attributes for a #[dllexport] attribute, parsing it when found.
 fn find_dllexport(attrs: &[syn::Attribute]) -> syn::Result<Option<DllExportMeta>> {
     for attr in attrs {
         if let Some(meta) = parse_dllexport(attr)? {
@@ -107,6 +117,7 @@ fn find_dllexport(attrs: &[syn::Attribute]) -> syn::Result<Option<DllExportMeta>
     Ok(None)
 }
 
+/// Metadata collected about a function argument.
 pub struct Argument<'a> {
     pub name: &'a syn::Ident,
     pub ty: &'a syn::Type,
@@ -149,6 +160,7 @@ pub fn parse_argument_stack(ty: &syn::Type) -> u32 {
     }
 }
 
+/// Parse a fn declaration looking for dllexport attributes.
 fn parse_fn<'a>(
     trace_module: &'a str,
     func: &'a syn::ItemFn,
@@ -217,6 +229,7 @@ fn parse_self_type(arg: &syn::FnArg) -> syn::Result<bool> {
     }
 }
 
+/// Parse a mod looking for dllexport attributes.
 fn parse_mod<'a>(
     trace_module: &'a str,
     item: &'a syn::ItemMod,
@@ -304,6 +317,7 @@ fn parse_vtable(name: &syn::Ident, item: &syn::ItemMacro) -> syn::Result<Option<
     }))
 }
 
+/// Parse a const looking for dllexport attributes.
 fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData>> {
     if find_dllexport(&item.attrs)?.is_none() {
         return Ok(None);
