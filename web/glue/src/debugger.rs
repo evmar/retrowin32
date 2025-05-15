@@ -128,6 +128,7 @@ pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
     machine
         .state
         .ddraw
+        .borrow()
         .surfaces
         .iter()
         .map(|(&ptr, s)| {
