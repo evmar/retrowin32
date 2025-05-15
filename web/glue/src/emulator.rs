@@ -146,6 +146,6 @@ pub fn new_emulator(host: JsHost) -> Emulator {
     crate::log::init();
     win32::trace::set_output(win32_trace);
     let mut machine = win32::Machine::new(Box::new(host));
-    machine.state.winmm.audio_enabled = true;
+    machine.state.winmm.borrow_mut().audio_enabled = true;
     Emulator { machine }
 }

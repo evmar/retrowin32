@@ -11,6 +11,8 @@ mod mixer;
 mod time;
 mod wave;
 
+use std::cell::{RefCell, RefMut};
+
 pub use builtin::DLL;
 
 pub use joy::*;
@@ -41,9 +43,11 @@ pub struct State {
     pub wave: WaveState,
 }
 
-pub fn get_state(sys: &dyn System) -> &State {
-    type SysState = State;
+pub fn get_state(sys: &dyn System) -> RefMut<State> {
+    // TODO: we could have separate state for wave and time.
+    type SysState = RefCell<State>;
     sys.state(&std::any::TypeId::of::<SysState>())
         .downcast_ref::<SysState>()
         .unwrap()
+        .borrow_mut()
 }

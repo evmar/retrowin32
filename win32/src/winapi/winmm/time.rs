@@ -40,16 +40,19 @@ pub fn timeSetEvent(
     fuEvent: Result<TIME, u32>,
 ) -> u32 {
     // TODO: fuEvent is a bitfield, but we only support ONESHOT and PERIODIC
-    assert!(machine.state.winmm.time_thread.is_none());
+
+    let mut state = get_state(machine);
+    assert!(state.time_thread.is_none());
 
     // TODO: only exactly one timer supported
     let timer_id = 1;
-    machine.state.winmm.time_thread = Some(TimeThread {
+    state.time_thread = Some(TimeThread {
         timer_id,
         delay: uDelay,
         callback: lpTimeProc,
         user_data: dwUser,
     });
+    drop(state);
 
     let retrowin32_time_thread_main =
         crate::loader::get_symbol(machine, "winmm.dll", "retrowin32_time_thread_main");

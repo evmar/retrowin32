@@ -161,7 +161,7 @@ fn main() -> anyhow::Result<ExitCode> {
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()));
     machine.set_external_dlls(args.external_dll);
-    machine.state.winmm.audio_enabled = args.audio;
+    machine.state.winmm.borrow_mut().audio_enabled = args.audio;
 
     let entry_point = machine
         .load_exe(buf, cmdline, None)

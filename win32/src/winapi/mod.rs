@@ -17,7 +17,7 @@ pub struct State {
     pub gdi32: std::cell::RefCell<builtin_gdi32::State>,
     pub kernel32: kernel32::State,
     pub user32: std::cell::RefCell<builtin_user32::State>,
-    pub winmm: winmm::State,
+    pub winmm: std::cell::RefCell<winmm::State>,
 }
 
 impl State {
@@ -28,7 +28,7 @@ impl State {
             gdi32: Default::default(),
             kernel32,
             user32: Default::default(),
-            winmm: winmm::State::default(),
+            winmm: Default::default(),
         }
     }
 }
