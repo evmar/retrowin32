@@ -1,12 +1,12 @@
 use super::{MMRESULT, get_state};
 use crate::{
-    Machine, System,
+    Machine,
     winapi::{self, Handles},
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
-use win32_system::{Wait, host};
+use win32_system::{System, Wait, host};
 
 pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 
@@ -204,7 +204,7 @@ impl<'a> crate::calling_convention::FromStack<'a> for WaveOutOpenFlags {
 
 #[win32_derive::dllexport]
 pub fn waveOutOpen(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     phwo: Option<&mut HWAVEOUT>,
     uDeviceID: u32,
     pwfx: Option<&WAVEFORMATEX>,
@@ -212,7 +212,7 @@ pub fn waveOutOpen(
     dwInstance: u32,
     fdwOpen: WaveOutOpenFlags,
 ) -> MMRESULT {
-    if !get_state(machine).audio_enabled {
+    if !get_state(sys).audio_enabled {
         // Note that pocoman doesn't call waveOutGetNumDevs, but just directly calls
         // waveOutOpen and decides whether to do sound based on whether it succeeds.
         return MMRESULT::MMSYSERR_NOTENABLED;
@@ -222,7 +222,7 @@ pub fn waveOutOpen(
         winapi::kernel32::EventObject::new(Some("winmm host ready".into()), false, true);
 
     let fmt = pwfx.unwrap();
-    let audio = machine.host.init_audio(
+    let audio = sys.host().init_audio(
         fmt.nSamplesPerSec,
         Box::new({
             let host_ready = host_ready.clone();
@@ -255,20 +255,11 @@ pub fn waveOutOpen(
         ),
         notify,
     };
-    let hwo = get_state(machine).wave.wave_outs.add(wave_out);
+    let hwo = get_state(sys).wave.wave_outs.add(wave_out);
     *phwo.unwrap() = hwo;
 
-    let retrowin32_wave_thread_main: u32 =
-        crate::loader::get_symbol(machine, "winmm.dll", "retrowin32_wave_thread_main");
-
-    let thread = winapi::kernel32::create_thread(machine, 0x1000);
-    let cpu = machine.emu.x86.new_cpu();
-    Machine::init_thread(cpu, &thread);
-    cpu.call_x86(
-        machine.memory.mem(),
-        retrowin32_wave_thread_main,
-        vec![hwo.to_raw()],
-    );
+    let retrowin32_wave_thread_main = sys.get_symbol("winmm.dll", "retrowin32_wave_thread_main");
+    sys.new_thread(0x1000, retrowin32_wave_thread_main, &[hwo.to_raw()]);
 
     MMRESULT::MMSYSERR_NOERROR
 }

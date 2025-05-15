@@ -67,6 +67,19 @@ impl System for Machine {
         Box::pin(self.call_x86(func, args))
     }
 
+    fn new_thread(&mut self, stack_size: u32, start_addr: u32, args: &[u32]) {
+        let thread = kernel32::create_thread(self, stack_size);
+        let cpu = self.emu.x86.new_cpu();
+        Machine::init_thread(cpu, &thread);
+
+        // Push the args in reverse order.
+        // TODO: deduplicate this with call_x86 logic.
+        for &arg in args.iter().rev() {
+            x86::ops::push(cpu, self.memory.mem(), arg);
+        }
+        cpu.regs.eip = start_addr;
+    }
+
     fn block(
         &mut self,
         wait: Option<u32>,

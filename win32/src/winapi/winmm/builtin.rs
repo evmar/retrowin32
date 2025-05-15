@@ -658,7 +658,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::timeGetTime(&mut *(sys.machine() as *mut crate::Machine));
+            let result = winmm::timeGetTime(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -712,14 +712,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::timeSetEvent(
-                &mut *(sys.machine() as *mut crate::Machine),
-                uDelay,
-                uResolution,
-                lpTimeProc,
-                dwUser,
-                fuEvent,
-            );
+            let result = winmm::timeSetEvent(sys, uDelay, uResolution, lpTimeProc, dwUser, fuEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -741,7 +734,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::waveOutClose(&mut *(sys.machine() as *mut crate::Machine), hwo);
+            let result = winmm::waveOutClose(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -790,7 +783,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::waveOutGetNumDevs(&mut *(sys.machine() as *mut crate::Machine));
+            let result = winmm::waveOutGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -814,12 +807,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::waveOutGetPosition(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hwo,
-                pmmt,
-                cbmmt,
-            );
+            let result = winmm::waveOutGetPosition(sys, hwo, pmmt, cbmmt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -876,15 +864,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winmm::waveOutOpen(
-                &mut *(sys.machine() as *mut crate::Machine),
-                phwo,
-                uDeviceID,
-                pwfx,
-                dwCallback,
-                dwInstance,
-                fdwOpen,
-            );
+            let result =
+                winmm::waveOutOpen(sys, phwo, uDeviceID, pwfx, dwCallback, dwInstance, fdwOpen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

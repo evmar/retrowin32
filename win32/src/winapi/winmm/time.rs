@@ -1,6 +1,7 @@
 use super::get_state;
-use crate::{Machine, System, winapi::kernel32};
+use crate::winapi::kernel32;
 use memory::Pod;
+use win32_system::System;
 
 pub struct TimeThread {
     timer_id: u32,
@@ -32,7 +33,7 @@ pub async fn retrowin32_time_thread_main(sys: &mut dyn System) {
 
 #[win32_derive::dllexport]
 pub fn timeSetEvent(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     uDelay: u32,
     uResolution: u32,
     lpTimeProc: u32,
@@ -41,7 +42,7 @@ pub fn timeSetEvent(
 ) -> u32 {
     // TODO: fuEvent is a bitfield, but we only support ONESHOT and PERIODIC
 
-    let mut state = get_state(machine);
+    let mut state = get_state(sys);
     assert!(state.time_thread.is_none());
 
     // TODO: only exactly one timer supported
@@ -54,13 +55,9 @@ pub fn timeSetEvent(
     });
     drop(state);
 
-    let retrowin32_time_thread_main =
-        crate::loader::get_symbol(machine, "winmm.dll", "retrowin32_time_thread_main");
+    let retrowin32_time_thread_main = sys.get_symbol("winmm.dll", "retrowin32_time_thread_main");
 
-    let thread = kernel32::create_thread(machine, 0x1000);
-    let cpu = machine.emu.x86.new_cpu();
-    Machine::init_thread(cpu, &thread);
-    cpu.regs.eip = retrowin32_time_thread_main;
+    sys.new_thread(0x1000, retrowin32_time_thread_main, &[]);
 
     timer_id
 }
