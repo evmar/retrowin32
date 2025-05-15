@@ -1,6 +1,6 @@
-use memory::Pod;
-
+use super::get_state;
 use crate::{Machine, System, winapi::kernel32};
+use memory::Pod;
 
 pub struct TimeThread {
     timer_id: u32,
@@ -16,17 +16,16 @@ pub enum TIME {
 }
 
 #[win32_derive::dllexport]
-pub async fn retrowin32_time_thread_main(machine: &mut Machine) {
+pub async fn retrowin32_time_thread_main(sys: &mut dyn System) {
     let &TimeThread {
         timer_id,
         delay,
         callback,
         user_data,
-    } = machine.state.winmm.time_thread.as_ref().unwrap();
+    } = get_state(sys).time_thread.as_ref().unwrap();
     loop {
-        kernel32::Sleep(machine, delay).await;
-        machine
-            .call_x86(callback, vec![timer_id, 0, user_data, 0, 0])
+        kernel32::Sleep(sys, delay).await;
+        sys.call_x86(callback, vec![timer_id, 0, user_data, 0, 0])
             .await;
     }
 }

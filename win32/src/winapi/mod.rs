@@ -2,7 +2,7 @@ mod arena;
 pub mod builtin;
 pub mod kernel32;
 mod ntdll;
-mod winmm;
+pub mod winmm;
 
 pub use kernel32::HFILE;
 pub use memory::str16::{Str16, String16};

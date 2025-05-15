@@ -20,6 +20,7 @@ pub use misc::*;
 pub use mixer::*;
 pub use time::*;
 pub use wave::*;
+use win32_system::System;
 
 #[derive(Copy, Clone, Debug)]
 pub enum MMRESULT {
@@ -38,4 +39,11 @@ pub struct State {
     pub audio_enabled: bool,
     pub time_thread: Option<TimeThread>,
     pub wave: WaveState,
+}
+
+pub fn get_state(sys: &dyn System) -> &State {
+    type SysState = State;
+    sys.state(&std::any::TypeId::of::<SysState>())
+        .downcast_ref::<SysState>()
+        .unwrap()
 }

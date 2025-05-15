@@ -542,10 +542,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = winmm::retrowin32_time_thread_main(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                )
-                .await;
+                let result = winmm::retrowin32_time_thread_main(sys).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

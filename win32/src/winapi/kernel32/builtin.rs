@@ -5524,9 +5524,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    kernel32::Sleep(&mut *(sys.machine() as *mut crate::Machine), dwMilliseconds)
-                        .await;
+                let result = kernel32::Sleep(sys, dwMilliseconds).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5559,12 +5557,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::SleepEx(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    dwMilliseconds,
-                    bAlertable,
-                )
-                .await;
+                let result = kernel32::SleepEx(sys, dwMilliseconds, bAlertable).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

@@ -145,28 +145,22 @@ pub fn FileTimeToSystemTime(
 }
 
 #[win32_derive::dllexport]
-pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
+pub async fn Sleep(sys: &mut dyn System, dwMilliseconds: u32) {
     if dwMilliseconds == 0 {
-        return 0;
+        return;
     }
 
-    #[cfg(feature = "x86-emu")]
-    {
-        let until = machine.host.ticks() + dwMilliseconds;
-        machine.emu.x86.cpu_mut().block(Some(until)).await;
-    }
-
-    #[cfg(not(feature = "x86-emu"))]
-    {
-        _ = machine;
-        log::warn!("TODO: sleep");
-    }
-    0
+    let until = sys.host().ticks() + dwMilliseconds;
+    sys.block(Some(until)).await;
 }
 
 #[win32_derive::dllexport]
-pub async fn SleepEx(machine: &mut Machine, dwMilliseconds: u32, bAlertable: bool) -> u32 {
-    Sleep(machine, dwMilliseconds).await
+pub async fn SleepEx(sys: &mut dyn System, dwMilliseconds: u32, bAlertable: bool) -> u32 {
+    if bAlertable {
+        todo!();
+    }
+    Sleep(sys, dwMilliseconds).await;
+    0
 }
 
 #[repr(C)]
