@@ -6,7 +6,7 @@ use crate::{
 };
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
-use win32_system::encoding::*;
+use win32_winapi::encoding::*;
 
 use super::HFILE;
 

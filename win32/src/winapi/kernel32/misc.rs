@@ -8,7 +8,7 @@ use crate::{
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
-use win32_system::encoding::*;
+use win32_winapi::encoding::*;
 
 pub type SECURITY_ATTRIBUTES = u32; // TODO
 

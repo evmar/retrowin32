@@ -1,5 +1,6 @@
 pub mod calling_convention;
 pub mod com;
+pub mod encoding;
 mod error;
 mod handle;
 mod point;

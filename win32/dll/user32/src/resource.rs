@@ -8,12 +8,13 @@ use gdi32::{
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
 use win32_system::{
-    System,
-    encoding::{Encoder, EncoderAnsi},
-    host,
+    System, host,
     resource::{ResourceKey, find_resource},
 };
-use win32_winapi::{Str16, WindowsPath};
+use win32_winapi::{
+    Str16, WindowsPath,
+    encoding::{Encoder, EncoderAnsi},
+};
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
