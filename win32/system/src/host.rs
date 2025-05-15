@@ -1,4 +1,4 @@
-//! Interfaces expected of the x86 host.
+//! Interfaces expected of the host platform, to e.g. open files or create windows.
 
 pub use win32_winapi::{ERROR, RECT, WindowsPath, WindowsPathBuf};
 
@@ -142,6 +142,7 @@ pub trait FileSystem {
     fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR>;
 }
 
+/// Interface expected of the host platform, implemented by e.g. the browser or SDL.
 pub trait Host: FileSystem {
     /// Get an arbitrary time counter, measured in milliseconds.
     fn ticks(&self) -> u32;

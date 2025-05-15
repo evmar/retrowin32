@@ -1,12 +1,21 @@
-use std::pin::Pin;
-
 use crate::{
     host,
     wait::{Wait, WaitResult},
 };
 use memory::Mem;
+use std::pin::Pin;
 use win32_winapi::HANDLE;
 
+/// The interface for the system beneath all the Windows DLLs, providing the lowest-level
+/// functionality that the DLLs cannot implement themselves.  This functionality is still
+/// implemented in the win32 crate, but the trait separation breaks the circular depedency
+/// between the DLLs and the system.
+///
+/// - Machine manages loaded DLLs
+/// - DLLs get passed a dyn System,
+/// - System implemented by Machine
+///
+/// See also the Host interface, which is the interface to the outside world.
 pub trait System {
     fn mem(&self) -> Mem;
     fn memory(&self) -> &crate::memory::Memory;
