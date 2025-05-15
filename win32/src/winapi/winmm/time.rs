@@ -71,8 +71,8 @@ pub fn timeKillEvent(sys: &dyn System, uTimerID: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn timeGetTime(machine: &mut Machine) -> u32 {
-    machine.host.ticks()
+pub fn timeGetTime(sys: &dyn System) -> u32 {
+    sys.host().ticks()
 }
 
 const TIMERR_NOERROR: u32 = 0;

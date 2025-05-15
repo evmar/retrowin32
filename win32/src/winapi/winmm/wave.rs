@@ -116,12 +116,8 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutGetNumDevs(machine: &mut Machine) -> u32 {
-    if get_state(machine).audio_enabled {
-        1
-    } else {
-        0
-    }
+pub fn waveOutGetNumDevs(sys: &dyn System) -> u32 {
+    if get_state(sys).audio_enabled { 1 } else { 0 }
 }
 
 #[repr(C)]
@@ -283,8 +279,8 @@ pub fn waveOutReset(sys: &dyn System, hwo: HWAVEOUT) -> MMRESULT {
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutClose(machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
-    let mut state = get_state(machine);
+pub fn waveOutClose(sys: &dyn System, hwo: HWAVEOUT) -> MMRESULT {
+    let mut state = get_state(sys);
     let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
     state.wave.wave_outs.remove(hwo);
 
@@ -377,14 +373,14 @@ unsafe impl memory::Pod for MMTIME_smpte {}
 
 #[win32_derive::dllexport]
 pub fn waveOutGetPosition(
-    machine: &mut Machine,
+    sys: &dyn System,
     hwo: HWAVEOUT,
     pmmt: Option<&mut MMTIME>,
     cbmmt: u32,
 ) -> MMRESULT {
     assert_eq!(cbmmt, std::mem::size_of::<MMTIME>() as u32);
 
-    let mut state = get_state(machine);
+    let mut state = get_state(sys);
     let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
 
     let pos = wave_out.audio.pos();
