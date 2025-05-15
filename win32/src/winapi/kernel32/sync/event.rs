@@ -11,6 +11,13 @@ use std::sync::{Arc, Mutex};
 pub struct HEVENTT;
 pub type HEVENT = HANDLE<HEVENTT>;
 
+/// Event objects are used for synchronization between threads.
+//
+// In the emulator there are no real threads, but we still use event objects
+// for signaling all the way up to the Host layer, which itself may use threads,
+// so internally Events use Mutex/Arc instead of Cell/Rc.
+// Under wasm Mutex/Arc are implemented as Cell/Rc anyway:
+//   https://github.com/rust-lang/rust/issues/77839
 pub struct EventObject {
     name: Option<String>,
     pub manual_reset: bool,
