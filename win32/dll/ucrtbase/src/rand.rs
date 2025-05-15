@@ -1,4 +1,4 @@
-use crate::System;
+use win32_system::System;
 
 // MSDN: "Calling rand before any call to srand generates the same sequence as calling srand with seed passed as 1."
 static mut RAND_STATE: u32 = 1;

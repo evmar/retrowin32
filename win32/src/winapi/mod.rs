@@ -2,7 +2,6 @@ mod arena;
 pub mod builtin;
 pub mod kernel32;
 mod ntdll;
-mod ucrtbase;
 mod winmm;
 
 pub use kernel32::HFILE;

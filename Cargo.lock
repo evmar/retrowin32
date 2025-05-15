@@ -208,6 +208,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-ucrtbase"
+version = "0.1.0"
+dependencies = [
+ "builtin-user32",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-user32"
 version = "0.1.0"
 dependencies = [
@@ -771,6 +782,7 @@ dependencies = [
  "builtin-oleaut32",
  "builtin-retrowin32_test",
  "builtin-shlwapi",
+ "builtin-ucrtbase",
  "builtin-user32",
  "builtin-vcruntime140",
  "builtin-version",

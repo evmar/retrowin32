@@ -17,7 +17,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_ole32::DLL,
     builtin_oleaut32::DLL,
     builtin_shlwapi::DLL,
-    crate::winapi::ucrtbase::DLL,
+    builtin_ucrtbase::DLL,
     builtin_user32::DLL,
     builtin_vcruntime140::DLL,
     builtin_version::DLL,

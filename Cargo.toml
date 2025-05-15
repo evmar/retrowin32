@@ -23,6 +23,7 @@ members = [
   "win32/dll/oleaut32",
   "win32/dll/retrowin32_test",
   "win32/dll/shlwapi",
+  "win32/dll/ucrtbase",
   "win32/dll/user32",
   "win32/dll/vcruntime140",
   "win32/dll/version",

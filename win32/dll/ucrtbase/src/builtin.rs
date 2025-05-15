@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::ucrtbase::{self, *};
+    use crate as ucrtbase;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -1474,5 +1475,5 @@ const SHIMS: [Shim; 56usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "ucrtbase.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/ucrtbase.dll"),
+    raw: std::include_bytes!("../ucrtbase.dll"),
 };

@@ -1,4 +1,4 @@
-use crate::System;
+use win32_system::System;
 
 #[win32_derive::dllexport(cdecl)]
 pub fn time(sys: &mut dyn System, destTime: Option<&mut u32>) -> u32 {

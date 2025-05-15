@@ -89,7 +89,7 @@ fn main() -> anyhow::Result<()> {
         ("oleaut32", true),
         ("retrowin32_test", true),
         ("shlwapi", true),
-        ("ucrtbase", false),
+        ("ucrtbase", true),
         ("vcruntime140", true),
         ("version", true),
         ("user32", true),

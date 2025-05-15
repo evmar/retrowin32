@@ -23,6 +23,7 @@ builtin-ole32 = { path = "dll/ole32" }
 builtin-oleaut32 = { path = "dll/oleaut32" }
 builtin-retrowin32_test = { path = "dll/retrowin32_test" }
 builtin-shlwapi = { path = "dll/shlwapi" }
+builtin-ucrtbase = { path = "dll/ucrtbase" }
 builtin-user32 = { path = "dll/user32" }
 builtin-vcruntime140 = { path = "dll/vcruntime140" }
 builtin-version = { path = "dll/version" }

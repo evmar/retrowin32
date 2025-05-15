@@ -1,5 +1,5 @@
-use crate::{System, calling_convention::VarArgs};
-use win32_system::host;
+use win32_system::{System, host};
+use win32_winapi::calling_convention::VarArgs;
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _exit(sys: &mut dyn System, status: u32) {

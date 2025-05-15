@@ -1,6 +1,5 @@
 use memory::Extensions;
-
-use crate::System;
+use win32_system::System;
 
 #[win32_derive::dllexport(cdecl)]
 pub async fn _initterm(sys: &mut dyn System, start: u32, end: u32) -> u32 {
