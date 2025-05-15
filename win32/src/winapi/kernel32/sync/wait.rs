@@ -6,7 +6,7 @@ use crate::{
     winapi::{HANDLE, kernel32::KernelObject},
 };
 use memory::Extensions;
-use win32_system::{Wait, WaitResult};
+use win32_system::{System, Wait, WaitResult};
 
 impl KernelObject {
     pub fn get_event(&self) -> &EventObject {
@@ -19,7 +19,7 @@ impl KernelObject {
 
 /// The primitive beneath WaitForMultipleObjects etc.
 pub async fn wait_for_objects(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     objects: Box<[KernelObject]>,
     wait_all: bool,
     wait: Wait,
@@ -28,7 +28,7 @@ pub async fn wait_for_objects(
         todo!("WaitForMultipleObjects: bWaitAll");
     }
 
-    let wait = wait.to_absolute(&*machine.host);
+    let wait = wait.to_absolute(sys.host());
     loop {
         for (i, object) in objects.iter().enumerate() {
             let event = object.get_event();
@@ -45,7 +45,7 @@ pub async fn wait_for_objects(
         let until = match wait {
             Wait::None => return WaitResult::Timeout,
             Wait::Millis(until) => {
-                if machine.host.ticks() >= until {
+                if sys.host().ticks() >= until {
                     return WaitResult::Timeout;
                 }
                 Some(until)
@@ -61,7 +61,7 @@ pub async fn wait_for_objects(
 
         #[cfg(feature = "x86-emu")]
         {
-            machine.emu.x86.cpu_mut().block(until).await;
+            sys.block(until).await;
         }
         #[cfg(not(feature = "x86-emu"))]
         todo!();
@@ -75,14 +75,10 @@ pub async fn WaitForSingleObject(
     dwMilliseconds: u32,
 ) -> u32 {
     let object = machine.state.kernel32.objects.get(handle).unwrap();
-    wait_for_objects(
-        machine,
-        Box::new([object.clone()]),
-        false,
-        Wait::from_millis(dwMilliseconds),
-    )
-    .await
-    .to_code()
+    let objects = Box::new([object.clone()]);
+    wait_for_objects(machine, objects, false, Wait::from_millis(dwMilliseconds))
+        .await
+        .to_code()
 }
 
 #[win32_derive::dllexport]

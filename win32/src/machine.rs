@@ -105,11 +105,12 @@ impl System for Machine {
             .into_iter()
             .map(|&handle| self.state.kernel32.objects.get(handle).unwrap().clone())
             .collect::<Vec<_>>();
+        let wait = wait.to_absolute(self.host());
         Box::pin(kernel32::wait_for_objects(
             self,
             objects.into(),
             wait_all,
-            wait.to_absolute(&*self.host),
+            wait,
         ))
     }
 

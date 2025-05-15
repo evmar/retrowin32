@@ -38,16 +38,16 @@ pub struct WaveOut {
 }
 
 #[win32_derive::dllexport]
-pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
+pub async fn retrowin32_wave_thread_main(sys: &mut dyn System, hwo: HWAVEOUT) {
     // TODO: send the OPEN message here.
     loop {
         let host_ready = {
-            let mut state = get_state(machine);
+            let mut state = get_state(sys);
             let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
             wave_out.host_ready.clone()
         };
         let ready = winapi::kernel32::wait_for_objects(
-            machine,
+            sys,
             Box::new([winapi::kernel32::KernelObject::Event(host_ready)]),
             false,
             Wait::Forever,
@@ -55,7 +55,7 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
         .await;
 
         {
-            let mut state = get_state(machine);
+            let mut state = get_state(sys);
             let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
             if wave_out.blocks.is_empty() {
                 // TODO: wait on a condition variable
@@ -63,7 +63,7 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
                 drop(state);
 
                 let ready = winapi::kernel32::wait_for_objects(
-                    machine,
+                    sys,
                     Box::new([winapi::kernel32::KernelObject::Event(block_ready)]),
                     false,
                     Wait::Forever,
@@ -72,11 +72,11 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
             }
         }
 
-        let mut state = get_state(machine);
+        let mut state = get_state(sys);
         let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
         let wave_hdr_addr = wave_out.blocks.pop_front().unwrap();
 
-        let mem = machine.memory.mem();
+        let mem = sys.mem();
         let mut wave_hdr = mem.get_pod::<WAVEHDR>(wave_hdr_addr);
         let samples = mem.sub32(wave_hdr.lpData, wave_hdr.dwBufferLength);
         wave_out.audio.write(samples);
@@ -97,18 +97,17 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
                 //     DWORD_PTR dwParam2
                 // );
 
-                machine
-                    .call_x86(
-                        callback,
-                        vec![
-                            hwo.to_raw(),
-                            MM_WOM::DONE as u32,
-                            instance,
-                            wave_hdr_addr,
-                            0,
-                        ],
-                    )
-                    .await;
+                sys.call_x86(
+                    callback,
+                    vec![
+                        hwo.to_raw(),
+                        MM_WOM::DONE as u32,
+                        instance,
+                        wave_hdr_addr,
+                        0,
+                    ],
+                )
+                .await;
             }
             None => {}
         }
