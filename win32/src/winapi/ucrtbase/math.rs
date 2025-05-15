@@ -1,4 +1,3 @@
-use crate::Machine;
 use win32_system::System;
 
 #[win32_derive::dllexport(cdecl)]
@@ -12,24 +11,19 @@ pub const _adjust_fdiv: &'static str = "_adjust_fdiv";
 #[win32_derive::dllexport]
 pub const _acmdln: &'static str = "_acmdln";
 
-#[win32_derive::dllexport(cdecl)]
-pub fn _ftol(machine: &mut Machine) -> u64 {
-    // Argument is passed in st(0), and returned via edx:eax.
-    // TODO: implementations online typically set the RC flags of the
-    // FPU control register to 11, round towards zero.
-    #[cfg(feature = "x86-emu")]
-    {
-        let cpu = machine.emu.x86.cpu_mut();
-        let value = *cpu.fpu.st0() as i64 as u64;
-        cpu.fpu.pop();
-        value
-    }
-
-    #[cfg(not(feature = "x86-emu"))]
-    {
-        todo!();
-    }
-}
+// ftol is unique(?) in that it does not follow the calling convention,
+// but rather pops a value from the FPU stack and returns it in edx:eax.
+// We just use x86 assembly for this.
+// TODO: implementations of this online typically set the RC flags of the
+// FPU control register to 11, round towards zero.
+#[win32_derive::dllexport(raw_asm)]
+pub const _ftol: &'static str = "
+  sub esp, 8
+  fistp qword ptr [esp]
+  mov eax, dword ptr [esp]
+  mov edx, dword ptr [esp + 4]
+  ret 8
+";
 
 #[win32_derive::dllexport(cdecl)]
 pub fn sqrt(sys: &mut dyn System, x: f64) -> f64 {

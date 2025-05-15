@@ -17,6 +17,8 @@ pub struct DllExportMeta {
     /// Exported name, if specified.  Useful for C++-mangled names.
     /// Will use the Rust function name otherwise.
     pub symbol: Option<String>,
+    /// If true, this value is a string containing raw assembly code.
+    pub raw_asm: bool,
 }
 
 /// A function tagged as dllexport.
@@ -47,10 +49,14 @@ impl<'a> DllExport<'a> {
 }
 
 /// A const tagged as dllexport.
-/// This triggers generation of an data symbol in the DLL.
-/// This is used for exports like _adjust_fdiv, which are not functions.
+/// This triggers either:
+/// 1. Generation of an data symbol in the DLL.
+///    This is used for exports like _adjust_fdiv, which are not functions.
+/// 2. For raw_asm, generation of a function with that assembly.
 pub struct DllExportData<'a> {
     pub name: &'a syn::Ident,
+    /// When present, the raw assembly code to use for this export.
+    pub raw_asm: Option<String>,
 }
 
 pub struct Vtable {
@@ -79,6 +85,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
     let mut ordinal = None;
     let mut callconv = CallConv::Stdcall;
     let mut symbol = None;
+    let mut raw_asm = false;
 
     if matches!(attr.meta, syn::Meta::List(_)) {
         attr.parse_nested_meta(|meta| {
@@ -94,6 +101,9 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
                 let s: syn::LitStr = value.parse()?;
                 symbol = Some(s.value());
                 Ok(())
+            } else if meta.path.is_ident("raw_asm") {
+                raw_asm = true;
+                Ok(())
             } else {
                 Err(meta.error("unknown attribute"))
             }
@@ -104,6 +114,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
         ordinal,
         callconv,
         symbol,
+        raw_asm,
     }))
 }
 
@@ -319,11 +330,26 @@ fn parse_vtable(name: &syn::Ident, item: &syn::ItemMacro) -> syn::Result<Option<
 
 /// Parse a const looking for dllexport attributes.
 fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData>> {
-    if find_dllexport(&item.attrs)?.is_none() {
+    let Some(meta) = find_dllexport(&item.attrs)? else {
         return Ok(None);
-    }
+    };
 
-    Ok(Some(DllExportData { name: &item.ident }))
+    let raw_asm = if meta.raw_asm {
+        let syn::Expr::Lit(expr) = &*item.expr else {
+            return Err(syn::Error::new_spanned(item, "raw_asm must be a string"));
+        };
+        let syn::Lit::Str(lit) = &expr.lit else {
+            return Err(syn::Error::new_spanned(item, "raw_asm must be a string"));
+        };
+        Some(lit.value().trim().to_string())
+    } else {
+        None
+    };
+
+    Ok(Some(DllExportData {
+        name: &item.ident,
+        raw_asm,
+    }))
 }
 
 /// Gather all the dllexports in a list of syn::Items (module contents).

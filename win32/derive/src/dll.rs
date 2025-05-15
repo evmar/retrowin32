@@ -46,11 +46,15 @@ fn generate_asm(dllexports: &parse::DllExports) -> anyhow::Result<String> {
     for data in &dllexports.data {
         writeln!(f, ".globl _{}", data.name)?;
         writeln!(f, "_{}:", data.name)?;
-        // Note: we could do `.comm foo, 4` here to place this in a rw .data section
-        // distinct from the read-only data section the vtables are in,
-        // but given retrowin32 doesn't enforce read-only data anyway we might as
-        // well keep it all together.
-        writeln!(f, "  .long 0")?;
+        if let Some(raw_asm) = &data.raw_asm {
+            writeln!(f, "  {}", raw_asm)?;
+        } else {
+            // Note: we could do `.comm foo, 4` here to place this in a rw .data section
+            // distinct from the read-only data section the vtables are in,
+            // but given retrowin32 doesn't enforce read-only data anyway we might as
+            // well keep it all together.
+            writeln!(f, "  .long 0")?;
+        }
     }
     Ok(f)
 }

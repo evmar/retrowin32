@@ -461,21 +461,6 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn _ftol(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        unsafe {
-            let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("ucrtbase/math") {
-                trace::Record::new(ucrtbase::_ftol_pos, "ucrtbase/math", "_ftol", &[]).enter()
-            } else {
-                None
-            };
-            let result = ucrtbase::_ftol(&mut *(sys.machine() as *mut crate::Machine));
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        }
-    }
     pub unsafe fn _get_initial_narrow_environment(
         sys: &mut dyn System,
         stack_args: u32,
@@ -1260,7 +1245,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 57usize] = [
+const SHIMS: [Shim; 56usize] = [
     Shim {
         name: "_EH_prolog",
         func: Handler::Sync(wrappers::_EH_prolog),
@@ -1340,10 +1325,6 @@ const SHIMS: [Shim; 57usize] = [
     Shim {
         name: "_exit",
         func: Handler::Sync(wrappers::_exit),
-    },
-    Shim {
-        name: "_ftol",
-        func: Handler::Sync(wrappers::_ftol),
     },
     Shim {
         name: "_get_initial_narrow_environment",
