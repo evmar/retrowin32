@@ -6293,6 +6293,33 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn _hread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+            let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("kernel32/file/file16") {
+                trace::Record::new(
+                    kernel32::_hread_pos,
+                    "kernel32/file/file16",
+                    "_hread",
+                    &[("hFile", &hFile), ("lpBuffer", &lpBuffer)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::_hread(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+                lpBuffer,
+            );
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn _lclose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6657,7 +6684,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 243usize] = [
+const SHIMS: [Shim; 244usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7573,6 +7600,10 @@ const SHIMS: [Shim; 243usize] = [
     Shim {
         name: "WriteProfileStringW",
         func: Handler::Sync(wrappers::WriteProfileStringW),
+    },
+    Shim {
+        name: "_hread",
+        func: Handler::Sync(wrappers::_hread),
     },
     Shim {
         name: "_lclose",
