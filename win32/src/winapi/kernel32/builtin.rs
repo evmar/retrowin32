@@ -1405,6 +1405,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn FreeResource(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hResData = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if trace::enabled("kernel32/resource") {
+                trace::Record::new(
+                    kernel32::FreeResource_pos,
+                    "kernel32/resource",
+                    "FreeResource",
+                    &[("hResData", &hResData)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result =
+                kernel32::FreeResource(&mut *(sys.machine() as *mut crate::Machine), hResData);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn GetACP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6684,7 +6707,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 244usize] = [
+const SHIMS: [Shim; 245usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6868,6 +6891,10 @@ const SHIMS: [Shim; 244usize] = [
     Shim {
         name: "FreeLibrary",
         func: Handler::Sync(wrappers::FreeLibrary),
+    },
+    Shim {
+        name: "FreeResource",
+        func: Handler::Sync(wrappers::FreeResource),
     },
     Shim {
         name: "GetACP",

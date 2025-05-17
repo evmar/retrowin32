@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use crate::{
     Machine,
     winapi::{HRSRC, Str16, kernel32::HMODULE},
@@ -50,6 +48,12 @@ pub fn LockResource(machine: &mut Machine, hResData: HRSRC) -> u32 {
         None => 0,
         Some(handle) => handle.0.start,
     }
+}
+
+#[win32_derive::dllexport]
+pub fn FreeResource(machine: &mut Machine, hResData: u32) -> bool {
+    // todo
+    true // success
 }
 
 #[win32_derive::dllexport]
