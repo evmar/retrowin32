@@ -265,6 +265,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-winmm"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.9.0",
+ "log",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -787,6 +799,7 @@ dependencies = [
  "builtin-vcruntime140",
  "builtin-version",
  "builtin-wininet",
+ "builtin-winmm",
  "chrono",
  "log",
  "memory",

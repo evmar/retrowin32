@@ -94,7 +94,7 @@ fn main() -> anyhow::Result<()> {
         ("version", true),
         ("user32", true),
         ("wininet", true),
-        ("winmm", false),
+        ("winmm", true),
     ];
 
     let mut b = B::default();

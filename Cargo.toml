@@ -28,6 +28,7 @@ members = [
   "win32/dll/vcruntime140",
   "win32/dll/version",
   "win32/dll/wininet",
+  "win32/dll/winmm",
 ]
 
 [workspace.dependencies]

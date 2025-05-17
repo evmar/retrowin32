@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::winmm::{self, *};
+    use crate as winmm;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -1203,5 +1204,5 @@ const SHIMS: [Shim; 42usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "winmm.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/winmm.dll"),
+    raw: std::include_bytes!("../winmm.dll"),
 };

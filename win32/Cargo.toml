@@ -28,6 +28,7 @@ builtin-user32 = { path = "dll/user32" }
 builtin-vcruntime140 = { path = "dll/vcruntime140" }
 builtin-version = { path = "dll/version" }
 builtin-wininet = { path = "dll/wininet" }
+builtin-winmm = { path = "dll/winmm" }
 
 anyhow = "1.0"
 bincode = "1.3.3"

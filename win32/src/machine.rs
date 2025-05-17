@@ -170,7 +170,7 @@ impl System for Machine {
             &self.state.dsound
         } else if id == &TypeId::of::<std::cell::RefCell<builtin_ddraw::State>>() {
             &self.state.ddraw
-        } else if id == &TypeId::of::<std::cell::RefCell<winapi::winmm::State>>() {
+        } else if id == &TypeId::of::<std::cell::RefCell<builtin_winmm::State>>() {
             &self.state.winmm
         } else {
             panic!()

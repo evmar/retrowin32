@@ -2,7 +2,6 @@ mod arena;
 pub mod builtin;
 pub mod kernel32;
 mod ntdll;
-pub mod winmm;
 
 pub use kernel32::HFILE;
 pub use memory::str16::{Str16, String16};
@@ -17,7 +16,7 @@ pub struct State {
     pub gdi32: std::cell::RefCell<builtin_gdi32::State>,
     pub kernel32: kernel32::State,
     pub user32: std::cell::RefCell<builtin_user32::State>,
-    pub winmm: std::cell::RefCell<winmm::State>,
+    pub winmm: std::cell::RefCell<builtin_winmm::State>,
 }
 
 impl State {

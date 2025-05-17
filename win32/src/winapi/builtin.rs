@@ -22,7 +22,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_vcruntime140::DLL,
     builtin_version::DLL,
     builtin_wininet::DLL,
-    crate::winapi::winmm::DLL,
+    builtin_winmm::DLL,
     builtin_retrowin32_test::DLL,
 ];
 
