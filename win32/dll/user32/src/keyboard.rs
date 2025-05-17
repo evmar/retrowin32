@@ -1,4 +1,5 @@
 use win32_system::System;
+use win32_winapi::calling_convention::ArrayOut;
 
 pub type HKL = u32;
 
@@ -47,4 +48,9 @@ pub fn MapVirtualKeyA(
     uMapType: u32, /* MAP_VIRTUAL_KEY_TYPE */
 ) -> u32 {
     0 // no translation
+}
+
+#[win32_derive::dllexport]
+pub fn GetKeyNameTextA(sys: &dyn System, lParam: i32, lpString: ArrayOut<u8>) -> i32 {
+    0 // fail
 }

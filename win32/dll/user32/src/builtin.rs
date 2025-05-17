@@ -1314,6 +1314,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn GetKeyNameTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let lParam = <i32>::from_stack(mem, stack_args + 0u32);
+            let lpString = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("user32/keyboard") {
+                trace::Record::new(
+                    user32::GetKeyNameTextA_pos,
+                    "user32/keyboard",
+                    "GetKeyNameTextA",
+                    &[("lParam", &lParam), ("lpString", &lpString)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = user32::GetKeyNameTextA(sys, lParam, lpString);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn GetKeyState(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -4070,7 +4093,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 151usize] = [
+const SHIMS: [Shim; 152usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -4254,6 +4277,10 @@ const SHIMS: [Shim; 151usize] = [
     Shim {
         name: "GetForegroundWindow",
         func: Handler::Sync(wrappers::GetForegroundWindow),
+    },
+    Shim {
+        name: "GetKeyNameTextA",
+        func: Handler::Sync(wrappers::GetKeyNameTextA),
     },
     Shim {
         name: "GetKeyState",
