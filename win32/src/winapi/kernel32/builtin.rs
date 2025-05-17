@@ -4452,6 +4452,39 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn OpenFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpReOpenBuff = <Option<&mut OFSTRUCT>>::from_stack(mem, stack_args + 4u32);
+            let uStyle = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if trace::enabled("kernel32/file/file") {
+                trace::Record::new(
+                    kernel32::OpenFile_pos,
+                    "kernel32/file/file",
+                    "OpenFile",
+                    &[
+                        ("lpFileName", &lpFileName),
+                        ("lpReOpenBuff", &lpReOpenBuff),
+                        ("uStyle", &uStyle),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::OpenFile(
+                &mut *(sys.machine() as *mut crate::Machine),
+                lpFileName,
+                lpReOpenBuff,
+                uStyle,
+            );
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn OpenMutexA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6597,7 +6630,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 241usize] = [
+const SHIMS: [Shim; 242usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7249,6 +7282,10 @@ const SHIMS: [Shim; 241usize] = [
     Shim {
         name: "MultiByteToWideChar",
         func: Handler::Sync(wrappers::MultiByteToWideChar),
+    },
+    Shim {
+        name: "OpenFile",
+        func: Handler::Sync(wrappers::OpenFile),
     },
     Shim {
         name: "OpenMutexA",

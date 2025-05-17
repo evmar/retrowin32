@@ -7,6 +7,7 @@ use crate::{
     },
 };
 use bitflags::bitflags;
+use memory::Pod;
 use win32_system::host;
 use win32_winapi::WindowsPath;
 
@@ -150,6 +151,65 @@ pub fn CreateFileW(
         dwFlagsAndAttributes,
         hTemplateFile,
     )
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct OFSTRUCT {
+    cBytes: u8,
+    fFixedDisk: u8,
+    nErrCode: u16,
+    Reserved1: u16,
+    Reserved2: u16,
+    szPathName: [i8; 128],
+}
+unsafe impl Pod for OFSTRUCT {}
+
+#[win32_derive::dllexport]
+pub fn OpenFile(
+    machine: &mut Machine,
+    lpFileName: Option<&str>,
+    lpReOpenBuff: Option<&mut OFSTRUCT>,
+    uStyle: u32,
+) -> HFILE {
+    if uStyle != 0 {
+        todo!();
+    }
+
+    let file_options = host::FileOptions {
+        read: true,
+        write: false,
+        truncate: false,
+        create: false,
+        create_new: false,
+    };
+
+    let file_name = lpFileName.unwrap();
+    let path = WindowsPath::new(file_name);
+    let hfile = match machine.host.open(path, file_options) {
+        Ok(file) => {
+            set_last_error(machine, ERROR::SUCCESS);
+            machine.state.kernel32.files.add(file)
+        }
+        Err(err) => {
+            log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
+            set_last_error(machine, err);
+            return HFILE::invalid();
+        }
+    };
+
+    if let Some(of) = lpReOpenBuff {
+        *of = OFSTRUCT {
+            cBytes: std::mem::size_of::<OFSTRUCT>() as u8,
+            fFixedDisk: true as u8,
+            nErrCode: 0,
+            Reserved1: 0,
+            Reserved2: 0,
+            szPathName: [0; 128],
+        };
+    }
+
+    hfile
 }
 
 #[win32_derive::dllexport]
