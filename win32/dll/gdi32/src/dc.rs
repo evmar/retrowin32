@@ -17,8 +17,13 @@ pub trait DCTarget {
         // normal drawing calls to draw the same bitmap onto the same window.
         panic!("select_bitmap not implemented for this target");
     }
-    fn get_bitmap(&self, sys: &dyn System) -> Rc<RefCell<Bitmap>>;
-    fn flush(&self, sys: &dyn System);
+    fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
+        unimplemented!();
+    }
+    fn pixel_format(&self, sys: &dyn System) -> bitmap::PixelFormat {
+        self.get_bitmap(sys).borrow().format
+    }
+    fn flush(&self, _sys: &dyn System) {}
 }
 
 impl DCTarget for Rc<RefCell<Bitmap>> {
@@ -29,31 +34,14 @@ impl DCTarget for Rc<RefCell<Bitmap>> {
     fn select_bitmap(&mut self, bitmap: Rc<RefCell<Bitmap>>) {
         *self = bitmap;
     }
-
-    fn flush(&self, _sys: &dyn System) {
-        // In memory only; nothing to flush.
-    }
 }
 
 pub struct ScreenDCTarget;
 
 /// An empty target device for a DC, placeholder for the screen DC.
 impl DCTarget for ScreenDCTarget {
-    fn get_bitmap(&self, _sys: &dyn System) -> Rc<RefCell<Bitmap>> {
-        // We need to return a bitmap here to satisfy CreateCompatibleDC,
-        // which only cares about the pixel format.
-        let bitmap = Bitmap {
-            width: 1,
-            height: 1,
-            format: bitmap::PixelFormat::RGBA32,
-            pixels: PixelData::Ptr(0, 0),
-        };
-        Rc::new(RefCell::new(bitmap))
-    }
-
-    fn flush(&self, _sys: &dyn System) {
-        // We don't expect any drawing to the screen DC.
-        unimplemented!()
+    fn pixel_format(&self, _sys: &dyn System) -> bitmap::PixelFormat {
+        bitmap::PixelFormat::RGBA32
     }
 }
 
@@ -93,9 +81,7 @@ pub fn CreateCompatibleDC(sys: &dyn System, hdc: HDC) -> HDC {
         .unwrap()
         .borrow()
         .target
-        .get_bitmap(sys)
-        .borrow()
-        .format;
+        .pixel_format(sys);
 
     // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
     // SkiFree depends on this!

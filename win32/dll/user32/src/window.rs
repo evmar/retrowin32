@@ -1149,7 +1149,9 @@ pub fn GetDC(sys: &mut dyn System, hWnd: HWND) -> HDC {
     }
 
     let mut state = get_state(sys);
-    state.desktop_window(); // ensure desktop window exists
+    if hWnd == state.desktop_window() {
+        return gdi32::get_state(sys).screen_dc();
+    }
 
     let rcwindow = state.windows.get(hWnd).unwrap();
     let window = rcwindow.borrow();

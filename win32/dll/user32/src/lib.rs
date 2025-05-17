@@ -17,12 +17,13 @@ mod wndclass;
 
 pub use builtin::DLL;
 
+use builtin_gdi32 as gdi32;
 use std::{cell::RefCell, rc::Rc};
 use win32_system::System;
 use win32_winapi::{HWND, Handles};
 
-pub use builtin_gdi32::HDC;
 pub use dialog::*;
+pub use gdi32::HDC;
 pub use keyboard::*;
 pub use menu::*;
 pub use message::*;

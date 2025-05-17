@@ -315,14 +315,14 @@ pub fn CreateDIBSection(
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(sys: &mut dyn System, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let mut state = get_state(sys);
-    let format = {
-        let dc = state.dcs.get(hdc).unwrap().borrow();
-
-        let bitmap = dc.target.get_bitmap(sys);
-        let bitmap = bitmap.borrow();
-        assert_eq!(bitmap.format, PixelFormat::RGBA32);
-        bitmap.format
-    };
+    let format = state
+        .dcs
+        .get(hdc)
+        .unwrap()
+        .borrow()
+        .target
+        .pixel_format(sys);
+    assert_eq!(format, PixelFormat::RGBA32);
 
     let bitmap = Bitmap {
         width: cx,
