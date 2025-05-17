@@ -1,5 +1,6 @@
+use win32_system::System;
+
 use super::MMRESULT;
-use crate::System;
 
 pub type HMIXEROBJ = u32;
 

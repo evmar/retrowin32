@@ -11,7 +11,7 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let pszSound = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-            let hmod = <HMODULE>::from_stack(mem, stack_args + 4u32);
+            let hmod = <u32>::from_stack(mem, stack_args + 4u32);
             let fdwSound = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("winmm/misc") {
                 trace::Record::new(
@@ -571,11 +571,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = winmm::retrowin32_wave_thread_main(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    hwo,
-                )
-                .await;
+                let result = winmm::retrowin32_wave_thread_main(sys, hwo).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -1026,8 +1022,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winmm::waveOutWrite(&mut *(sys.machine() as *mut crate::Machine), hwo, pwh, cbwh);
+            let result = winmm::waveOutWrite(sys, hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

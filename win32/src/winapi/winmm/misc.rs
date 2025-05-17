@@ -1,13 +1,8 @@
-pub use crate::winapi::kernel32::HMODULE;
-use crate::{System, winapi::Str16};
+use win32_system::System;
+use win32_winapi::Str16;
 
 #[win32_derive::dllexport]
-pub fn PlaySoundW(
-    sys: &dyn System,
-    pszSound: Option<&Str16>,
-    hmod: HMODULE,
-    fdwSound: u32,
-) -> bool {
+pub fn PlaySoundW(sys: &dyn System, pszSound: Option<&Str16>, hmod: u32, fdwSound: u32) -> bool {
     todo!();
 }
 

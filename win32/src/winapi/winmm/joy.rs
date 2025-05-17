@@ -1,4 +1,4 @@
-use crate::System;
+use win32_system::System;
 
 pub type JOYCAPSA = u32;
 pub type JOYINFOEX = u32;

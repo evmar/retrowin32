@@ -11,8 +11,6 @@ mod mixer;
 mod time;
 mod wave;
 
-use std::cell::{RefCell, RefMut};
-
 pub use builtin::DLL;
 
 pub use joy::*;
@@ -22,7 +20,10 @@ pub use misc::*;
 pub use mixer::*;
 pub use time::*;
 pub use wave::*;
+
+use std::cell::{RefCell, RefMut};
 use win32_system::System;
+use win32_winapi::calling_convention::ABIReturn;
 
 #[derive(Copy, Clone, Debug)]
 pub enum MMRESULT {
@@ -30,8 +31,8 @@ pub enum MMRESULT {
     MMSYSERR_NOTENABLED = 3,
 }
 
-impl Into<crate::calling_convention::ABIReturn> for MMRESULT {
-    fn into(self) -> crate::calling_convention::ABIReturn {
+impl Into<ABIReturn> for MMRESULT {
+    fn into(self) -> ABIReturn {
         (self as u32).into()
     }
 }

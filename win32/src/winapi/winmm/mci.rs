@@ -1,4 +1,5 @@
-use crate::{System, calling_convention::ArrayOut, winapi::HWND};
+use win32_system::System;
+use win32_winapi::{HWND, calling_convention::ArrayOut};
 
 #[win32_derive::dllexport]
 pub fn mciGetErrorStringA(

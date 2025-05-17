@@ -1,11 +1,11 @@
 use super::{MMRESULT, get_state};
-use crate::winapi::{self, Handles};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
 use win32_system::{Event, System, Wait, host};
+use win32_winapi::{HANDLE, HWND, Handles, calling_convention::FromStack};
 
-pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
+pub type HWAVEOUT = HANDLE<WaveOut>;
 
 #[derive(Default)]
 pub struct WaveState {
@@ -178,7 +178,7 @@ pub struct WaveOutOpenFlags {
     // todo: there are other possible flags
 }
 
-impl<'a> crate::calling_convention::FromStack<'a> for WaveOutOpenFlags {
+impl<'a> FromStack<'a> for WaveOutOpenFlags {
     fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
         let flags = mem.get_pod::<u32>(sp);
         let callback = CALLBACK::try_from(flags & 0x00070000).unwrap();
@@ -223,7 +223,7 @@ pub fn waveOutOpen(
     let notify = match fdwOpen.callback {
         CALLBACK::NULL => None,
         CALLBACK::WINDOW => {
-            let hwnd = winapi::HWND::from_raw(dwCallback);
+            let hwnd = HWND::from_raw(dwCallback);
             log::warn!("TODO: waveOutOpen callback with window={hwnd:?}");
             None
         }
