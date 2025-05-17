@@ -21,7 +21,7 @@ pub fn CreatePalette(sys: &dyn System, plpal: u32) -> HGDIOBJ {
 
 #[win32_derive::dllexport]
 pub fn RealizePalette(sys: &dyn System, hdc: HDC) -> u32 {
-    todo!()
+    0 // number of entries mapped
 }
 
 #[win32_derive::dllexport]
