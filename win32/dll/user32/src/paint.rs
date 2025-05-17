@@ -202,7 +202,7 @@ pub enum BrushOrColor {
 
 impl<'a> FromArg<'a> for BrushOrColor {
     fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
-        if arg < gdi32::LOWEST_HGDIOBJ {
+        if arg > 0 && arg < gdi32::LOWEST_HGDIOBJ {
             BrushOrColor::Color(COLOR::try_from(arg - 1).unwrap())
         } else {
             BrushOrColor::Brush(HBRUSH::from_raw(arg))
