@@ -100,6 +100,10 @@ impl System for Machine {
         self.unblock_all();
     }
 
+    fn sleep(&mut self, ms: u32) -> std::pin::Pin<Box<dyn Future<Output = ()> + '_>> {
+        Box::pin(kernel32::Sleep(self, ms))
+    }
+
     fn wait_for_events(
         &mut self,
         events: &[ArcEvent],

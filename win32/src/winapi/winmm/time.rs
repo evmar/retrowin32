@@ -24,7 +24,7 @@ pub async fn retrowin32_time_thread_main(sys: &mut dyn System) {
         user_data,
     } = get_state(sys).time_thread.as_ref().unwrap();
     loop {
-        crate::winapi::kernel32::Sleep(sys, delay).await;
+        sys.sleep(delay).await;
         sys.call_x86(callback, vec![timer_id, 0, user_data, 0, 0])
             .await;
     }

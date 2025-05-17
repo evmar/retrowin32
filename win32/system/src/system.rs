@@ -36,6 +36,8 @@ pub trait System {
     fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;
     fn unblock(&mut self);
 
+    fn sleep(&mut self, ms: u32) -> Pin<Box<dyn Future<Output = ()> + '_>>;
+
     fn wait_for_events(
         &mut self,
         events: &[ArcEvent],
