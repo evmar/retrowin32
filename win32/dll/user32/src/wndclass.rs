@@ -30,6 +30,7 @@ pub struct WndClass {
     pub style: CS,
     pub wndproc: u32,
     pub background: HBRUSH,
+    pub wnd_extra: u32,
 }
 
 /// The collection of known window classes.
@@ -74,6 +75,7 @@ fn button_class() -> WndClass {
         style: CS::VREDRAW | CS::HREDRAW,
         wndproc: 0,
         background: HBRUSH::null(),
+        wnd_extra: 0,
     }
 }
 
@@ -124,6 +126,7 @@ pub fn RegisterClassW(sys: &mut dyn System, lpWndClass: Option<&WNDCLASSA>) -> u
         style: CS::from_bits(lpWndClass.style).unwrap(),
         wndproc: lpWndClass.lpfnWndProc,
         background: background.to_brush(sys),
+        wnd_extra: lpWndClass.cbWndExtra,
     };
     get_state(sys).wndclasses.register(wndclass)
 }
@@ -178,6 +181,7 @@ pub fn RegisterClassExA(sys: &mut dyn System, lpWndClassEx: Option<&WNDCLASSEXA>
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: BrushOrColor::from_arg(sys.mem(), lpWndClassEx.hbrBackground).to_brush(sys),
+        wnd_extra: lpWndClassEx.cbWndExtra,
     };
     get_state(sys).wndclasses.register(wndclass)
 }
@@ -193,6 +197,7 @@ pub fn RegisterClassExW(sys: &mut dyn System, lpWndClassEx: Option<&WNDCLASSEXW>
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: BrushOrColor::from_arg(sys.mem(), lpWndClassEx.hbrBackground).to_brush(sys),
+        wnd_extra: lpWndClassEx.cbWndExtra,
     };
     get_state(sys).wndclasses.register(wndclass)
 }

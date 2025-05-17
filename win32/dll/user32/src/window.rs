@@ -126,8 +126,10 @@ pub struct Window {
     pub other_style: u16,
     /// The current show state of the window.
     pub show_cmd: SW,
-    /// User data set via SetWindowLong.
+    /// User data set via SetWindowLong(GWL::USERDATA).
     pub user_data: i32,
+    /// Extra data set via SetWindowLong(positive index).
+    pub extra: Option<Box<[i32]>>,
 }
 
 pub enum WindowType {
@@ -423,6 +425,18 @@ pub async fn CreateWindowExW(
         ))
     };
 
+    let extra = {
+        let extra_bytes = wndclass.borrow().wnd_extra;
+        assert!(extra_bytes % 4 == 0);
+        let extra_size = (extra_bytes / 4) as usize;
+        if extra_size > 0 {
+            let mut extra = Vec::<i32>::with_capacity(extra_size);
+            extra.resize(extra_size, 0);
+            Some(extra.into_boxed_slice())
+        } else {
+            None
+        }
+    };
     let window = Window {
         id: hwnd.to_raw(),
         typ,
@@ -433,6 +447,7 @@ pub async fn CreateWindowExW(
         other_style: dwStyle.rest,
         show_cmd: SW::HIDE,
         user_data: 0,
+        extra,
     };
 
     state.windows.set(hwnd, Rc::new(RefCell::new(window)));
@@ -1108,6 +1123,9 @@ pub fn SetWindowLongA(
             GWL::USERDATA => std::mem::replace(&mut window.user_data, dwNewLong),
             _ => todo!("GetWindowLong({gwl:?})"),
         },
+        Err(val) if val >= 0 => {
+            std::mem::replace(&mut window.extra.as_mut().unwrap()[val as usize], dwNewLong)
+        }
         Err(val) => todo!("SetWindowLong({nIndex})", nIndex = val),
     }
 }
