@@ -1115,6 +1115,7 @@ pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, i32>
             GWL::USERDATA => window.user_data,
             // _ => todo!("GetWindowLong({gwl:?})"),
         },
+        Err(val) if val >= 0 => window.extra.as_ref().unwrap()[val as usize],
         Err(val) => todo!("GetWindowLong({nIndex})", nIndex = val),
     }
 }
