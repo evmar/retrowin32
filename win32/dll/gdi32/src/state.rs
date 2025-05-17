@@ -37,11 +37,9 @@ impl GDIHandles for Handles<HGDIOBJ, Object> {
 
 impl Default for State {
     fn default() -> Self {
-        let mut dcs: Handles<HDC, Rc<RefCell<DC>>> = Default::default();
-        let screen_dc = dcs.add_dc(DC::new(Box::new(ScreenDCTarget)));
         State {
-            dcs,
-            screen_dc,
+            dcs: Default::default(),
+            screen_dc: HDC::null(),
             objects: Handles::new(LOWEST_HGDIOBJ),
         }
     }
@@ -50,5 +48,12 @@ impl Default for State {
 impl State {
     pub fn new_dc(&mut self, target: Box<dyn DCTarget>) -> HDC {
         self.dcs.add_dc(DC::new(target))
+    }
+
+    pub fn screen_dc(&mut self) -> HDC {
+        if self.screen_dc.is_null() {
+            self.screen_dc = self.dcs.add_dc(DC::new(Box::new(ScreenDCTarget)));
+        }
+        self.screen_dc
     }
 }

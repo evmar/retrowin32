@@ -1144,7 +1144,7 @@ pub fn SetWindowLongA(
 #[win32_derive::dllexport]
 pub fn GetDC(sys: &mut dyn System, hWnd: HWND) -> HDC {
     if hWnd.is_null() {
-        return gdi32::get_state(sys).screen_dc;
+        return gdi32::get_state(sys).screen_dc();
     }
 
     let state = get_state(sys);
