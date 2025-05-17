@@ -5,6 +5,8 @@ use win32_system::System;
 use win32_winapi::HANDLE;
 
 /// GDI Object, as identified by HANDLEs.
+// We need to be generic across these because any handle can be passed
+// to SelectObject.
 #[derive(Debug)]
 pub enum Object {
     Brush(Brush),

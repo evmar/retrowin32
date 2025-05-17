@@ -1,8 +1,8 @@
-use win32_system::System;
-
 use super::{HDC, HGDIOBJ};
+use win32_system::System;
+use win32_winapi::HANDLE;
 
-pub type HPALETTE = u32; // TODO
+pub type HPALETTE = HANDLE<()>; // TODO
 
 #[repr(C)]
 #[derive(Clone, Debug)]
@@ -26,6 +26,10 @@ pub fn RealizePalette(sys: &dyn System, hdc: HDC) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn SelectPalette(sys: &dyn System, hdc: HDC, hPal: HPALETTE, bForceBkgd: bool) -> HPALETTE {
+    if hPal.is_null() {
+        // ok, we assume all palettes are null for now
+        return hPal;
+    }
     todo!()
 }
 

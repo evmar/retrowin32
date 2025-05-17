@@ -58,6 +58,8 @@ pub struct DC {
     // per object type.
     pub brush: HGDIOBJ,
     pub pen: HGDIOBJ,
+    // For now, palettes are always null.
+    // pub palette: HGDIOBJ,
 }
 
 impl DC {
