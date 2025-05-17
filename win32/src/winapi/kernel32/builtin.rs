@@ -6416,6 +6416,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn lstrcmpA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
+                    kernel32::lstrcmpA_pos,
+                    "kernel32/libc",
+                    "lstrcmpA",
+                    &[("lpString1", &lpString1), ("lpString2", &lpString2)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::lstrcmpA(sys, lpString1, lpString2);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn lstrcmpiA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6634,7 +6657,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 242usize] = [
+const SHIMS: [Shim; 243usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7570,6 +7593,10 @@ const SHIMS: [Shim; 242usize] = [
     Shim {
         name: "lstrcatA",
         func: Handler::Sync(wrappers::lstrcatA),
+    },
+    Shim {
+        name: "lstrcmpA",
+        func: Handler::Sync(wrappers::lstrcmpA),
     },
     Shim {
         name: "lstrcmpiA",
