@@ -75,7 +75,7 @@ fn convert_type(ty: &windows_metadata::Type) -> String {
             format!("Option<&mut {}>", convert_type(ty))
         }
         ConstPtr(_, _) => todo!(),
-        Win32Array(_, _) => todo!(),
+        Win32Array(ty, len) => format!("[{}; {}]", convert_type(ty), len),
         WinrtArray(_) => todo!(),
         WinrtArrayRef(_) => todo!(),
         ConstRef(_) => todo!(),
