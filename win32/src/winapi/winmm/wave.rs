@@ -46,13 +46,9 @@ pub async fn retrowin32_wave_thread_main(sys: &mut dyn System, hwo: HWAVEOUT) {
             let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
             wave_out.host_ready.clone()
         };
-        let ready = winapi::kernel32::wait_for_objects(
-            sys,
-            Box::new([winapi::kernel32::KernelObject::Event(host_ready)]),
-            false,
-            Wait::Forever,
-        )
-        .await;
+        let ready = sys
+            .wait_for_events(&[host_ready], false, Wait::Forever)
+            .await;
 
         {
             let mut state = get_state(sys);
@@ -62,13 +58,9 @@ pub async fn retrowin32_wave_thread_main(sys: &mut dyn System, hwo: HWAVEOUT) {
                 let block_ready = wave_out.block_ready.clone();
                 drop(state);
 
-                let ready = winapi::kernel32::wait_for_objects(
-                    sys,
-                    Box::new([winapi::kernel32::KernelObject::Event(block_ready)]),
-                    false,
-                    Wait::Forever,
-                )
-                .await;
+                let ready = sys
+                    .wait_for_events(&[block_ready], false, Wait::Forever)
+                    .await;
             }
         }
 

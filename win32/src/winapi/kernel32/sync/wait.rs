@@ -5,10 +5,10 @@ use crate::{
     winapi::{HANDLE, kernel32::KernelObject},
 };
 use memory::Extensions;
-use win32_system::{Event, System, Wait, WaitResult};
+use win32_system::{ArcEvent, System, Wait, WaitResult};
 
 impl KernelObject {
-    pub fn get_event(&self) -> &Event {
+    pub fn get_event(&self) -> &ArcEvent {
         match self {
             KernelObject::Event(event) => event,
             KernelObject::Thread(thread) => &thread.terminated,
@@ -17,9 +17,9 @@ impl KernelObject {
 }
 
 /// The primitive beneath WaitForMultipleObjects etc.
-pub async fn wait_for_objects(
+pub async fn wait_for_events(
     sys: &mut dyn System,
-    objects: Box<[KernelObject]>,
+    events: Box<[ArcEvent]>,
     wait_all: bool,
     wait: Wait,
 ) -> WaitResult {
@@ -29,8 +29,7 @@ pub async fn wait_for_objects(
 
     let wait = wait.to_absolute(sys.host());
     loop {
-        for (i, object) in objects.iter().enumerate() {
-            let event = object.get_event();
+        for (i, event) in events.iter().enumerate() {
             let mut signaled = event.signaled.lock().unwrap();
             if *signaled {
                 if !event.manual_reset {
@@ -73,11 +72,22 @@ pub async fn WaitForSingleObject(
     handle: HANDLE<()>,
     dwMilliseconds: u32,
 ) -> u32 {
-    let object = machine.state.kernel32.objects.get(handle).unwrap();
-    let objects = Box::new([object.clone()]);
-    wait_for_objects(machine, objects, false, Wait::from_millis(dwMilliseconds))
-        .await
-        .to_code()
+    let event = machine
+        .state
+        .kernel32
+        .objects
+        .get(handle)
+        .unwrap()
+        .get_event()
+        .clone();
+    wait_for_events(
+        machine,
+        [event].into(),
+        false,
+        Wait::from_millis(dwMilliseconds),
+    )
+    .await
+    .to_code()
 }
 
 #[win32_derive::dllexport]
@@ -88,14 +98,23 @@ pub async fn WaitForMultipleObjects(
     bWaitAll: bool,
     dwMilliseconds: u32,
 ) -> u32 /* WAIT_EVENT */ {
-    let objects = machine
+    let events = machine
         .mem()
         .iter_pod::<HANDLE<()>>(lpHandles, nCount)
-        .map(|handle| machine.state.kernel32.objects.get(handle).unwrap().clone())
+        .map(|handle| {
+            machine
+                .state
+                .kernel32
+                .objects
+                .get(handle)
+                .unwrap()
+                .get_event()
+                .clone()
+        })
         .collect::<Vec<_>>();
-    wait_for_objects(
+    wait_for_events(
         machine,
-        objects.into(),
+        events.into(),
         false,
         Wait::from_millis(dwMilliseconds),
     )

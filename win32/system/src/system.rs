@@ -1,4 +1,5 @@
 use crate::{
+    event::ArcEvent,
     host,
     wait::{Wait, WaitResult},
 };
@@ -34,6 +35,13 @@ pub trait System {
     // TODO: figure out relationship between blocking and event objects.
     fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;
 
+    fn wait_for_events(
+        &mut self,
+        events: &[ArcEvent],
+        wait_all: bool,
+        wait: Wait,
+    ) -> Pin<Box<dyn Future<Output = WaitResult> + '_>>;
+    // TODO: remove me
     fn wait_for_objects(
         &mut self,
         objects: &[HANDLE<()>],

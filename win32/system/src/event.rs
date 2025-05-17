@@ -1,5 +1,7 @@
 use std::sync::{Arc, Mutex};
 
+pub type ArcEvent = Arc<Event>;
+
 /// Event objects, used for synchronization between Windows threads.
 //
 // In the emulator there are no real threads, but we still use event objects

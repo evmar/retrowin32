@@ -3,7 +3,8 @@ use crate::winapi::kernel32;
 use crate::{loader, winapi};
 use std::any::{Any, TypeId};
 use win32_system::memory::Memory;
-use win32_system::{Wait, WaitResult, host};
+use win32_system::{ArcEvent, Wait, WaitResult, host};
+use win32_winapi::HANDLE;
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::Machine;
@@ -95,23 +96,40 @@ impl System for Machine {
         }
     }
 
-    fn wait_for_objects(
+    fn wait_for_events(
         &mut self,
-        objects: &[winapi::HANDLE<()>],
+        events: &[ArcEvent],
         wait_all: bool,
         wait: Wait,
     ) -> std::pin::Pin<Box<dyn Future<Output = WaitResult> + '_>> {
-        let objects = objects
-            .into_iter()
-            .map(|&handle| self.state.kernel32.objects.get(handle).unwrap().clone())
-            .collect::<Vec<_>>();
         let wait = wait.to_absolute(self.host());
-        Box::pin(kernel32::wait_for_objects(
+        Box::pin(kernel32::wait_for_events(
             self,
-            objects.into(),
+            events.into(),
             wait_all,
             wait,
         ))
+    }
+
+    fn wait_for_objects(
+        &mut self,
+        events: &[HANDLE<()>],
+        wait_all: bool,
+        wait: Wait,
+    ) -> std::pin::Pin<Box<dyn Future<Output = WaitResult> + '_>> {
+        let objects = events
+            .into_iter()
+            .map(|handle| {
+                self.state
+                    .kernel32
+                    .objects
+                    .get(*handle)
+                    .unwrap()
+                    .get_event()
+                    .clone()
+            })
+            .collect();
+        Box::pin(kernel32::wait_for_events(self, objects, wait_all, wait))
     }
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32 {
