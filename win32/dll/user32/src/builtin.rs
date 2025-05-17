@@ -1318,10 +1318,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let nVirtKey = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::GetKeyState_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "GetKeyState",
                     &[("nVirtKey", &nVirtKey)],
                 )
@@ -1340,10 +1340,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::GetKeyboardLayout_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "GetKeyboardLayout",
                     &[("idThread", &idThread)],
                 )
@@ -1363,10 +1363,10 @@ mod wrappers {
             let mem = sys.mem().detach();
             let nBuff = <i32>::from_stack(mem, stack_args + 0u32);
             let lpList = <Option<&mut HKL>>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::GetKeyboardLayoutList_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "GetKeyboardLayoutList",
                     &[("nBuff", &nBuff), ("lpList", &lpList)],
                 )
@@ -1385,10 +1385,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::GetKeyboardState_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "GetKeyboardState",
                     &[("lpKeyState", &lpKeyState)],
                 )
@@ -1407,10 +1407,10 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::GetKeyboardType_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "GetKeyboardType",
                     &[("nTypeFlag", &nTypeFlag)],
                 )
@@ -3975,10 +3975,10 @@ mod wrappers {
             let bScan = <u8>::from_stack(mem, stack_args + 4u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
             let dwExtraInfo = <u32>::from_stack(mem, stack_args + 12u32);
-            let __trace_record = if trace::enabled("user32/misc") {
+            let __trace_record = if trace::enabled("user32/keyboard") {
                 trace::Record::new(
                     user32::keybd_event_pos,
-                    "user32/misc",
+                    "user32/keyboard",
                     "keybd_event",
                     &[
                         ("bVk", &bVk),

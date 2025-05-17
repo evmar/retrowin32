@@ -3,6 +3,7 @@
 
 mod builtin;
 mod dialog;
+mod keyboard;
 mod menu;
 mod message;
 mod misc;
@@ -22,6 +23,7 @@ use win32_winapi::{HWND, Handles};
 
 pub use builtin_gdi32::HDC;
 pub use dialog::*;
+pub use keyboard::*;
 pub use menu::*;
 pub use message::*;
 pub use misc::*;

@@ -6,7 +6,6 @@ use win32_winapi::{HWND, POINT, RECT, Str16, calling_convention::VarArgs};
 use crate::printf;
 
 pub type HINSTANCE = u32;
-pub type HKL = u32;
 pub type HMONITOR = u32;
 
 #[win32_derive::dllexport]
@@ -163,11 +162,6 @@ pub fn wsprintfW(sys: &mut dyn System, buf: u32, fmt: Option<&Str16>, args: VarA
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyState(sys: &dyn System, nVirtKey: u32) -> u32 {
-    0
-}
-
-#[win32_derive::dllexport]
 pub fn IsIconic(sys: &dyn System, hwnd: HWND) -> bool {
     false
 }
@@ -191,22 +185,6 @@ pub fn GetCursorPos(sys: &dyn System, lpPoint: Option<&mut POINT>) -> bool {
 #[win32_derive::dllexport]
 pub fn SetCursorPos(sys: &dyn System, x: i32, y: i32) -> bool {
     todo!();
-}
-
-#[win32_derive::dllexport]
-pub fn GetKeyboardState(sys: &dyn System, lpKeyState: Option<&mut u8>) -> bool {
-    todo!()
-}
-
-#[win32_derive::dllexport]
-pub fn keybd_event(
-    sys: &dyn System,
-    bVk: u8,
-    bScan: u8,
-    dwFlags: u32, /* KEYBD_EVENT_FLAGS */
-    dwExtraInfo: u32,
-) {
-    todo!()
 }
 
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -333,23 +311,6 @@ pub fn SystemParametersInfoA(
         }
     }
     true
-}
-
-#[win32_derive::dllexport]
-pub fn GetKeyboardType(sys: &dyn System, nTypeFlag: i32) -> i32 {
-    0 // fail
-}
-
-#[win32_derive::dllexport]
-pub fn GetKeyboardLayout(sys: &dyn System, idThread: u32) -> u32 {
-    log::warn!("GetKeyboardLayout: stub");
-    0 // garbage value, unclear if callers care
-}
-
-#[win32_derive::dllexport]
-pub fn GetKeyboardLayoutList(sys: &dyn System, nBuff: i32, lpList: Option<&mut HKL>) -> i32 {
-    log::warn!("GetKeyboardLayoutList: stub");
-    0 // no layouts
 }
 
 #[win32_derive::dllexport]
