@@ -55,18 +55,25 @@ pub fn try_from_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
         }
     });
 
-    let value_match = if has_negative {
-        quote!(value as i32)
+    let get_value = if has_negative {
+        quote!(let value = value as i32;)
     } else {
-        quote!(value)
+        quote!()
+    };
+
+    let err_type = if has_negative {
+        quote!(i32)
+    } else {
+        quote!(u32)
     };
 
     quote! {
         impl TryFrom<u32> for #name {
-            type Error = u32;
+            type Error = #err_type;
 
             fn try_from(value: u32) -> Result<Self, Self::Error> {
-                Ok(match #value_match {
+                #get_value
+                Ok(match value {
                     #(#matches)*
                     _ => return Err(value),
                 })

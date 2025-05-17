@@ -2708,7 +2708,7 @@ mod wrappers {
     pub unsafe fn GetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
+            let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/std") {
                 trace::Record::new(
                     kernel32::GetStdHandle_pos,
@@ -5363,7 +5363,7 @@ mod wrappers {
     pub unsafe fn SetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
+            let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
             let hHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/std") {
                 trace::Record::new(

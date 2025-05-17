@@ -1090,7 +1090,7 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-            let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
+            let nIndex = <Result<GCL, i32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
                     user32::GetClassLongA_pos,
@@ -1819,7 +1819,7 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-            let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
+            let nIndex = <Result<GWL, i32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
                     user32::GetWindowLongA_pos,
@@ -3213,7 +3213,7 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-            let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
+            let nIndex = <Result<GCL, i32>>::from_stack(mem, stack_args + 4u32);
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/wndclass") {
                 trace::Record::new(
@@ -3560,7 +3560,7 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-            let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
+            let nIndex = <Result<GWL, i32>>::from_stack(mem, stack_args + 4u32);
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(

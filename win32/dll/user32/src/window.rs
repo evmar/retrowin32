@@ -1080,7 +1080,7 @@ pub enum GWL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
+pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, i32>) -> i32 {
     let state = get_state(sys);
     let window = state.windows.get(hWnd).unwrap().borrow();
     match nIndex {
@@ -1090,7 +1090,7 @@ pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, u32>
             GWL::USERDATA => window.user_data,
             // _ => todo!("GetWindowLong({gwl:?})"),
         },
-        Err(val) => todo!("GetWindowLong({nIndex})", nIndex = val as i32),
+        Err(val) => todo!("GetWindowLong({nIndex})", nIndex = val),
     }
 }
 
@@ -1098,7 +1098,7 @@ pub fn GetWindowLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GWL, u32>
 pub fn SetWindowLongA(
     sys: &mut dyn System,
     hWnd: HWND,
-    nIndex: Result<GWL, u32>,
+    nIndex: Result<GWL, i32>,
     dwNewLong: i32,
 ) -> i32 {
     let state = get_state(sys);
@@ -1108,7 +1108,7 @@ pub fn SetWindowLongA(
             GWL::USERDATA => std::mem::replace(&mut window.user_data, dwNewLong),
             _ => todo!("GetWindowLong({gwl:?})"),
         },
-        Err(val) => todo!("SetWindowLong({nIndex})", nIndex = val as i32),
+        Err(val) => todo!("SetWindowLong({nIndex})", nIndex = val),
     }
 }
 

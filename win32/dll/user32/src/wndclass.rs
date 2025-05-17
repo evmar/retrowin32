@@ -212,7 +212,7 @@ pub enum GCL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetClassLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
+pub fn GetClassLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GCL, i32>) -> u32 {
     let state = get_state(sys);
     let window = state.windows.get(hWnd).unwrap().borrow();
     let class = window.wndclass.borrow();
@@ -226,7 +226,7 @@ pub fn GetClassLongA(sys: &mut dyn System, hWnd: HWND, nIndex: Result<GCL, u32>)
 pub fn SetClassLongA(
     sys: &mut dyn System,
     hWnd: HWND,
-    nIndex: Result<GCL, u32>,
+    nIndex: Result<GCL, i32>,
     dwNewLong: i32,
 ) -> u32 {
     let state = get_state(sys);
