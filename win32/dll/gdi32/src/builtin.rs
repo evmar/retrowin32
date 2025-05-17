@@ -1174,6 +1174,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn SetSystemPaletteUse(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let use_ = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("gdi32/palette") {
+                trace::Record::new(
+                    gdi32::SetSystemPaletteUse_pos,
+                    "gdi32/palette",
+                    "SetSystemPaletteUse",
+                    &[("hdc", &hdc), ("use_", &use_)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = gdi32::SetSystemPaletteUse(sys, hdc, use_);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn SetTextAlign(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -1368,7 +1391,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 48usize] = [
+const SHIMS: [Shim; 49usize] = [
     Shim {
         name: "BitBlt",
         func: Handler::Sync(wrappers::BitBlt),
@@ -1536,6 +1559,10 @@ const SHIMS: [Shim; 48usize] = [
     Shim {
         name: "SetROP2",
         func: Handler::Sync(wrappers::SetROP2),
+    },
+    Shim {
+        name: "SetSystemPaletteUse",
+        func: Handler::Sync(wrappers::SetSystemPaletteUse),
     },
     Shim {
         name: "SetTextAlign",

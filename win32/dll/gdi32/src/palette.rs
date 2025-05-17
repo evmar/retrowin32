@@ -65,3 +65,14 @@ pub fn GetSystemPaletteEntries(
 ) -> u32 {
     todo!()
 }
+
+#[win32_derive::dllexport]
+pub fn SetSystemPaletteUse(
+    sys: &dyn System,
+    hdc: HDC,
+    use_: u32, /* SYSTEM_PALETTE_USE */
+) -> u32 {
+    /// System does not support palettes.
+    const SYSPAL_ERROR: u32 = 0;
+    SYSPAL_ERROR
+}
