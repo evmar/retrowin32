@@ -2453,6 +2453,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn MapVirtualKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let uCode = <u32>::from_stack(mem, stack_args + 0u32);
+            let uMapType = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("user32/keyboard") {
+                trace::Record::new(
+                    user32::MapVirtualKeyA_pos,
+                    "user32/keyboard",
+                    "MapVirtualKeyA",
+                    &[("uCode", &uCode), ("uMapType", &uMapType)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = user32::MapVirtualKeyA(sys, uCode, uMapType);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn MapWindowPoints(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -4047,7 +4070,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 150usize] = [
+const SHIMS: [Shim; 151usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -4415,6 +4438,10 @@ const SHIMS: [Shim; 150usize] = [
     Shim {
         name: "LoadStringW",
         func: Handler::Sync(wrappers::LoadStringW),
+    },
+    Shim {
+        name: "MapVirtualKeyA",
+        func: Handler::Sync(wrappers::MapVirtualKeyA),
     },
     Shim {
         name: "MapWindowPoints",

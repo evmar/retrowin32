@@ -39,3 +39,12 @@ pub fn GetKeyboardLayoutList(sys: &dyn System, nBuff: i32, lpList: Option<&mut H
     log::warn!("GetKeyboardLayoutList: stub");
     0 // no layouts
 }
+
+#[win32_derive::dllexport]
+pub fn MapVirtualKeyA(
+    sys: &dyn System,
+    uCode: u32,
+    uMapType: u32, /* MAP_VIRTUAL_KEY_TYPE */
+) -> u32 {
+    0 // no translation
+}
