@@ -6425,6 +6425,34 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn lstrcpynA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
+            let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let iMaxLength = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if trace::enabled("kernel32/libc") {
+                trace::Record::new(
+                    kernel32::lstrcpynA_pos,
+                    "kernel32/libc",
+                    "lstrcpynA",
+                    &[
+                        ("lpString1", &lpString1),
+                        ("lpString2", &lpString2),
+                        ("iMaxLength", &iMaxLength),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::lstrcpynA(sys, lpString1, lpString2, iMaxLength);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn lstrlenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6538,7 +6566,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 239usize] = [
+const SHIMS: [Shim; 240usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7478,6 +7506,10 @@ const SHIMS: [Shim; 239usize] = [
     Shim {
         name: "lstrcpyW",
         func: Handler::Sync(wrappers::lstrcpyW),
+    },
+    Shim {
+        name: "lstrcpynA",
+        func: Handler::Sync(wrappers::lstrcpynA),
     },
     Shim {
         name: "lstrlenA",

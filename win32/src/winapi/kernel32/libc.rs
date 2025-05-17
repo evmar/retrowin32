@@ -43,6 +43,22 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
 }
 
 #[win32_derive::dllexport]
+pub fn lstrcpynA(
+    sys: &dyn System,
+    lpString1: u32,
+    lpString2: Option<&str>,
+    iMaxLength: u32,
+) -> u32 {
+    let lpString2 = lpString2.unwrap();
+    let len = lpString2.len().min((iMaxLength - 1) as usize);
+    let mem = sys.mem();
+    let dst = mem.sub32_mut(lpString1, len as u32 + 1);
+    dst[..len].copy_from_slice(lpString2.as_bytes());
+    dst[len] = 0;
+    lpString1
+}
+
+#[win32_derive::dllexport]
 pub fn lstrcmpiA(sys: &dyn System, lpString1: Option<&str>, lpString2: Option<&str>) -> i32 {
     let lpString1 = lpString1.unwrap();
     let lpString2 = lpString2.unwrap();
@@ -66,10 +82,10 @@ pub fn lstrcmpiA(sys: &dyn System, lpString1: Option<&str>, lpString2: Option<&s
 #[win32_derive::dllexport]
 pub fn lstrcatA(sys: &dyn System, lpString1: u32, lpString2: Option<&str>) -> u32 {
     let mem = sys.mem();
-    let len = mem.slicez(lpString1).len() as u32;
-    let str2 = lpString2.unwrap();
-    mem.sub32_mut(lpString1 + len, str2.len() as u32)
-        .copy_from_slice(str2.as_bytes());
-    mem.put_pod::<u8>(lpString1 + len + str2.len() as u32, 0);
+    let dst_len = mem.slicez(lpString1).len() as u32;
+    let src = lpString2.unwrap();
+    let dst = mem.sub32_mut(lpString1, dst_len + src.len() as u32 + 1);
+    dst[..src.len()].copy_from_slice(src.as_bytes());
+    dst[src.len()] = 0;
     lpString1
 }
