@@ -1,7 +1,7 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
 use crate::{Machine, System, winapi::Str16};
-use memory::ExtensionsMut;
+use memory::{Extensions, ExtensionsMut};
 
 #[win32_derive::dllexport]
 pub fn lstrlenA(sys: &dyn System, lpString: Option<&str>) -> u32 {
@@ -61,4 +61,15 @@ pub fn lstrcmpiA(sys: &dyn System, lpString1: Option<&str>, lpString2: Option<&s
         std::cmp::Ordering::Greater => 1,
         std::cmp::Ordering::Equal => 0,
     }
+}
+
+#[win32_derive::dllexport]
+pub fn lstrcatA(sys: &dyn System, lpString1: u32, lpString2: Option<&str>) -> u32 {
+    let mem = sys.mem();
+    let len = mem.slicez(lpString1).len() as u32;
+    let str2 = lpString2.unwrap();
+    mem.sub32_mut(lpString1 + len, str2.len() as u32)
+        .copy_from_slice(str2.as_bytes());
+    mem.put_pod::<u8>(lpString1 + len + str2.len() as u32, 0);
+    lpString1
 }
