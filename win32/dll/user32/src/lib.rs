@@ -33,7 +33,6 @@ pub use win32_system::resource::ResourceKey;
 pub use window::*;
 pub use wndclass::*;
 
-#[derive(Default)]
 pub struct State {
     wndclasses: WndClasses,
 
@@ -41,10 +40,27 @@ pub struct State {
     pub user_window_message_count: u32,
 
     pub windows: Handles<HWND, Rc<RefCell<Window>>>,
+    desktop_window: HWND,
     active_window: HWND,
 
     messages: MessageQueue,
     timers: Timers,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            wndclasses: WndClasses::default(),
+            user_window_message_count: 0,
+            // Start window handles at 5, to make accidents more obvious.
+            windows: Handles::new(5),
+            // Use an arbitrary value for the desktop window, to make accidental accesses more obvious.
+            desktop_window: HWND::from_raw(1),
+            active_window: HWND::null(),
+            messages: MessageQueue::default(),
+            timers: Timers::default(),
+        }
+    }
 }
 
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
