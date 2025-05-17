@@ -6,7 +6,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
-use win32_system::{System, Wait, host};
+use win32_system::{Event, System, Wait, host};
 
 pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 
@@ -31,8 +31,8 @@ pub struct WaveOut {
 
     /// Queue of WAVEHDR addresses to process.
     blocks: VecDeque<u32>,
-    host_ready: Arc<winapi::kernel32::EventObject>,
-    block_ready: Arc<winapi::kernel32::EventObject>,
+    host_ready: Arc<Event>,
+    block_ready: Arc<Event>,
     /// How to notify the exe when a WAVEHDR is done.
     notify: Option<Notify>,
 }
@@ -217,8 +217,7 @@ pub fn waveOutOpen(
         return MMRESULT::MMSYSERR_NOTENABLED;
     }
 
-    let host_ready =
-        winapi::kernel32::EventObject::new(Some("winmm host ready".into()), false, true);
+    let host_ready = Event::new(Some("winmm host ready".into()), false, true);
 
     let fmt = pwfx.unwrap();
     let audio = sys.host().init_audio(
@@ -247,11 +246,7 @@ pub fn waveOutOpen(
         audio,
         blocks: VecDeque::new(),
         host_ready,
-        block_ready: winapi::kernel32::EventObject::new(
-            Some("winmm block ready".into()),
-            false,
-            false,
-        ),
+        block_ready: Event::new(Some("winmm block ready".into()), false, false),
         notify,
     };
     let hwo = get_state(sys).wave.wave_outs.add(wave_out);

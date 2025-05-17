@@ -1,10 +1,11 @@
-use super::{EventObject, KernelObject, peb_mut};
+use super::{KernelObject, peb_mut};
 use crate::{
     Machine, System,
     winapi::{HANDLE, Str16, arena::Arena},
 };
 use memory::{Extensions, Mem};
 use std::{rc::Rc, sync::Arc};
+use win32_system::Event;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
@@ -61,7 +62,7 @@ pub struct Thread {
     /// address of TEB
     pub teb: u32,
 
-    pub terminated: Arc<EventObject>,
+    pub terminated: Arc<Event>,
 }
 
 /// Set up TEB, PEB, and other process info.
@@ -116,7 +117,7 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     let thread = Rc::new(Thread {
         handle: HTHREAD::from_raw(handle.to_raw()),
         teb,
-        terminated: EventObject::new(None, false, false),
+        terminated: Event::new(None, false, false),
     });
     machine
         .state

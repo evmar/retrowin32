@@ -1,15 +1,14 @@
 //! WaitFor* functions that can block on various types of kernel objects.
 
-use super::EventObject;
 use crate::{
     Machine,
     winapi::{HANDLE, kernel32::KernelObject},
 };
 use memory::Extensions;
-use win32_system::{System, Wait, WaitResult};
+use win32_system::{Event, System, Wait, WaitResult};
 
 impl KernelObject {
-    pub fn get_event(&self) -> &EventObject {
+    pub fn get_event(&self) -> &Event {
         match self {
             KernelObject::Event(event) => event,
             KernelObject::Thread(thread) => &thread.terminated,

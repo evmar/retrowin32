@@ -1,8 +1,8 @@
 //! Process initialization and startup.
 
 use super::{
-    EventObject, FindHandle, HEVENT, HFILE, HFIND, HMODULE, ResourceHandle, STDERR_HFILE,
-    STDOUT_HFILE, Thread, command_line::CommandLine,
+    FindHandle, HEVENT, HFILE, HFIND, HMODULE, ResourceHandle, STDERR_HFILE, STDOUT_HFILE, Thread,
+    command_line::CommandLine,
 };
 use crate::{
     Machine,
@@ -13,7 +13,7 @@ use crate::{
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
-use win32_system::{host, memory::Memory};
+use win32_system::{Event, host, memory::Memory};
 
 #[repr(C)]
 pub struct UNICODE_STRING {
@@ -66,7 +66,7 @@ pub struct GDTEntries {
 
 /// Objects identified by kernel handles, all of which can be passed to Wait* functions.
 pub enum KernelObject {
-    Event(Arc<EventObject>),
+    Event(Arc<Event>),
     Thread(Rc<Thread>),
 }
 
@@ -81,10 +81,10 @@ impl Clone for KernelObject {
 
 type KernelObjects = Handles<HANDLE<()>, KernelObject>;
 pub trait KernelObjectsMethods {
-    fn get_event(&self, handle: HEVENT) -> Option<&EventObject>;
+    fn get_event(&self, handle: HEVENT) -> Option<&Event>;
 }
 impl KernelObjectsMethods for KernelObjects {
-    fn get_event(&self, handle: HEVENT) -> Option<&EventObject> {
+    fn get_event(&self, handle: HEVENT) -> Option<&Event> {
         match self.get_raw(handle.to_raw()) {
             Some(KernelObject::Event(ev)) => Some(ev),
             _ => None,

@@ -1,5 +1,6 @@
 mod boxmem;
 pub mod dll;
+mod event;
 mod heap;
 pub mod host;
 pub mod memory;
@@ -9,6 +10,7 @@ pub mod trace;
 mod wait;
 
 pub use boxmem::BoxMem as MemImpl;
+pub use event::Event;
 pub use heap::Heap;
 pub use system::System;
 pub use wait::{Wait, WaitResult};
