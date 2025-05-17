@@ -158,7 +158,26 @@ pub fn GetDeviceCaps(sys: &dyn System, hdc: HDC, index: Result<GetDeviceCapsArg,
         HORZRES => 640,
         VERTRES => 480,
         NUMCOLORS => -1i32 as u32, // true color
-        RASTERCAPS => 0,           // none
+        RASTERCAPS => {
+            // Most apps seem to just call these without checking, but at least win2k
+            // Pinball calls this.
+            const RC_BITBLT: u32 = 1;
+            const RC_SCALING: u32 = 4;
+            const RC_BITMAP64: u32 = 8;
+            const RC_DI_BITMAP: u32 = 0x0080;
+            const RC_DIBTODEV: u32 = 0x0200;
+            const RC_STRETCHBLT: u32 = 0x0800;
+            const RC_FLOODFILL: u32 = 0x1000;
+            const RC_STRETCHDIB: u32 = 0x2000;
+            RC_BITBLT
+                | RC_SCALING
+                | RC_BITMAP64
+                | RC_DI_BITMAP
+                | RC_DIBTODEV
+                | RC_STRETCHBLT
+                | RC_FLOODFILL
+                | RC_STRETCHDIB
+        }
         LOGPIXELSX => 96,
         LOGPIXELSY => 96,
         SIZEPALETTE => 0,
