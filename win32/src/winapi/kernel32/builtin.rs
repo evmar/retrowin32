@@ -6382,7 +6382,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lread(sys, hFile, lpBuffer);
+            let result = kernel32::_lread(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+                lpBuffer,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

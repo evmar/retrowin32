@@ -1,5 +1,8 @@
+//! File API for 16-bit Windows backward compat.
+
 use super::HFILE;
-use crate::{System, calling_convention::ArrayOut};
+use crate::{Machine, System, calling_convention::ArrayOut, winapi::kernel32::set_last_error};
+use win32_winapi::ERROR;
 
 #[win32_derive::dllexport]
 pub fn _lopen(sys: &dyn System, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {
@@ -17,6 +20,12 @@ pub fn _llseek(sys: &dyn System, hFile: HFILE, lOffset: i32, iOrigin: i32) -> i3
 }
 
 #[win32_derive::dllexport]
-pub fn _lread(sys: &dyn System, hFile: HFILE, lpBuffer: ArrayOut<u8>) -> u32 {
-    todo!();
+pub fn _lread(machine: &mut Machine, hFile: HFILE, mut lpBuffer: ArrayOut<u8>) -> u32 {
+    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+    let Ok(len) = file.read(lpBuffer.as_mut_slice()) else {
+        set_last_error(machine, ERROR::INVALID_HANDLE);
+        return 0;
+    };
+    set_last_error(machine, ERROR::SUCCESS);
+    len as u32
 }
