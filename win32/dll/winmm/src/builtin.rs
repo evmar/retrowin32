@@ -130,18 +130,27 @@ mod wrappers {
     pub unsafe fn mciSendCommandA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("winmm/misc") {
+            let mciId = <u32>::from_stack(mem, stack_args + 0u32);
+            let uMsg = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwParam1 = <u32>::from_stack(mem, stack_args + 8u32);
+            let dwParam2 = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_record = if trace::enabled("winmm/mci") {
                 trace::Record::new(
                     winmm::mciSendCommandA_pos,
-                    "winmm/misc",
+                    "winmm/mci",
                     "mciSendCommandA",
-                    &[],
+                    &[
+                        ("mciId", &mciId),
+                        ("uMsg", &uMsg),
+                        ("dwParam1", &dwParam1),
+                        ("dwParam2", &dwParam2),
+                    ],
                 )
                 .enter()
             } else {
                 None
             };
-            let result = winmm::mciSendCommandA(sys);
+            let result = winmm::mciSendCommandA(sys, mciId, uMsg, dwParam1, dwParam2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

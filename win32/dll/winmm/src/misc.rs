@@ -5,8 +5,3 @@ use win32_winapi::Str16;
 pub fn PlaySoundW(sys: &dyn System, pszSound: Option<&Str16>, hmod: u32, fdwSound: u32) -> bool {
     todo!();
 }
-
-#[win32_derive::dllexport]
-pub fn mciSendCommandA(sys: &dyn System) {
-    todo!();
-}
