@@ -37,10 +37,21 @@ out hooks that up to the specific requirements to whatever the OS provides --
 realistically, either native (found in `../cli`) or web (found in
 `../web/glue`).
 
+## The `System` trait
+
+Each DLL (e.g. user32) needs to make calls to the underlying system (e.g. to
+call a window procedure). These kinds of calls are abstracted through the
+`System` trait defined in the `win32-system` crate in `system/`.
+
+This trait is then implemented by the larger `win32` crate, which brings all the
+DLLs together along with the actual implementation of `System`
+
 ## Code layout
 
+- `winapi/` -- core types needed by any Windows DLL implementation
+- `system/` -- the underlying `System` interface used by DLLs
 - `src` -- roughly the Windows OS, or the bits of Windows that lie outside of
-  the win32 API
+  the win32 API, implements the `System` interface, ties in the x86 emulator
 - [`derive/`](derive/) -- macro implementations, primarily `dllexport`
   annotations on functions, see README
 - `dll/` -- win32 dlls used for builtin APIs; generated, mostly empty, mostly

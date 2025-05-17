@@ -8,15 +8,7 @@ use std::pin::Pin;
 use win32_winapi::HANDLE;
 
 /// The interface for the system beneath all the Windows DLLs, providing the lowest-level
-/// functionality that the DLLs cannot implement themselves.  This functionality is still
-/// implemented in the win32 crate, but the trait separation breaks the circular depedency
-/// between the DLLs and the system.
-///
-/// - Machine manages loaded DLLs
-/// - DLLs get passed a dyn System,
-/// - System implemented by Machine
-///
-/// See also the Host interface, which is the interface to the outside world.
+/// functionality that the DLLs cannot implement themselves.  See discussion in win32/README.md.
 pub trait System {
     fn mem(&self) -> Mem;
     fn memory(&self) -> &crate::memory::Memory;
@@ -52,8 +44,12 @@ pub trait System {
         wait: Wait,
     ) -> Pin<Box<dyn Future<Output = WaitResult> + '_>>;
 
+    /// Look up a symbol from a DLL; DLL must have already been loaded.
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
+
+    /// Get the resources section of a given module handle.
     fn get_resources(&self, module: u32) -> Option<&[u8]>;
+
     fn get_thread_id(&self) -> u32;
 
     fn exit(&mut self, status: u32);
