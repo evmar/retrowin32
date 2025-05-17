@@ -133,6 +133,7 @@ pub struct Window {
 }
 
 pub enum WindowType {
+    Desktop,
     TopLevel(WindowTopLevel),
     Child,
 }
@@ -492,7 +493,7 @@ pub fn DestroyWindow(sys: &dyn System, hWnd: HWND) -> bool {
 
 #[win32_derive::dllexport]
 pub fn GetDesktopWindow(sys: &dyn System) -> HWND {
-    get_state(sys).desktop_window
+    get_state(sys).desktop_window()
 }
 
 #[win32_derive::dllexport]
@@ -1002,8 +1003,8 @@ pub fn GetClientRect(sys: &mut dyn System, hWnd: HWND, lpRect: Option<&mut RECT>
 
 #[win32_derive::dllexport]
 pub fn GetWindowRect(sys: &mut dyn System, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let state = get_state(sys);
-    if hWnd == state.desktop_window {
+    let mut state = get_state(sys);
+    if hWnd == state.desktop_window() {
         *lpRect.unwrap() = RECT {
             left: 0,
             top: 0,
@@ -1147,15 +1148,15 @@ pub fn GetDC(sys: &mut dyn System, hWnd: HWND) -> HDC {
         return gdi32::get_state(sys).screen_dc();
     }
 
-    let state = get_state(sys);
-    if hWnd == state.desktop_window {
-        return HDC::null(); // TODO
-    }
+    let mut state = get_state(sys);
+    state.desktop_window(); // ensure desktop window exists
 
     let rcwindow = state.windows.get(hWnd).unwrap();
     let window = rcwindow.borrow();
     match &window.typ {
-        WindowType::TopLevel(_) => gdi32::get_state(sys).new_dc(DCTarget::new(rcwindow.clone())),
+        WindowType::TopLevel(_) | WindowType::Desktop => {
+            gdi32::get_state(sys).new_dc(DCTarget::new(rcwindow.clone()))
+        }
         _ => {
             log::warn!("GetDC for non-top-level window");
             HDC::null()

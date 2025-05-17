@@ -56,12 +56,38 @@ impl Default for State {
             user_window_message_count: 0,
             // Start window handles at 5, to make accidents more obvious.
             windows: Handles::new(5),
-            // Use an arbitrary value for the desktop window, to make accidental accesses more obvious.
-            desktop_window: HWND::from_raw(1),
+            desktop_window: HWND::null(),
             active_window: HWND::null(),
             messages: MessageQueue::default(),
             timers: Timers::default(),
         }
+    }
+}
+
+impl State {
+    pub fn desktop_window(&mut self) -> HWND {
+        if self.desktop_window.is_null() {
+            let wndclass = Rc::new(RefCell::new(WndClass {
+                name: "Desktop".to_string(),
+                style: CS::empty(),
+                wndproc: 0,
+                background: HBRUSH::null(),
+                wnd_extra: 0,
+            }));
+            self.desktop_window = self.windows.add(Rc::new(RefCell::new(Window {
+                id: 0,
+                typ: WindowType::Desktop,
+                width: 640,
+                height: 480,
+                wndclass,
+                window_style: WS::empty(),
+                other_style: 0,
+                show_cmd: SW::SHOW,
+                user_data: 0,
+                extra: None,
+            })));
+        }
+        self.desktop_window
     }
 }
 
