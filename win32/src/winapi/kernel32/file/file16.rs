@@ -10,8 +10,16 @@ pub fn _lopen(sys: &dyn System, lpPathName: Option<&str>, iReadWrite: i32) -> HF
 }
 
 #[win32_derive::dllexport]
-pub fn _lclose(sys: &dyn System, hFile: HFILE) -> HFILE {
-    todo!();
+pub fn _lclose(machine: &mut Machine, hFile: HFILE) -> HFILE {
+    if machine.state.kernel32.files.remove(hFile).is_none() {
+        log::debug!("CloseHandle({hFile:?}): unknown handle");
+        set_last_error(machine, ERROR::INVALID_HANDLE);
+        // Docs don't mention any error handling, this is just a guess!
+        return HFILE::null();
+    }
+
+    set_last_error(machine, ERROR::SUCCESS);
+    hFile
 }
 
 #[win32_derive::dllexport]

@@ -6335,7 +6335,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lclose(sys, hFile);
+            let result = kernel32::_lclose(&mut *(sys.machine() as *mut crate::Machine), hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
