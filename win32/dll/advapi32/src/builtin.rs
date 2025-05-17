@@ -58,6 +58,57 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn RegCreateKeyExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
+            let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let Reserved = <u32>::from_stack(mem, stack_args + 8u32);
+            let lpClass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
+            let dwOptions = <u32>::from_stack(mem, stack_args + 16u32);
+            let samDesired = <u32>::from_stack(mem, stack_args + 20u32);
+            let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 24u32);
+            let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
+            let lpdwDisposition = <Option<&mut u32>>::from_stack(mem, stack_args + 32u32);
+            let __trace_record = if trace::enabled("advapi32") {
+                trace::Record::new(
+                    advapi32::RegCreateKeyExA_pos,
+                    "advapi32",
+                    "RegCreateKeyExA",
+                    &[
+                        ("hKey", &hKey),
+                        ("lpSubKey", &lpSubKey),
+                        ("Reserved", &Reserved),
+                        ("lpClass", &lpClass),
+                        ("dwOptions", &dwOptions),
+                        ("samDesired", &samDesired),
+                        ("lpSecurityAttributes", &lpSecurityAttributes),
+                        ("phkResult", &phkResult),
+                        ("lpdwDisposition", &lpdwDisposition),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = advapi32::RegCreateKeyExA(
+                sys,
+                hKey,
+                lpSubKey,
+                Reserved,
+                lpClass,
+                dwOptions,
+                samDesired,
+                lpSecurityAttributes,
+                phkResult,
+                lpdwDisposition,
+            );
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn RegCreateKeyExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -297,7 +348,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 8usize] = [
+const SHIMS: [Shim; 9usize] = [
     Shim {
         name: "RegCloseKey",
         func: Handler::Sync(wrappers::RegCloseKey),
@@ -305,6 +356,10 @@ const SHIMS: [Shim; 8usize] = [
     Shim {
         name: "RegCreateKeyA",
         func: Handler::Sync(wrappers::RegCreateKeyA),
+    },
+    Shim {
+        name: "RegCreateKeyExA",
+        func: Handler::Sync(wrappers::RegCreateKeyExA),
     },
     Shim {
         name: "RegCreateKeyExW",

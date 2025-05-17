@@ -20,6 +20,22 @@ pub fn RegCreateKeyA(
 }
 
 #[win32_derive::dllexport]
+pub fn RegCreateKeyExA(
+    sys: &dyn System,
+    hKey: HKEY,
+    lpSubKey: Option<&str>,
+    Reserved: u32,
+    lpClass: Option<&str>,
+    dwOptions: u32,
+    samDesired: u32,
+    lpSecurityAttributes: u32,
+    phkResult: Option<&mut u32>,
+    lpdwDisposition: Option<&mut u32>,
+) -> u32 {
+    0 // success
+}
+
+#[win32_derive::dllexport]
 pub fn RegCreateKeyExW(
     sys: &dyn System,
     hKey: HKEY,
