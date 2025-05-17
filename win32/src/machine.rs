@@ -96,6 +96,10 @@ impl System for Machine {
         }
     }
 
+    fn unblock(&mut self) {
+        self.unblock_all();
+    }
+
     fn wait_for_events(
         &mut self,
         events: &[ArcEvent],

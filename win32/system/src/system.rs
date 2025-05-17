@@ -32,8 +32,9 @@ pub trait System {
 
     fn new_thread(&mut self, stack_size: u32, start_addr: u32, args: &[u32]);
 
-    // TODO: figure out relationship between blocking and event objects.
+    // TODO: remove blocking API in favor of event objects.
     fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;
+    fn unblock(&mut self);
 
     fn wait_for_events(
         &mut self,

@@ -1,8 +1,5 @@
 use super::{MMRESULT, get_state};
-use crate::{
-    Machine,
-    winapi::{self, Handles},
-};
+use crate::winapi::{self, Handles};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
@@ -218,7 +215,7 @@ pub fn waveOutOpen(
             let host_ready = host_ready.clone();
             move || {
                 host_ready.signal();
-                // TODO: need to unblock the thread: machine.unblock_all();
+                // TODO: need to unblock the thread: sys.unblock_all();
             }
         }),
     );
@@ -431,17 +428,17 @@ pub fn waveOutUnprepareHeader(
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutWrite(machine: &mut Machine, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -> MMRESULT {
+pub fn waveOutWrite(sys: &mut dyn System, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -> MMRESULT {
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
 
-    let mut state = get_state(machine);
+    let mut state = get_state(sys);
     let wave_out = state.wave.wave_outs.get_mut(hwo).unwrap();
     wave_out.blocks.push_back(pwh);
     wave_out.block_ready.signal();
     drop(state);
 
     // TODO: use condition variable to notify the thread
-    machine.unblock_all();
+    sys.unblock();
 
     MMRESULT::MMSYSERR_NOERROR
 }
