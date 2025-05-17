@@ -2,7 +2,7 @@
 
 #[win32_derive::dllexport]
 pub fn GetDiskFreeSpaceA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpRootPathName: Option<&str>,
     lpSectorsPerCluster: Option<&mut u32>,
     lpBytesPerSector: Option<&mut u32>,
@@ -91,7 +91,7 @@ fn convert_method(method: &windows_metadata::MethodDef) {
 
     println!("#[win32_derive::dllexport]");
     println!("pub fn {name}(", name = method.name());
-    println!("    _machine: &mut Machine,");
+    println!("    sys: &dyn System,");
     if sig.call_flags.0 != 0 {
         todo!("call_flags {:#x}", sig.call_flags.0);
     }
