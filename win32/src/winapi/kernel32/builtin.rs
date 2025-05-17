@@ -2439,6 +2439,37 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn GetPrivateProfileIntA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let nDefault = <u32>::from_stack(mem, stack_args + 8u32);
+            let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
+            let __trace_record = if trace::enabled("kernel32/ini") {
+                trace::Record::new(
+                    kernel32::GetPrivateProfileIntA_pos,
+                    "kernel32/ini",
+                    "GetPrivateProfileIntA",
+                    &[
+                        ("lpAppName", &lpAppName),
+                        ("lpKeyName", &lpKeyName),
+                        ("nDefault", &nDefault),
+                        ("lpFileName", &lpFileName),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result =
+                kernel32::GetPrivateProfileIntA(sys, lpAppName, lpKeyName, nDefault, lpFileName);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn GetPrivateProfileIntW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -6566,7 +6597,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 240usize] = [
+const SHIMS: [Shim; 241usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6914,6 +6945,10 @@ const SHIMS: [Shim; 240usize] = [
     Shim {
         name: "GetOEMCP",
         func: Handler::Sync(wrappers::GetOEMCP),
+    },
+    Shim {
+        name: "GetPrivateProfileIntA",
+        func: Handler::Sync(wrappers::GetPrivateProfileIntA),
     },
     Shim {
         name: "GetPrivateProfileIntW",

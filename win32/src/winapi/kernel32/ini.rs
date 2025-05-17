@@ -3,6 +3,17 @@
 use crate::{System, calling_convention::ArrayOut, winapi::Str16};
 
 #[win32_derive::dllexport]
+pub fn GetPrivateProfileIntA(
+    sys: &dyn System,
+    lpAppName: Option<&str>,
+    lpKeyName: Option<&str>,
+    nDefault: u32,
+    lpFileName: Option<&str>,
+) -> u32 {
+    nDefault // not found
+}
+
+#[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(
     sys: &dyn System,
     lpAppName: Option<&Str16>,
