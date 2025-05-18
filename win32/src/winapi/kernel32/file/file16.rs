@@ -29,7 +29,11 @@ pub fn _lclose(machine: &mut Machine, hFile: HFILE) -> HFILE {
 
 #[win32_derive::dllexport]
 pub fn _llseek(machine: &mut Machine, hFile: HFILE, lOffset: i32, iOrigin: i32) -> i32 {
-    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+        set_last_error(machine, ERROR::INVALID_HANDLE);
+        return -1;
+    };
+
     let seek = match iOrigin {
         0 => SeekFrom::Start(lOffset as u64),
         1 => SeekFrom::Current(lOffset as i64),
