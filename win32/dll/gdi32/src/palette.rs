@@ -63,7 +63,7 @@ pub fn GetSystemPaletteEntries(
     cEntries: u32,
     pPalEntries: Option<&mut PALETTEENTRY>,
 ) -> u32 {
-    todo!()
+    0 // no system palette entries
 }
 
 #[win32_derive::dllexport]
