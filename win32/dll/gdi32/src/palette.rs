@@ -41,6 +41,10 @@ pub fn SetPaletteEntries(
     cEntries: u32,
     pPalEntries: Option<&mut PALETTEENTRY>,
 ) -> u32 {
+    if hpal.is_null() {
+        // ok, we assume all palettes are null for now
+        return 0;
+    }
     todo!()
 }
 
