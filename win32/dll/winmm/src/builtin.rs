@@ -589,6 +589,29 @@ mod wrappers {
             })
         }
     }
+    pub unsafe fn sndPlaySoundA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let pszSound = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let fuSound = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("winmm/misc") {
+                trace::Record::new(
+                    winmm::sndPlaySoundA_pos,
+                    "winmm/misc",
+                    "sndPlaySoundA",
+                    &[("pszSound", &pszSound), ("fuSound", &fuSound)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winmm::sndPlaySoundA(sys, pszSound, fuSound);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn timeBeginPeriod(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -1040,7 +1063,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 42usize] = [
+const SHIMS: [Shim; 43usize] = [
     Shim {
         name: "PlaySoundW",
         func: Handler::Sync(wrappers::PlaySoundW),
@@ -1132,6 +1155,10 @@ const SHIMS: [Shim; 42usize] = [
     Shim {
         name: "retrowin32_wave_thread_main",
         func: Handler::Async(wrappers::retrowin32_wave_thread_main),
+    },
+    Shim {
+        name: "sndPlaySoundA",
+        func: Handler::Sync(wrappers::sndPlaySoundA),
     },
     Shim {
         name: "timeBeginPeriod",
