@@ -6386,7 +6386,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_llseek(sys, hFile, lOffset, iOrigin);
+            let result = kernel32::_llseek(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+                lOffset,
+                iOrigin,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

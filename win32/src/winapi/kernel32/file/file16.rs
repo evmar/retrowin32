@@ -1,7 +1,9 @@
 //! File API for 16-bit Windows backward compat.
 
+use std::io::SeekFrom;
+
 use super::{HFILE, OpenFile};
-use crate::{Machine, System, calling_convention::ArrayOut, winapi::kernel32::set_last_error};
+use crate::{Machine, calling_convention::ArrayOut, winapi::kernel32::set_last_error};
 use win32_winapi::ERROR;
 
 #[win32_derive::dllexport]
@@ -26,8 +28,24 @@ pub fn _lclose(machine: &mut Machine, hFile: HFILE) -> HFILE {
 }
 
 #[win32_derive::dllexport]
-pub fn _llseek(sys: &dyn System, hFile: HFILE, lOffset: i32, iOrigin: i32) -> i32 {
-    todo!();
+pub fn _llseek(machine: &mut Machine, hFile: HFILE, lOffset: i32, iOrigin: i32) -> i32 {
+    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+    let seek = match iOrigin {
+        0 => SeekFrom::Start(lOffset as u64),
+        1 => SeekFrom::Current(lOffset as i64),
+        2 => SeekFrom::End(lOffset as i64),
+        _ => {
+            set_last_error(machine, ERROR::INVALID_PARAMETER);
+            return -1;
+        }
+    };
+    match file.seek(seek) {
+        Ok(new_pos) => new_pos as i32,
+        Err(_) => {
+            set_last_error(machine, ERROR::INVALID_HANDLE);
+            -1
+        }
+    }
 }
 
 #[win32_derive::dllexport]
