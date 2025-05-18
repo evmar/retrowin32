@@ -288,9 +288,7 @@ impl<'a> calling_convention::FromArg<'a> for GMEM {
 }
 
 fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
-    if uFlags.contains(GMEM::MOVEABLE) {
-        todo!("GMEM_MOVEABLE");
-    }
+    // We ignore GMEM::MOVEABLE; see comments on HGLOBAL.
     let addr = machine
         .memory
         .process_heap
@@ -306,40 +304,51 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     alloc(machine, uFlags, dwBytes)
 }
 
+// In principle, callers can GlobalAlloc a handle that they then GlobalLock
+// to get a pointer from, which allows things like reallocing that handle
+// without changing its value.
+// We don't support this, and instead just use addresses as the handle.
 pub type HGLOBAL = u32;
 
 #[win32_derive::dllexport]
 pub fn GlobalHandle(sys: &dyn System, pMem: u32) -> HGLOBAL {
+    // See comments on HGLOBAL.
     pMem
 }
 
 #[win32_derive::dllexport]
 pub fn GlobalLock(sys: &dyn System, hMem: HGLOBAL) -> u32 {
+    // See comments on HGLOBAL.
     hMem
 }
 
 #[win32_derive::dllexport]
 pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
-    if uFlags.contains(GMEM::MODIFY) {
-        todo!("GMEM_MODIFY");
-    }
-    let heap = &machine.memory.process_heap;
-    let mem = machine.memory.mem();
-    let old_size = heap.size(mem, hMem);
-    if dwBytes <= old_size {
-        return hMem;
-    }
-    let addr = heap.alloc(mem, dwBytes);
-    mem.copy(hMem, addr, old_size);
-    heap.free(mem, hMem);
-    if uFlags.contains(GMEM::ZEROINIT) {
-        mem.sub32_mut(addr + old_size, dwBytes - old_size).fill(0);
-    }
-    addr
+    // Note that ReAlloc is not allowed to return a new address.
+    // The passed value must be a "movable" HGLOBAL handle, which we do not implement.
+    return 0; // fail
+
+    // if uFlags.contains(GMEM::MODIFY) {
+    //     todo!("GMEM_MODIFY");
+    // }
+    // let heap = &machine.memory.process_heap;
+    // let mem = machine.memory.mem();
+    // let old_size = heap.size(mem, hMem);
+    // if dwBytes <= old_size {
+    //     return hMem;
+    // }
+    // let addr = heap.alloc(mem, dwBytes);
+    // mem.copy(hMem, addr, old_size);
+    // heap.free(mem, hMem);
+    // if uFlags.contains(GMEM::ZEROINIT) {
+    //     mem.sub32_mut(addr + old_size, dwBytes - old_size).fill(0);
+    // }
+    // addr
 }
 
 #[win32_derive::dllexport]
 pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
+    // See comments on HGLOBAL.
     true // success
 }
 
