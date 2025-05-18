@@ -69,7 +69,7 @@ pub fn GetStockObject(sys: &dyn System, i: Result<GetStockObjectArg, u32>) -> HG
         OEM_FIXED_FONT | ANSI_FIXED_FONT | ANSI_VAR_FONT | SYSTEM_FONT | DEVICE_DEFAULT_FONT
         | SYSTEM_FIXED_FONT | DEFAULT_GUI_FONT => HGDIOBJ::null(),
 
-        DEFAULT_PALETTE => todo!(),
+        DEFAULT_PALETTE => HGDIOBJ::null(),
     };
     if obj.is_null() {
         // TODO: once all of these are implemented, null is not a possible return.
