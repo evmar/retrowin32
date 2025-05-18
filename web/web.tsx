@@ -74,7 +74,7 @@ export class EmulatorComponent extends preact.Component<EmulatorComponent.Props>
       return (
         <WindowComponent
           key={window.hwnd}
-          title={window.title}
+          title={window.title || '\xa0'}
           canvas={window.canvas}
         />
       );
