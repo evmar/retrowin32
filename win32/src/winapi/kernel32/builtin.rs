@@ -6409,7 +6409,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lopen(sys, lpPathName, iReadWrite);
+            let result = kernel32::_lopen(
+                &mut *(sys.machine() as *mut crate::Machine),
+                lpPathName,
+                iReadWrite,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

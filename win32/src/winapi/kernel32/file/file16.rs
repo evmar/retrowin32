@@ -1,12 +1,15 @@
 //! File API for 16-bit Windows backward compat.
 
-use super::HFILE;
+use super::{HFILE, OpenFile};
 use crate::{Machine, System, calling_convention::ArrayOut, winapi::kernel32::set_last_error};
 use win32_winapi::ERROR;
 
 #[win32_derive::dllexport]
-pub fn _lopen(sys: &dyn System, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {
-    todo!();
+pub fn _lopen(machine: &mut Machine, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {
+    if iReadWrite != 0 {
+        todo!();
+    }
+    OpenFile(machine, lpPathName, None, 0)
 }
 
 #[win32_derive::dllexport]
