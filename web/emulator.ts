@@ -16,7 +16,7 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
   const fileset: FileSet = new Map();
   for (const file of files) {
     const path = dir + file;
-    fileset.set(file, await fetchBytes(path));
+    fileset.set(file.toLowerCase(), await fetchBytes(path));
   }
   return fileset;
 }
@@ -208,7 +208,7 @@ export class Emulator implements wasm.JsHost {
       return new File(path, new Uint8Array());
     }
     // TODO: async file loading.
-    let bytes = this.files.get(path);
+    let bytes = this.files.get(path.toLowerCase());
     if (!bytes) {
       return null;
     }
