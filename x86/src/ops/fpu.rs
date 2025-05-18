@@ -456,6 +456,13 @@ pub fn fcom_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fcom(cpu, x, y);
 }
 
+/// fcom: Compare Floating-Point Values
+pub fn fcom_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    let y = *cpu.fpu.get(instr.op1_register());
+    fcom(cpu, x, y);
+}
+
 /// fcomp: Compare Floating-Point Values
 pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fcom_m32fp(cpu, mem, instr);
