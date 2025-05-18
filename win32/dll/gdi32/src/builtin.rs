@@ -907,6 +907,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn ResizePalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
+            let n = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("gdi32/palette") {
+                trace::Record::new(
+                    gdi32::ResizePalette_pos,
+                    "gdi32/palette",
+                    "ResizePalette",
+                    &[("hpal", &hpal), ("n", &n)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = gdi32::ResizePalette(sys, hpal, n);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn SelectObject(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -1391,7 +1414,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 49usize] = [
+const SHIMS: [Shim; 50usize] = [
     Shim {
         name: "BitBlt",
         func: Handler::Sync(wrappers::BitBlt),
@@ -1519,6 +1542,10 @@ const SHIMS: [Shim; 49usize] = [
     Shim {
         name: "RealizePalette",
         func: Handler::Sync(wrappers::RealizePalette),
+    },
+    Shim {
+        name: "ResizePalette",
+        func: Handler::Sync(wrappers::ResizePalette),
     },
     Shim {
         name: "SelectObject",

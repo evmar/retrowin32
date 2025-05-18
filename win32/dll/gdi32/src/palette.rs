@@ -76,3 +76,12 @@ pub fn SetSystemPaletteUse(
     const SYSPAL_ERROR: u32 = 0;
     SYSPAL_ERROR
 }
+
+#[win32_derive::dllexport]
+pub fn ResizePalette(sys: &dyn System, hpal: HPALETTE, n: u32) -> bool {
+    if hpal.is_null() {
+        // ok, we assume all palettes are null for now
+        return true; // success
+    }
+    todo!()
+}
