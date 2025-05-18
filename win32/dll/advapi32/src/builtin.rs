@@ -160,6 +160,34 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn RegOpenKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = sys.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
+            let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let phkResult = <Option<&mut HKEY>>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if trace::enabled("advapi32") {
+                trace::Record::new(
+                    advapi32::RegOpenKeyA_pos,
+                    "advapi32",
+                    "RegOpenKeyA",
+                    &[
+                        ("hKey", &hKey),
+                        ("lpSubKey", &lpSubKey),
+                        ("phkResult", &phkResult),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = advapi32::RegOpenKeyA(sys, hKey, lpSubKey, phkResult);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn RegOpenKeyExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -348,7 +376,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 9usize] = [
+const SHIMS: [Shim; 10usize] = [
     Shim {
         name: "RegCloseKey",
         func: Handler::Sync(wrappers::RegCloseKey),
@@ -364,6 +392,10 @@ const SHIMS: [Shim; 9usize] = [
     Shim {
         name: "RegCreateKeyExW",
         func: Handler::Sync(wrappers::RegCreateKeyExW),
+    },
+    Shim {
+        name: "RegOpenKeyA",
+        func: Handler::Sync(wrappers::RegOpenKeyA),
     },
     Shim {
         name: "RegOpenKeyExA",

@@ -52,6 +52,16 @@ pub fn RegCreateKeyExW(
 }
 
 #[win32_derive::dllexport]
+pub fn RegOpenKeyA(
+    sys: &dyn System,
+    hKey: HKEY,
+    lpSubKey: Option<&str>,
+    phkResult: Option<&mut HKEY>,
+) -> ERROR {
+    ERROR::FILE_NOT_FOUND
+}
+
+#[win32_derive::dllexport]
 pub fn RegOpenKeyExA(
     sys: &dyn System,
     hKey: HKEY,
