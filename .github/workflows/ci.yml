@@ -37,6 +37,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Build
+        # Use no-default-features to avoid the SDL dependency.
         run: cargo build --no-default-features -F x86-emu -p retrowin32 --release
 
   build-web:

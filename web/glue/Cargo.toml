@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = { workspace = true }
-win32 = { workspace = true, features = ["x86-emu"] }
+win32 = { workspace = true }
 x86 = { workspace = true }
 
 anyhow = "1.0"
@@ -32,3 +32,8 @@ features = [
   "MouseEvent",
   "Performance",
 ]
+
+[features]
+# We always need x86-emu to build this, but leaving it off by default
+# lets rust-analyzer analyze the project in non-x86-emu modes.
+x86-emu = ["win32/x86-emu"]

@@ -12,17 +12,17 @@ profile="${profile:-release}"
 
 case $profile in
 debug)
-  cargo build --target wasm32-unknown-unknown --profile dev
+  cargo build -F x86-emu --target wasm32-unknown-unknown --profile dev
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/debug/glue.wasm"
   ;;
 release)
-  cargo build --target wasm32-unknown-unknown --profile release
+  cargo build -F x86-emu --target wasm32-unknown-unknown --profile release
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/$profile/glue.wasm"
   ;;
 lto)
-  cargo build --target wasm32-unknown-unknown --profile lto
+  cargo build -F x86-emu --target wasm32-unknown-unknown --profile lto
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/$profile/glue.wasm"
   wasm-opt -O --enable-reference-types pkg/glue_bg.wasm -o pkg/glue_bg.wasm-opt
