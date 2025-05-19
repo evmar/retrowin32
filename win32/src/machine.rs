@@ -83,12 +83,21 @@ impl System for Machine {
 
         #[cfg(not(feature = "x86-emu"))]
         {
-            Box::pin(self.host.block(wait))
+            let _ = wait;
+            todo!(); //Box::pin(self.host.block(wait))
         }
     }
 
     fn unblock(&mut self) {
-        self.unblock_all();
+        #[cfg(feature = "x86-emu")]
+        {
+            self.unblock_all();
+        }
+
+        #[cfg(not(feature = "x86-emu"))]
+        {
+            todo!();
+        }
     }
 
     fn sleep(&mut self, ms: u32) -> std::pin::Pin<Box<dyn Future<Output = ()> + '_>> {

@@ -3,10 +3,7 @@ use crate::{
     machine::{MachineX, Status},
     shims::Shims,
     shims_raw::{self, retrowin32_syscall},
-    winapi::{
-        kernel32::CommandLine,
-        {self},
-    },
+    winapi::{self, kernel32::CommandLine},
 };
 use memory::{Mem, MemImpl};
 use win32_system::memory::Memory;
@@ -39,56 +36,55 @@ impl MachineX<Emulator> {
         self.memory.mem()
     }
 
-    #[allow(non_snake_case)]
-    pub fn load_exe(
-        &mut self,
-        buf: &[u8],
-        cmdline: String,
-        relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<u32> {
+    pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
         self.state
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
-        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
-
-        // TODO: stack init now lives in load_exe->create_thread call.
-        // let stack =
-        //     self.memory
-        //         .mappings
-        //         .alloc(exe.stack_size, "stack".into(), &mut self.memory.imp);
-        // let stack_pointer = stack.addr + stack.size - 4;
-        // unsafe {
-        //     shims_raw::set_stack32(stack_pointer);
-        // }
-        todo!();
-
-        Ok(exe.entry_point)
+        let start = std::pin::pin!(loader::start_exe(self, relocate));
+        crate::shims::call_sync(start).unwrap();
     }
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
         crate::shims_raw::call_x86(self, func, args).await
     }
 
-    /// Transfer control to the executable's entry point.
-    /// Needs to switch code segments to enter compatibility mode, stacks, etc.
-    #[inline(never)] // aid in debugging
-    pub fn jump_to_entry_point(&mut self, entry_point: u32) {
-        // Assert that our code was loaded in the 3-4gb memory range, which means
-        // that calls from/to it can be managed with 32-bit pointers.
-        // (This arrangement is set up by the linker flags.)
-        let mem_3gb_range = 0xc000_0000u64..0x1_0000_0000u64;
-        let fn_addr = &Self::jump_to_entry_point as *const _ as u64;
-        assert!(mem_3gb_range.contains(&fn_addr));
-
-        println!("entry point at {:x}, about to jump", entry_point);
-        std::io::stdin().read_line(&mut String::new()).unwrap();
-
-        let pin = std::pin::pin!(self.call_x86(entry_point, vec![]));
-        crate::shims::call_sync(pin);
+    pub fn teb_addr(&self) -> u32 {
+        let teb_addr: u32;
+        #[cfg(target_arch = "x86_64")]
+        unsafe {
+            std::arch::asm!(
+                "mov {teb_addr:e}, dword ptr fs:[0x18]",
+                teb_addr = out(reg) teb_addr,
+            );
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            teb_addr = 0;
+        }
+        log::info!("teb at {:x}", teb_addr);
+        teb_addr
     }
 
-    pub fn teb_addr(&self) -> u32 {
-        todo!();
+    pub fn new_thread_impl(
+        &mut self,
+        new_cpu: bool,
+        stack_size: u32,
+        start_addr: u32,
+        args: &[u32],
+    ) -> u32 {
+        // We only use this to initialize the initial thread, so we don't support new_cpu
+        // or start_addr.
+        if new_cpu {
+            todo!();
+        }
+        assert_eq!(start_addr, 0);
+        let _ = args;
+
+        let thread = winapi::kernel32::create_thread(self, stack_size);
+        unsafe {
+            shims_raw::set_stack32(thread.stack_pointer);
+        }
+        0
     }
 
     pub fn exit_thread(&mut self) {

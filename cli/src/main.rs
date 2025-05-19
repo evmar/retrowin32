@@ -1,6 +1,11 @@
 mod host;
 mod logging;
+
+#[cfg(feature = "x86-emu")]
 mod unpack;
+
+#[cfg(feature = "x86-emu")]
+use win32::x86;
 
 #[cfg(not(feature = "sdl"))]
 mod headless;
@@ -12,7 +17,7 @@ mod resv32;
 
 use anyhow::anyhow;
 use std::{borrow::Cow, process::ExitCode};
-use win32::{host::FileSystem as _, x86};
+use win32::host::FileSystem as _;
 
 #[derive(argh::FromArgs)]
 /// win32 emulator.
@@ -44,8 +49,8 @@ struct Args {
     exit_after: Option<usize>,
 
     /// dump exe file at state when jumping from this instruction
-    #[argh(option, from_str_fn(parse_hex))]
     #[cfg(feature = "x86-emu")]
+    #[argh(option, from_str_fn(parse_hex))]
     unpack_at: Option<u32>,
 
     /// enable debug logging
@@ -114,6 +119,7 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
     Ok(trace_points)
 }
 
+#[cfg(feature = "x86-emu")]
 fn parse_hex(param: &str) -> Result<u32, String> {
     u32::from_str_radix(param, 16).map_err(|_| format!("bad hex {param:?}"))
 }
@@ -153,6 +159,16 @@ fn main() -> anyhow::Result<ExitCode> {
         .collect::<Vec<_>>()
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()));
+
+    #[cfg(feature = "x86-64")]
+    {
+        assert!(args.trace_points.is_none());
+        unsafe {
+            let ptr: *mut win32::Machine = &mut machine;
+            machine.emu.shims.set_machine_hack(ptr);
+        }
+    }
+
     machine.set_external_dlls(args.external_dll);
     machine.state.winmm.borrow_mut().audio_enabled = args.audio;
     machine.start_exe(cmdline, None);
@@ -161,12 +177,6 @@ fn main() -> anyhow::Result<ExitCode> {
 
     #[cfg(feature = "x86-64")]
     {
-        assert!(args.trace_points.is_none());
-        unsafe {
-            let ptr: *mut win32::Machine = &mut machine;
-            machine.emu.shims.set_machine_hack(ptr);
-            machine.jump_to_entry_point(entry_point);
-        }
         exit_code = 0; // TODO: exit code path never hit
     }
 

@@ -20,31 +20,33 @@ std::arch::global_asm!(
 
 /// Remap the lower 4gb that we reserved into being +rwx memory.
 pub unsafe fn init_resv32() {
-    let ptr = libc::munmap(PAGEZERO_END as *mut libc::c_void, RESV32_SIZE);
-    if ptr < 0 {
-        panic!(
-            "munmap: {:?} {}",
-            std::io::Error::last_os_error(),
-            *libc::__error()
-        );
-    }
+    unsafe {
+        let ptr = libc::munmap(PAGEZERO_END as *mut libc::c_void, RESV32_SIZE);
+        if ptr < 0 {
+            panic!(
+                "munmap: {:?} {}",
+                std::io::Error::last_os_error(),
+                *libc::__error()
+            );
+        }
 
-    let ptr = libc::mmap(
-        PAGEZERO_END as *mut libc::c_void,
-        RESV32_SIZE,
-        libc::PROT_READ | libc::PROT_WRITE | libc::PROT_EXEC,
-        libc::MAP_PRIVATE | libc::MAP_ANON,
-        -1,
-        0,
-    );
-    if (ptr as i64) < 0 {
-        panic!(
-            "mmap: {:?} {}",
-            std::io::Error::last_os_error(),
-            *libc::__error()
+        let ptr = libc::mmap(
+            PAGEZERO_END as *mut libc::c_void,
+            RESV32_SIZE,
+            libc::PROT_READ | libc::PROT_WRITE | libc::PROT_EXEC,
+            libc::MAP_PRIVATE | libc::MAP_ANON,
+            -1,
+            0,
         );
-    }
-    if ptr as usize != PAGEZERO_END {
-        panic!("unable to mmap at {:x?}", ptr as usize);
+        if (ptr as i64) < 0 {
+            panic!(
+                "mmap: {:?} {}",
+                std::io::Error::last_os_error(),
+                *libc::__error()
+            );
+        }
+        if ptr as usize != PAGEZERO_END {
+            panic!("unable to mmap at {:x?}", ptr as usize);
+        }
     }
 }

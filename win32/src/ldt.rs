@@ -6,7 +6,7 @@
 use crate::segments::SegmentDescriptor;
 use std::ffi::c_int;
 
-extern "C" {
+unsafe extern "C" {
     fn i386_get_ldt(start_sel: c_int, descs: *mut u64, num_sels: c_int) -> c_int;
     fn i386_set_ldt(start_sel: c_int, descs: *const u64, num_sels: c_int) -> c_int;
 }

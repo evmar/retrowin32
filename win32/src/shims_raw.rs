@@ -4,50 +4,57 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{
-    Machine,
-    ldt::LDT,
-    shims::{Handler, Shims},
-};
+use crate::{Machine, ldt::LDT, shims::Shims};
 #[cfg(target_arch = "x86_64")]
 use memory::ExtensionsMut;
+use win32_system::dll::Handler;
+use win32_winapi::calling_convention::ABIReturn;
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
 static mut STACK64: u64 = 0;
 
 pub unsafe fn set_stack32(esp: u32) {
-    STACK32 = esp;
+    unsafe {
+        STACK32 = esp;
+    }
 }
 
 unsafe extern "C" fn call64() -> u64 {
-    let machine: &mut Machine = &mut *MACHINE;
+    unsafe {
+        let machine: &mut Machine = &mut *MACHINE;
 
-    // call sequence:
-    //   exe:
-    //     call WindowsFunc
-    //   dll!WindowsFunc:
-    //     call retrowin32_syscall
-    //   retrowin32_syscall:
-    //     lcall trans64
+        // call sequence:
+        //   exe:
+        //     call WindowsFunc
+        //   dll!WindowsFunc:
+        //     call retrowin32_syscall
+        //   retrowin32_syscall:
+        //     lcall trans64
 
-    // 32-bit stack contents:
-    //   stack[0]: return address in retrowin32_syscall
-    //   stack[1]: segment selector for far return
-    //   stack[2]: return address in dll!WindowsFunc
-    //   stack[3]: return address in exe
-    //   stack[4]: first arg to WindowsFunc
+        // 32-bit stack contents:
+        //   stack[0]: return address in retrowin32_syscall
+        //   stack[1]: segment selector for far return
+        //   stack[2]: return address in dll!WindowsFunc
+        //   stack[3]: return address in exe
+        //   stack[4]: first arg to WindowsFunc
 
-    let stack32 = STACK32 as *const u32;
-    let ret_addr = unsafe { *stack32.offset(2) };
-    let shim = match machine.emu.shims.get(ret_addr - 6) {
-        Ok(shim) => shim,
-        Err(name) => unimplemented!("{}", name),
-    };
-    let stack_args = STACK32 + 16; // stack[4]
-    match shim.func {
-        Handler::Sync(func) => func(machine, stack_args),
-        Handler::Async(_) => unimplemented!(),
+        let stack32 = STACK32 as *const u32;
+        let ret_addr = *stack32.offset(2);
+        let shim = match machine.emu.shims.get(ret_addr - 6) {
+            Ok(shim) => shim,
+            Err(name) => unimplemented!("{}", name),
+        };
+        let stack_args = STACK32 + 16; // stack[4]
+        let ret = match shim.func {
+            Handler::Sync(func) => func(machine, stack_args),
+            Handler::Async(_) => unimplemented!(),
+        };
+        match ret {
+            ABIReturn::U32(ret) => ret as u64,
+            ABIReturn::U64(_) => todo!(),
+            ABIReturn::F64(_) => todo!(),
+        }
     }
 }
 
@@ -81,7 +88,7 @@ std::arch::global_asm!(
     call64 = sym call64,
 );
 
-extern "C" {
+unsafe extern "C" {
     fn trans64();
 }
 
@@ -99,7 +106,7 @@ std::arch::global_asm!(
     options(att_syntax),
 );
 
-extern "C" {
+unsafe extern "C" {
     fn tramp32();
 }
 
@@ -180,7 +187,9 @@ impl Shims {
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
     /// way after all the initialization happens...
     pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine) {
-        MACHINE = machine;
+        unsafe {
+            MACHINE = machine;
+        }
     }
 }
 
