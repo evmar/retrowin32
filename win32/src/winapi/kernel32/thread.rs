@@ -57,7 +57,7 @@ unsafe impl ::memory::Pod for TEB {}
 
 pub struct Thread {
     /// Entry in kernel32.objects.
-    handle: HTHREAD,
+    pub handle: HTHREAD,
 
     /// address of TEB
     pub teb: u32,
@@ -214,16 +214,17 @@ pub async fn CreateThread(
     #[cfg(feature = "x86-emu")]
     {
         // TODO: should reuse a CPU from a previous thread that has exited
-        let thread = create_thread(machine, stack_size);
-        let cpu = machine.emu.x86.new_cpu();
-        Machine::init_thread(cpu, &thread);
-        let mem = machine.memory.mem();
-        x86::ops::push(cpu, mem, lpParameter);
-        x86::ops::push(cpu, mem, lpStartAddress);
-        x86::ops::push(cpu, mem, 0);
-        cpu.regs.eip = retrowin32_thread_main;
-
-        thread.thread.handle
+        let handle = machine.new_thread(
+            true,
+            stack_size,
+            retrowin32_thread_main,
+            &[
+                0,              // return address
+                lpStartAddress, // entry point
+                lpParameter,    // parameter
+            ],
+        );
+        HTHREAD::from_raw(handle)
     }
 
     #[cfg(not(feature = "x86-emu"))]

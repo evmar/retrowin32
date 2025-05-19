@@ -242,7 +242,7 @@ pub fn waveOutOpen(
     *phwo.unwrap() = hwo;
 
     let retrowin32_wave_thread_main = sys.get_symbol("winmm.dll", "retrowin32_wave_thread_main");
-    sys.new_thread(0x1000, retrowin32_wave_thread_main, &[hwo.to_raw()]);
+    sys.new_thread(true, 0x1000, retrowin32_wave_thread_main, &[hwo.to_raw()]);
 
     MMRESULT::MMSYSERR_NOERROR
 }

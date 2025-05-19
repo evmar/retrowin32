@@ -13,7 +13,6 @@ use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
 use win32_system::{dll::Handler, host, memory::Memory};
 use win32_winapi::calling_convention::ABIReturn;
-use x86::CPU;
 
 pub struct Emulator {
     pub x86: x86::X86,
@@ -257,11 +256,31 @@ impl MachineX<Emulator> {
         self.emu.x86.cpu().regs.fs_addr
     }
 
-    /// Emulator-specific thread initialization.
-    pub fn init_thread(cpu: &mut CPU, thread: &kernel32::NewThread) {
+    pub fn new_thread_impl(
+        &mut self,
+        new_cpu: bool,
+        stack_size: u32,
+        start_addr: u32,
+        args: &[u32],
+    ) -> u32 {
+        let thread = kernel32::create_thread(self, stack_size);
+        let cpu = if new_cpu {
+            self.emu.x86.new_cpu()
+        } else {
+            self.emu.x86.cpu_mut()
+        };
         cpu.regs.set32(x86::Register::ESP, thread.stack_pointer);
         cpu.regs.set32(x86::Register::EBP, thread.stack_pointer);
         cpu.regs.fs_addr = thread.thread.teb;
+
+        // Push the args in reverse order.
+        // TODO: deduplicate this with call_x86 logic.
+        for &arg in args.iter().rev() {
+            x86::ops::push(cpu, self.memory.mem(), arg);
+        }
+        cpu.regs.eip = start_addr;
+
+        thread.thread.handle.to_raw()
     }
 
     pub fn exit_thread(&mut self) {

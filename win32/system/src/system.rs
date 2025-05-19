@@ -22,7 +22,7 @@ pub trait System {
     // we use the workaround from https://github.com/dtolnay/async-trait.
     fn call_x86(&mut self, func: u32, args: Vec<u32>) -> Pin<Box<dyn Future<Output = u32> + '_>>;
 
-    fn new_thread(&mut self, stack_size: u32, start_addr: u32, args: &[u32]);
+    fn new_thread(&mut self, new_cpu: bool, stack_size: u32, start_addr: u32, args: &[u32]) -> u32;
 
     // TODO: remove blocking API in favor of event objects.
     fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;

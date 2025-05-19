@@ -6,10 +6,7 @@
 
 use crate::{
     machine::Machine,
-    winapi::{
-        self,
-        kernel32::{self, HMODULE},
-    },
+    winapi::{self, kernel32::HMODULE},
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{
@@ -17,6 +14,7 @@ use std::{
     path::Path,
 };
 use win32_system::{
+    System,
     dll::BuiltinDLL,
     host,
     memory::{Mapping, Memory},
@@ -360,8 +358,7 @@ pub async fn load_exe(
     // TODO: zig asks for 16mb of stack space, which then conflicts with the
     // exe load address.  Clip it here.
     let stack_size = file.opt_header.SizeOfStackReserve.min(0x10_0000);
-    let thread = kernel32::create_thread(machine, stack_size);
-    Machine::init_thread(machine.emu.x86.cpu_mut(), &thread);
+    machine.new_thread(false, stack_size, 0, &[]);
 
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();

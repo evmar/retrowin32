@@ -56,7 +56,7 @@ pub fn timeSetEvent(
 
     let retrowin32_time_thread_main = sys.get_symbol("winmm.dll", "retrowin32_time_thread_main");
 
-    sys.new_thread(0x1000, retrowin32_time_thread_main, &[]);
+    sys.new_thread(true, 0x1000, retrowin32_time_thread_main, &[]);
 
     timer_id
 }
