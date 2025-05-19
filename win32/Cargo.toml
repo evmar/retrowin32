@@ -47,6 +47,6 @@ tsify = { workspace = true }
 wasm-bindgen = { workspace = true }
 
 [features]
-x86-emu = ["dep:x86"]
-x86-64 = []
+x86-emu = ["dep:x86", "memory/mem-box"]
+x86-64 = ["memory/mem-raw"]
 x86-unicorn = ["dep:unicorn-engine"]

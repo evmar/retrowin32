@@ -1,4 +1,4 @@
-use memory::Mem;
+use crate::Mem;
 
 pub struct BoxMem(Box<[u8]>);
 

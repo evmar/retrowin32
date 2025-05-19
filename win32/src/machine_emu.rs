@@ -9,7 +9,7 @@ use crate::{
         kernel32::{self, CommandLine},
     },
 };
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::collections::HashMap;
 use win32_system::{dll::Handler, host, memory::Memory};
 use win32_winapi::calling_convention::ABIReturn;
@@ -23,7 +23,6 @@ pub struct Emulator {
     breakpoints: HashMap<u32, u8>,
 }
 
-pub type MemImpl = win32_system::MemImpl;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {

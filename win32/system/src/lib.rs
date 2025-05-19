@@ -1,4 +1,3 @@
-mod boxmem;
 pub mod dll;
 mod event;
 mod heap;
@@ -9,7 +8,6 @@ mod system;
 pub mod trace;
 mod wait;
 
-pub use boxmem::BoxMem as MemImpl;
 pub use event::{ArcEvent, Event};
 pub use heap::Heap;
 pub use system::System;

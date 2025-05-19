@@ -27,4 +27,4 @@ done
 export RUSTFLAGS="$RUSTFLAGS -C relocation-model=dynamic-no-pic $link_flag"
 
 # note: faster debug cycle if you remove 'sdl'
-exec cargo build --target x86_64-apple-darwin -p retrowin32 --features x86-64,sdl "$@"
+exec cargo build --target x86_64-apple-darwin -p retrowin32 --no-default-features --features x86-64,sdl "$@"

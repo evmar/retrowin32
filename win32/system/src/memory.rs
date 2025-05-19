@@ -1,7 +1,6 @@
+use crate::heap::Heap;
+use memory::{Extensions, Mem, MemImpl};
 use std::{collections::HashMap, rc::Rc};
-
-use crate::{MemImpl, heap::Heap};
-use memory::{Extensions, Mem};
 
 pub fn align_to(n: u32, align: usize) -> u32 {
     // log2(align) - 1

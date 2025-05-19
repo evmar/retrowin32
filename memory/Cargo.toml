@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 log = { workspace = true }
+
+[features]
+mem-box = []
+mem-raw = []

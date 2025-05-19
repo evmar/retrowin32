@@ -1,7 +1,6 @@
 use crate::{
     host, loader,
     machine::{MachineX, Status},
-    memory::Memory,
     shims::Shims,
     shims_raw::{self, retrowin32_syscall},
     winapi::{
@@ -9,26 +8,13 @@ use crate::{
         {self},
     },
 };
-use memory::Mem;
-use std::collections::HashMap;
-
-#[derive(Default)]
-pub struct RawMem {}
-
-impl RawMem {
-    pub fn mem(&self) -> Mem {
-        Mem::from_ptrs(0 as *mut u8..(1 << 30) as *mut u8)
-    }
-    pub fn len(&self) -> u32 {
-        0xFFFF_FFFF
-    }
-}
+use memory::{Mem, MemImpl};
+use win32_system::memory::Memory;
 
 pub struct Emulator {
     pub shims: Shims,
 }
 
-pub type MemImpl = RawMem;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
@@ -37,14 +23,13 @@ impl MachineX<Emulator> {
         let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
         let teb = 0; // TODO: set up teb here
         let shims = Shims::new(teb);
-        let state = winapi::State::new(&mut memory, kernel32);
+        let state = winapi::State::new(kernel32);
 
         Machine {
             emu: Emulator { shims },
             memory,
             host,
             state,
-            labels: HashMap::new(),
             external_dlls: Default::default(),
             status: Default::default(),
         }
