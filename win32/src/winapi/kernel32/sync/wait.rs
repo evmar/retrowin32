@@ -57,12 +57,7 @@ pub async fn wait_for_events(
         //     handles
         // );
 
-        #[cfg(feature = "x86-emu")]
-        {
-            sys.block(until).await;
-        }
-        #[cfg(not(feature = "x86-emu"))]
-        todo!();
+        sys.block(until).await;
     }
 }
 

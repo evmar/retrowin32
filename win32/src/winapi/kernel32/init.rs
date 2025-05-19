@@ -316,7 +316,14 @@ unsafe impl ::memory::Pod for PEB {}
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
     if machine.state.kernel32.break_on_startup {
-        machine.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+        #[cfg(feature = "x86-emu")]
+        {
+            machine.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+        }
+        #[cfg(not(feature = "x86-emu"))]
+        {
+            todo!();
+        }
     }
     machine.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
