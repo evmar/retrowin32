@@ -7,6 +7,7 @@ pub type AsyncHandler =
         &mut dyn System,
         u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>>;
+
 #[derive(Debug, Clone, Copy)]
 pub enum Handler {
     Sync(SyncHandler),

@@ -2,7 +2,7 @@ use crate::{
     host, ldt, loader,
     machine::{MachineX, Status},
     shims::Shims,
-    shims_raw::{self, retrowin32_syscall},
+    shims_raw::{self, call_sync, retrowin32_syscall},
     winapi::{self, kernel32::CommandLine},
 };
 use memory::{Mem, MemImpl};
@@ -40,7 +40,7 @@ impl MachineX<Emulator> {
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
         let start = std::pin::pin!(loader::start_exe(self, relocate));
-        crate::shims::call_sync(start).unwrap();
+        call_sync(start).unwrap();
     }
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {

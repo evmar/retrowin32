@@ -48,7 +48,7 @@ unsafe extern "C" fn call64() -> u64 {
         let stack_args = STACK32 + 16; // stack[4]
         let ret = match shim.func {
             Handler::Sync(func) => func(machine, stack_args),
-            Handler::Async(_) => unimplemented!(),
+            Handler::Async(func) => call_sync(func(machine, stack_args).as_mut()),
         };
         match ret {
             ABIReturn::U32(ret) => ret as u64,
@@ -269,5 +269,18 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         _ = tramp32;
         call64();
         todo!()
+    }
+}
+
+/// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
+#[allow(deref_nullptr)]
+pub fn call_sync<T, F>(future: std::pin::Pin<&mut F>) -> T
+where
+    F: std::future::Future<Output = T> + ?Sized,
+{
+    let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
+    match future.poll(context) {
+        std::task::Poll::Pending => unreachable!(),
+        std::task::Poll::Ready(t) => t,
     }
 }

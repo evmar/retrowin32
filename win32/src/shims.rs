@@ -32,13 +32,3 @@ impl Shims {
         }
     }
 }
-
-/// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
-#[allow(deref_nullptr)]
-pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {
-    let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-    match future.poll(context) {
-        std::task::Poll::Pending => unreachable!(),
-        std::task::Poll::Ready(t) => t,
-    }
-}
