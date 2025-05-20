@@ -143,19 +143,7 @@ pub fn retrowin32_syscall() -> Vec<u8> {
 }
 
 impl Shims {
-    fn init_ldt(teb: u32) -> u16 {
-        assert!(teb != 0);
-        // Set up fs to point at the TEB.
-        // NOTE: OSX seems extremely sensitive to the values used here, where like
-        // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-        let fs_sel = ldt::add_entry(teb, 0xFFF, false);
-        unsafe {
-            std::arch::asm!(
-                "mov fs, {fs_sel:x}",
-                fs_sel = in(reg) fs_sel
-            );
-        }
-
+    fn init_ldt() -> u16 {
         // Set up ds/es to just point at flat address 0.
         // Rosetta doesn't appear to care about ds/es, but native x86 needs them.
         let data_sel = ldt::add_entry(0, 0xFFFF_FFFF, false);
@@ -170,12 +158,11 @@ impl Shims {
         // Get a selector for 32-bit code jumps.
         // For execution purposes, we treat the entire 4gb range as 32-bit code.
         let code32_selector = ldt::add_entry(0, 0xFFFF_FFFF, true);
-
         code32_selector
     }
 
-    pub fn new(teb: u32) -> Self {
-        let code32_selector = Self::init_ldt(teb);
+    pub fn new() -> Self {
+        let code32_selector = Self::init_ldt();
 
         let tramp32_addr = tramp32 as u64;
         assert!(tramp32_addr < 0x1_0000_0000);

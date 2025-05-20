@@ -1,5 +1,5 @@
 use crate::{
-    host, loader,
+    host, ldt, loader,
     machine::{MachineX, Status},
     shims::Shims,
     shims_raw::{self, retrowin32_syscall},
@@ -18,8 +18,7 @@ impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = Memory::new(MemImpl::default());
         let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
-        let teb = 0; // TODO: set up teb here
-        let shims = Shims::new(teb);
+        let shims = Shims::new();
         let state = winapi::State::new(kernel32);
 
         Machine {
@@ -61,7 +60,6 @@ impl MachineX<Emulator> {
         {
             teb_addr = 0;
         }
-        log::info!("teb at {:x}", teb_addr);
         teb_addr
     }
 
@@ -83,6 +81,16 @@ impl MachineX<Emulator> {
         let thread = winapi::kernel32::create_thread(self, stack_size);
         unsafe {
             shims_raw::set_stack32(thread.stack_pointer);
+            assert!(thread.thread.teb != 0);
+
+            // Set up fs to point at the TEB.
+            // NOTE: OSX seems extremely sensitive to the values used here, where like
+            // using a span size that is not exactly 0xFFF causes the entry to be rejected.
+            let fs_sel = ldt::add_entry(thread.thread.teb, 0xFFF, false);
+            std::arch::asm!(
+                "mov fs, {fs_sel:x}",
+                fs_sel = in(reg) fs_sel
+            );
         }
         0
     }
