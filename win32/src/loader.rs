@@ -481,7 +481,7 @@ pub fn resolve_dll(machine: &Machine, filename: &str) -> DLLResolution {
 fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8>> {
     let mut buf = Vec::new();
     let Ok(mut file) = host.open(path, host::FileOptions::read()) else {
-        anyhow::bail!("{path:?} not found");
+        anyhow::bail!("{path} not found");
     };
     file.read_to_end(&mut buf).unwrap();
     // TODO: close file.
