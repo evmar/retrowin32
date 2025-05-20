@@ -170,27 +170,6 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn __p__commode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        unsafe {
-            let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("ucrtbase/init") {
-                trace::Record::new(
-                    ucrtbase::__p__commode_pos,
-                    "ucrtbase/init",
-                    "__p__commode",
-                    &[],
-                )
-                .enter()
-            } else {
-                None
-            };
-            let result = ucrtbase::__p__commode(sys);
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        }
-    }
     pub unsafe fn __p__environ(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
@@ -206,22 +185,6 @@ mod wrappers {
                 None
             };
             let result = ucrtbase::__p__environ(sys);
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        }
-    }
-    pub unsafe fn __p__fmode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        unsafe {
-            let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("ucrtbase/init") {
-                trace::Record::new(ucrtbase::__p__fmode_pos, "ucrtbase/init", "__p__fmode", &[])
-                    .enter()
-            } else {
-                None
-            };
-            let result = ucrtbase::__p__fmode(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -630,28 +593,6 @@ mod wrappers {
                 None
             };
             let result = ucrtbase::_set_app_type(sys, _app_type);
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        }
-    }
-    pub unsafe fn _set_fmode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        unsafe {
-            let mem = sys.mem().detach();
-            let _mode = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("ucrtbase/init") {
-                trace::Record::new(
-                    ucrtbase::_set_fmode_pos,
-                    "ucrtbase/init",
-                    "_set_fmode",
-                    &[("mode", &_mode)],
-                )
-                .enter()
-            } else {
-                None
-            };
-            let result = ucrtbase::_set_fmode(sys, _mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1246,7 +1187,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 56usize] = [
+const SHIMS: [Shim; 53usize] = [
     Shim {
         name: "_EH_prolog",
         func: Handler::Sync(wrappers::_EH_prolog),
@@ -1276,16 +1217,8 @@ const SHIMS: [Shim; 56usize] = [
         func: Handler::Sync(wrappers::__p___argv),
     },
     Shim {
-        name: "__p__commode",
-        func: Handler::Sync(wrappers::__p__commode),
-    },
-    Shim {
         name: "__p__environ",
         func: Handler::Sync(wrappers::__p__environ),
-    },
-    Shim {
-        name: "__p__fmode",
-        func: Handler::Sync(wrappers::__p__fmode),
     },
     Shim {
         name: "__set_app_type",
@@ -1354,10 +1287,6 @@ const SHIMS: [Shim; 56usize] = [
     Shim {
         name: "_set_app_type",
         func: Handler::Sync(wrappers::_set_app_type),
-    },
-    Shim {
-        name: "_set_fmode",
-        func: Handler::Sync(wrappers::_set_fmode),
     },
     Shim {
         name: "_set_new_mode",

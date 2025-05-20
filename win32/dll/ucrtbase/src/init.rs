@@ -52,15 +52,30 @@ pub fn __p__environ(sys: &dyn System) -> u32 {
     0
 }
 
-#[win32_derive::dllexport(cdecl)]
-pub fn __p__fmode(sys: &dyn System) -> u32 {
-    0
-}
+#[win32_derive::dllexport]
+pub const _fmode: &'static str = "_fmode";
 
-#[win32_derive::dllexport(cdecl)]
-pub fn __p__commode(sys: &dyn System) -> u32 {
-    0
-}
+#[win32_derive::dllexport(raw_asm)]
+pub const __p__fmode: &'static str = "
+    mov eax, offset __fmode
+    ret
+";
+
+#[win32_derive::dllexport(raw_asm)]
+pub const _set_fmode: &'static str = "
+    mov eax, [esp + 4]
+    mov [__fmode], eax
+    ret
+";
+
+#[win32_derive::dllexport]
+pub const _commode: &'static str = "_commode";
+
+#[win32_derive::dllexport(raw_asm)]
+pub const __p__commode: &'static str = "
+    mov eax, offset __commode
+    ret
+";
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _set_app_type(sys: &dyn System, _app_type: u32) -> u32 {
@@ -70,11 +85,6 @@ pub fn _set_app_type(sys: &dyn System, _app_type: u32) -> u32 {
 // Not a typo!  Both __set_app_type and _set_app_type are defined and even have different documentation.
 #[win32_derive::dllexport(cdecl)]
 pub fn __set_app_type(sys: &dyn System, _app_type: u32) -> u32 {
-    0
-}
-
-#[win32_derive::dllexport(cdecl)]
-pub fn _set_fmode(sys: &dyn System, _mode: u32) -> u32 {
     0
 }
 
