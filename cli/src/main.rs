@@ -137,14 +137,7 @@ fn main() -> anyhow::Result<ExitCode> {
 
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
 
-    let exe = args
-        .cmdline
-        .first()
-        .ok_or_else(|| anyhow!("missing command line"))?;
-    let exe = std::fs::canonicalize(exe).map_err(|err| anyhow!("{}: {}", exe, err))?;
-    let buf = std::fs::read(&exe).map_err(|err| anyhow!("{}: {}", exe.display(), err))?;
     let host = host::new_host();
-
     let mut cmdline = args.cmdline.clone();
     let cwd = host
         .current_dir()
@@ -162,10 +155,7 @@ fn main() -> anyhow::Result<ExitCode> {
     let mut machine = win32::Machine::new(Box::new(host.clone()));
     machine.set_external_dlls(args.external_dll);
     machine.state.winmm.borrow_mut().audio_enabled = args.audio;
-
-    let entry_point = machine
-        .load_exe(buf, cmdline, None)
-        .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
+    machine.start_exe(cmdline, None);
 
     let exit_code: u32;
 
@@ -182,8 +172,6 @@ fn main() -> anyhow::Result<ExitCode> {
 
     #[cfg(feature = "x86-emu")]
     {
-        _ = entry_point;
-
         let start = std::time::Instant::now();
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();

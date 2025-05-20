@@ -343,13 +343,11 @@ async fn load_module(
     init_module(machine, file, module).await
 }
 
-pub async fn load_exe(
-    machine: &mut Machine,
-    buf: &[u8],
-    path: &str,
-    relocate: Option<Option<u32>>,
-) -> anyhow::Result<u32> {
-    let file = pe::File::parse(buf)?;
+pub async fn start_exe(machine: &mut Machine, relocate: Option<Option<u32>>) -> anyhow::Result<()> {
+    let exe_name = machine.state.kernel32.cmdline.exe_name();
+    let path = WindowsPath::new(&exe_name);
+    let buf = read_file(&*machine.host, path)?; // TODO: .await
+    let file = pe::File::parse(&buf)?;
 
     // We need a current thread to load the exe, because we may need to
     // call DllMain()s on dependent DLLs.  But we only have the stack size
@@ -364,7 +362,7 @@ pub async fn load_exe(
     let filename = path.file_name().unwrap().to_string_lossy();
     let module_name = normalize_module_name(&filename);
 
-    let module = load_one_module(&mut machine.memory, module_name, buf, &file, relocate)?;
+    let module = load_one_module(&mut machine.memory, module_name, &buf, &file, relocate)?;
 
     // Another "feels wrong": initialize process heap after exe has loaded and picked an address,
     // to ensure the process heap doesn't occupy any addresses that the exe wants.
@@ -378,8 +376,8 @@ pub async fn load_exe(
     let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
-    let entry_point = module.entry_point.unwrap();
-    Ok(entry_point)
+    winapi::kernel32::retrowin32_main(machine, module.entry_point.unwrap()).await;
+    Ok(())
 }
 
 /// The result of loading an exe or DLL.
@@ -480,6 +478,17 @@ pub fn resolve_dll(machine: &Machine, filename: &str) -> DLLResolution {
     DLLResolution::External(filename)
 }
 
+fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    let Ok(mut file) = host.open(path, host::FileOptions::read()) else {
+        anyhow::bail!("{path:?} not found");
+    };
+    file.read_to_end(&mut buf).unwrap();
+    // TODO: close file.
+    buf.shrink_to_fit();
+    Ok(buf)
+}
+
 pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HMODULE> {
     let module_name = res.name();
     // See if already loaded.
@@ -525,12 +534,10 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
             let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
             for path in &dll_paths {
                 let path = WindowsPath::new(path);
-                let mut file = match machine.host.open(path, host::FileOptions::read()) {
-                    Ok(file) => file,
-                    Err(_) => continue,
-                };
-                file.read_to_end(&mut buf).unwrap();
-                // TODO: close file.
+                buf = read_file(&*machine.host, path)?;
+                if !buf.is_empty() {
+                    break;
+                }
                 break;
             }
             if buf.is_empty() {

@@ -52,12 +52,7 @@ impl MachineX<Emulator> {
         self.memory.mem()
     }
 
-    pub fn load_exe(
-        &mut self,
-        buf: Vec<u8>,
-        cmdline: String,
-        relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<u32> {
+    pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
         self.state
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
@@ -66,20 +61,9 @@ impl MachineX<Emulator> {
         let cpu = self.emu.x86.new_cpu();
         cpu.call_async(Box::pin(async move {
             let machine = unsafe { &mut *machine };
-            let entry_point = loader::load_exe(
-                machine,
-                &buf,
-                &machine.state.kernel32.cmdline.exe_name(),
-                relocate,
-            )
-            .await
-            .unwrap();
-
-            winapi::kernel32::retrowin32_main(machine, entry_point).await;
+            loader::start_exe(machine, relocate).await.unwrap();
             0
         }));
-
-        Ok(0) // return value unused
     }
 
     pub fn single_step(&mut self) {
