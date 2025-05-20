@@ -4,7 +4,7 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{Machine, ldt::LDT, shims::Shims};
+use crate::{Machine, ldt, shims::Shims};
 #[cfg(target_arch = "x86_64")]
 use memory::ExtensionsMut;
 use win32_system::dll::Handler;
@@ -143,37 +143,39 @@ pub fn retrowin32_syscall() -> Vec<u8> {
 }
 
 impl Shims {
-    fn init_ldt(teb: u32) -> LDT {
-        let mut ldt = LDT::default();
-
+    fn init_ldt(teb: u32) -> u16 {
+        assert!(teb != 0);
+        // Set up fs to point at the TEB.
         // NOTE: OSX seems extremely sensitive to the values used here, where like
         // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-        let fs_sel = ldt.add_entry(teb, 0xFFF, false);
+        let fs_sel = ldt::add_entry(teb, 0xFFF, false);
         unsafe {
             std::arch::asm!(
-                "mov fs,{fs_sel:x}",
+                "mov fs, {fs_sel:x}",
                 fs_sel = in(reg) fs_sel
             );
         }
 
+        // Set up ds/es to just point at flat address 0.
         // Rosetta doesn't appear to care about ds/es, but native x86 needs them.
-        let sel = ldt.add_entry(0, 0xFFFF_FFFF, false);
+        let data_sel = ldt::add_entry(0, 0xFFFF_FFFF, false);
         unsafe {
             std::arch::asm!(
-                "mov ds,{sel:x}",
-                "mov es,{sel:x}",
-                sel = in(reg) sel,
+                "mov ds, {data_sel:x}",
+                "mov es, {data_sel:x}",
+                data_sel = in(reg) data_sel,
             );
         }
 
-        ldt
+        // Get a selector for 32-bit code jumps.
+        // For execution purposes, we treat the entire 4gb range as 32-bit code.
+        let code32_selector = ldt::add_entry(0, 0xFFFF_FFFF, true);
+
+        code32_selector
     }
 
     pub fn new(teb: u32) -> Self {
-        let mut ldt = Self::init_ldt(teb);
-
-        // Wine marks all of memory as code.
-        let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
+        let code32_selector = Self::init_ldt(teb);
 
         let tramp32_addr = tramp32 as u64;
         assert!(tramp32_addr < 0x1_0000_0000);

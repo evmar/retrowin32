@@ -7,7 +7,6 @@ use super::{
 use crate::{
     Machine,
     loader::{self, Module},
-    segments::SegmentDescriptor,
     winapi::{arena::Arena, *},
 };
 use ::memory::Mem;
@@ -203,7 +202,9 @@ impl State {
         peb.TlsCount = 0;
     }
 
+    #[cfg(feature = "x86-unicorn")]
     pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
+        use segments::SegmentDescriptor;
         const COUNT: usize = 5;
         let addr = self.arena.alloc(COUNT as u32 * 8, 8);
         let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };

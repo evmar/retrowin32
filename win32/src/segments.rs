@@ -1,5 +1,5 @@
 /// x86 segment descriptor, with fields broken out.
-/// Intel manual section 3.4.5.
+/// Intel manual volume 3 section 3.4.5.
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct SegmentDescriptor {
     pub base: u32,
@@ -24,7 +24,7 @@ pub struct SegmentDescriptor {
 }
 
 impl SegmentDescriptor {
-    #[allow(dead_code)]
+    #[allow(unused)]
     pub fn decode(raw: u64) -> Self {
         let hi = (raw >> 32) as u32;
         let lo = raw as u32;
@@ -71,7 +71,7 @@ impl SegmentDescriptor {
     }
 
     #[allow(dead_code)]
-    pub fn empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.encode() == 0
     }
 }
