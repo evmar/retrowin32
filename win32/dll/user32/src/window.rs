@@ -678,6 +678,25 @@ pub async fn activate_window(sys: &mut dyn System, hWnd: HWND) {
     .await;
 }
 
+async fn send_windowsposchanged(sys: &mut dyn System, pos: WINDOWPOS) {
+    let hwnd = pos.hwnd;
+    let windowpos_addr = sys.memory().store(pos);
+    dispatch_message(
+        sys,
+        &MSG {
+            hwnd,
+            message: WM::WINDOWPOSCHANGED as u32,
+            wParam: 0,
+            lParam: windowpos_addr,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+        },
+    )
+    .await;
+    sys.memory().process_heap.free(sys.mem(), windowpos_addr);
+}
+
 /// nCmdShow passed to ShowWindow().
 #[derive(Copy, Clone, Debug, win32_derive::TryFromEnum)]
 pub enum SW {
@@ -705,19 +724,16 @@ pub async fn ShowWindow(sys: &mut dyn System, hWnd: HWND, nCmdShow: Result<SW, u
 
     activate_window(sys, hWnd).await;
 
-    // TODO: WM_WINDOWPOSCHANGED should pass a WINDOWPOS struct,
-    // but the DefWindowProc we provide ignores it and calls WM_MOVE/WM_SIZE directly.
-    let windowpos_addr = 0;
-    dispatch_message(
+    send_windowsposchanged(
         sys,
-        &MSG {
+        WINDOWPOS {
             hwnd: hWnd,
-            message: WM::WINDOWPOSCHANGED as u32,
-            wParam: 0,
-            lParam: windowpos_addr,
-            time: 0,
-            pt_x: 0,
-            pt_y: 0,
+            hwndInsertAfter: HWND::null(),
+            x: 0,
+            y: 0,
+            cx: 0,
+            cy: 0,
+            flags: SWP::empty(), // TODO: flags
         },
     )
     .await;
@@ -933,31 +949,25 @@ pub async fn SetWindowPos(
     cy: i32,
     uFlags: Result<SWP, u32>,
 ) -> bool {
-    let windowpos_addr = sys.memory().store(WINDOWPOS {
-        hwnd: hWnd,
-        hwndInsertAfter: hWndInsertAfter,
-        x: X,
-        y: Y,
-        cx,
-        cy,
-        flags: uFlags.unwrap(),
-    });
-
     // A trace of winstream.exe had this sequence of synchronous messages:
     // WM_WINDOWPOSCHANGING
     // (WM_ACTIVATEAPP, WM_NCACTIVATE, WM_ACTIVATE)
     // WM_WINDOWPOSCHANGED
     // -> DefWindowProc calls WM_SIZE and WM_MOVE
-    let msg = MSG {
-        hwnd: hWnd,
-        message: WM::WINDOWPOSCHANGED as u32,
-        wParam: 0,
-        lParam: windowpos_addr,
-        time: 0,
-        pt_x: 0,
-        pt_y: 0,
-    };
-    dispatch_message(sys, &msg).await;
+
+    send_windowsposchanged(
+        sys,
+        WINDOWPOS {
+            hwnd: hWnd,
+            hwndInsertAfter: hWndInsertAfter,
+            x: X,
+            y: Y,
+            cx,
+            cy,
+            flags: uFlags.unwrap(),
+        },
+    )
+    .await;
 
     let state = get_state(sys);
     let mut window = state.windows.get(hWnd).unwrap().borrow_mut();
