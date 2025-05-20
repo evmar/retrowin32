@@ -180,3 +180,18 @@ pub fn _except_handler3(
 ) -> i32 {
     todo!();
 }
+
+#[win32_derive::dllexport(raw_asm)]
+pub const _retrowin32_nul: &'static str = "
+    .byte 0, 0
+";
+
+#[win32_derive::dllexport(raw_asm)]
+pub const _acmdln: &'static str = "
+    .long __retrowin32_nul
+";
+
+#[win32_derive::dllexport(raw_asm)]
+pub const _wcmdln: &'static str = "
+    .long __retrowin32_nul
+";

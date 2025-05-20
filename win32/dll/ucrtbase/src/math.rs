@@ -8,9 +8,6 @@ pub fn __setusermatherr(sys: &mut dyn System, pf: u32) {
 #[win32_derive::dllexport]
 pub const _adjust_fdiv: &'static str = "_adjust_fdiv";
 
-#[win32_derive::dllexport]
-pub const _acmdln: &'static str = "_acmdln";
-
 // ftol is unique(?) in that it does not follow the calling convention,
 // but rather pops a value from the FPU stack and returns it in edx:eax.
 // We just use x86 assembly for this.
