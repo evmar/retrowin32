@@ -5,28 +5,18 @@ const INFINITE: u32 = 0xffff_ffff;
 pub enum Wait {
     None,
     Forever,
+    // In absolute time as measured by host.ticks().
     Millis(u32),
 }
 
 impl Wait {
-    pub fn from_millis(ms: u32) -> Self {
+    pub fn from_millis(host: &dyn Host, ms: u32) -> Self {
         if ms == 0 {
             Wait::None
         } else if ms == INFINITE {
             Wait::Forever
         } else {
-            Wait::Millis(ms)
-        }
-    }
-
-    pub fn to_absolute(self, host: &dyn Host) -> Self {
-        match self {
-            Wait::None => Wait::None,
-            Wait::Forever => Wait::Forever,
-            Wait::Millis(ms) => {
-                assert!(ms > 0);
-                Wait::Millis(host.ticks() + ms)
-            }
+            Wait::Millis(host.ticks() + ms)
         }
     }
 }

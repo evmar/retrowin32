@@ -27,7 +27,6 @@ pub async fn wait_for_events(
         todo!("WaitForMultipleObjects: bWaitAll");
     }
 
-    let wait = wait.to_absolute(sys.host());
     loop {
         for (i, event) in events.iter().enumerate() {
             let mut signaled = event.signaled.lock().unwrap();
@@ -75,14 +74,10 @@ pub async fn WaitForSingleObject(
         .unwrap()
         .get_event()
         .clone();
-    wait_for_events(
-        machine,
-        [event].into(),
-        false,
-        Wait::from_millis(dwMilliseconds),
-    )
-    .await
-    .to_code()
+    let wait = Wait::from_millis(machine.host(), dwMilliseconds);
+    wait_for_events(machine, [event].into(), false, wait)
+        .await
+        .to_code()
 }
 
 #[win32_derive::dllexport]
@@ -107,12 +102,8 @@ pub async fn WaitForMultipleObjects(
                 .clone()
         })
         .collect::<Vec<_>>();
-    wait_for_events(
-        machine,
-        events.into(),
-        false,
-        Wait::from_millis(dwMilliseconds),
-    )
-    .await
-    .to_code()
+    let wait = Wait::from_millis(machine.host(), dwMilliseconds);
+    wait_for_events(machine, events.into(), false, wait)
+        .await
+        .to_code()
 }

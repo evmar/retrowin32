@@ -101,7 +101,6 @@ impl System for Machine {
         wait_all: bool,
         wait: Wait,
     ) -> std::pin::Pin<Box<dyn Future<Output = WaitResult> + '_>> {
-        let wait = wait.to_absolute(self.host());
         Box::pin(kernel32::wait_for_events(
             self,
             events.into(),

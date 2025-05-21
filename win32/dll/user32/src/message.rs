@@ -526,9 +526,13 @@ pub async fn MsgWaitForMultipleObjects(
         // TODO: e.g. handles.push(msgqueueevent)
     }
 
-    sys.wait_for_objects(&objects, fWaitAll, Wait::from_millis(dwMilliseconds))
-        .await
-        .to_code()
+    sys.wait_for_objects(
+        &objects,
+        fWaitAll,
+        Wait::from_millis(sys.host(), dwMilliseconds),
+    )
+    .await
+    .to_code()
 }
 
 #[win32_derive::dllexport]
