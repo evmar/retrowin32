@@ -1,7 +1,7 @@
+category = "retrowin32 test"
 title = "DirectDraw spinning car"
 desc = "simplest DirectDraw app"
-path = "archive/BasicDD.exe"
-category = "retrowin32 test"
+cmdline = "archive/BasicDD.exe"
 
 [origin]
 desc = "DirectDraw tutorial"

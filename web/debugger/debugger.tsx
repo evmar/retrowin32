@@ -128,7 +128,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
   /** Load ghidra CSV, if any exists, into the label list. */
   async loadLabelsCSV(emulator: emulator.Emulator) {
-    const resp = await fetch(emulator.exePath + '.csv');
+    const resp = await fetch(emulator.storageKey + '.csv');
     if (!resp.ok) {
       return;
     }

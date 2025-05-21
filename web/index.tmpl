@@ -58,7 +58,7 @@
             <dl>
             {{range .Entries}}
             <dt>
-                <a href='run.html?exe={{.Path}}{{with .Dir}}&dir={{.}}{{end}}{{with .Cmdline}}&cmdline={{.}}{{end}}{{range .Files}}&file={{.}}{{end}}{{range .External}}&external={{.}}{{end}}'>{{.Title}}</a>
+                <a href='run.html?{{with .Dir}}&dir={{.}}{{end}}{{with .Cmdline}}&cmdline={{.}}{{end}}{{range .Files}}&file={{.}}{{end}}{{range .External}}&external={{.}}{{end}}'>{{.Title}}</a>
                 {{with .Origin}}(from
                     {{if .URL}}
                         <a href="{{.URL}}">{{.Desc}}</a>

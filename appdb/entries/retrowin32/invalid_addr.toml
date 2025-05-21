@@ -1,8 +1,7 @@
+category = "retrowin32 test"
 title = "invalid address test"
 desc = "tests dereferencing an invalid address"
-path = "local/target/i586-pc-windows-msvc/release/errors.exe"
-category = "retrowin32 test"
-cmdline = "errors.exe write-high"
+cmdline = "local/target/i586-pc-windows-msvc/release/errors.exe write-high"
 
 [origin]
 desc = "retrowin32"

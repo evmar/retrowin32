@@ -1,8 +1,7 @@
+category = "windows"
 title = "Minesweeper"
 desc = "the classic Windows game"
-dir = "archive/win2k/"
-path = "winmine.exe"
-category = "windows"
+cmdline = "archive/win2k/winmine.exe"
 
 [origin]
 desc = "Windows 2000"

@@ -1,6 +1,6 @@
 title = "Anatyda"
 desc = "Anatyda by Astral (1999)"
-path = "archive/demo/anatyda.exe"
+cmdline = "archive/demo/anatyda.exe"
 category = "demoscene"
 status = "works but slow"
 

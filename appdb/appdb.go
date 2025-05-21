@@ -31,10 +31,8 @@ type Entry struct {
 	Category string `toml:"category"`
 
 	Dir string `toml:"dir"`
-	// Path is the path in the retrowin32 tree to the exe.
-	Path string `toml:"path"`
 
-	// Extra files needed to run, found in Dir.
+	// Files needed to run, found in Dir.
 	Files []string `toml:"files"`
 
 	// DLLs to use from the file system instead of the internal copy.
@@ -133,13 +131,16 @@ func deploy(entries map[string][]*Entry) error {
 	}
 	for _, es := range entries {
 		for _, e := range es {
-			if strings.HasPrefix(e.Path, "local/") {
-				src := e.Path[len("local/"):]
-				dst := filepath.Join("deploy/", e.Path)
-				if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
-					return err
-				}
-				if err := os.Link(src, dst); err != nil {
+			if !strings.HasPrefix(e.Dir, "local/") {
+				continue
+			}
+			src := e.Dir[len("local/"):]
+			dst := filepath.Join("deploy/", e.Dir)
+			if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
+				return err
+			}
+			for _, f := range e.Files {
+				if err := os.Link(filepath.Join(src, f), filepath.Join(dst, f)); err != nil {
 					if !errors.Is(err, fs.ErrExist) {
 						fmt.Fprintf(os.Stderr, "%v\n", err)
 					}

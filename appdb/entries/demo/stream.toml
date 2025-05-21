@@ -1,7 +1,7 @@
 title = "stream"
 desc = "stream by mfx"
 dir = "archive/demo/stream/"
-path = "stream.exe"
+cmdline = "stream.exe"
 category = "demoscene"
 broken = true
 files = [

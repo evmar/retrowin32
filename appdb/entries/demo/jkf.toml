@@ -1,5 +1,5 @@
 title = "jävla kuk fitta"
-path = "archive/demo/jkf-unpacked.exe"
+cmdline = "archive/demo/jkf-unpacked.exe"
 category = "demoscene"
 broken = true
 status = "opengl"

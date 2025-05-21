@@ -148,12 +148,12 @@ export class Emulator implements wasm.JsHost {
   constructor(
     readonly host: Host,
     readonly files: FileSet,
-    readonly exePath: string,
+    readonly storageKey: string,
     externalDLLs: string[],
   ) {
     this.emu = wasm.new_emulator(this);
     this.emu.set_external_dlls(externalDLLs);
-    this.breakpoints = new Breakpoints(exePath);
+    this.breakpoints = new Breakpoints(storageKey);
     this.looper = new Looper(this.runBatch);
   }
 
@@ -367,28 +367,28 @@ class Looper {
 interface URLParams {
   /** URL directory that all other paths are resolved relative to. */
   dir?: string;
-  /** Executable to run. */
-  exe: string;
+  /** Command line to run. */
+  cmdLine: string;
   /** DLLs to load from files instead of builtin implementations. */
   externalDLLs: string[];
-  /** Other data files to load.  TODO: we should fetch these dynamically instead. */
+  /** Files to load.  TODO: we should fetch these dynamically instead. */
   files: string[];
   /** If true, relocate the exe on load. */
   relocate?: boolean;
-  /** Command line to pass to executable. */
-  cmdLine?: string;
 }
 
 function parseURL(): URLParams | undefined {
   const query = new URLSearchParams(document.location.search);
-  const exe = query.get('exe');
-  if (!exe) return undefined;
-  const dir = query.get('dir') || undefined;
-  const externalDLLs = (query.get('external') || '').split(',');
   const files = query.getAll('file');
+  const dir = query.get('dir') || undefined;
+  const cmdLine = query.get('cmdline') || files[0];
+  const exe = cmdLine.split(' ')[0];
+  if (!files.includes(exe)) {
+    files.unshift(exe);
+  }
+  const externalDLLs = (query.get('external') || '').split(',');
   const relocate = query.has('relocate');
-  const cmdLine = query.get('cmdline') || undefined;
-  const params: URLParams = { dir, exe, externalDLLs, files, relocate, cmdLine };
+  const params: URLParams = { dir, cmdLine, externalDLLs, files, relocate };
   return params;
 }
 
@@ -398,13 +398,12 @@ export async function load(host: Host) {
     throw new Error('invalid URL params');
   }
 
-  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
+  const fileset = await fetchFileSet(params.files, params.dir);
 
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
-  const cmdLine = params.cmdLine ?? params.exe;
-  const exePath = (params.dir ?? '') + params.exe;
-  const emu = new Emulator(host, fileset, exePath, params.externalDLLs);
-  emu.startExe(cmdLine, params.relocate ?? false);
+  const storageKey = (params.dir ?? '') + params.cmdLine.split(' ')[0];
+  const emu = new Emulator(host, fileset, storageKey, params.externalDLLs);
+  emu.startExe(params.cmdLine, params.relocate ?? false);
   return emu;
 }

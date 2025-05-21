@@ -1,6 +1,6 @@
 title = "kill the clone"
 dir = "archive/demo/"
-path = "kill the clone unpacked.exe"
+cmdline = "kill the clone unpacked.exe"
 category = "demoscene"
 broken = true
 

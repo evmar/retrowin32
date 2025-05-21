@@ -1,7 +1,7 @@
 title = "Monolife"
 desc = "Monolife by Hatha (1997)"
 dir = "archive/demo/monolife/"
-path = "monolife.exe"
+cmdline = "monolife.exe"
 files = ["monolife.dat"]
 category = "demoscene"
 status = "stuck on first scene, possibly audio related"

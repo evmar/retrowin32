@@ -1,5 +1,5 @@
 title = "MetaZlo"
-path = "archive/demo/metaZlo_final_640x480.exe"
+cmdline = "archive/demo/metaZlo_final_640x480.exe"
 category = "demoscene"
 broken = true
 status = "opengl"

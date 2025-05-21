@@ -1,7 +1,7 @@
+category = "retrowin32 test"
 title = "zig hello world"
 desc = "trivial Zig program"
-path = "local/exe/zig_hello/hello.exe"
-category = "retrowin32 test"
+cmdline = "local/exe/zig_hello/hello.exe"
 
 [origin]
 desc = "retrowin32"

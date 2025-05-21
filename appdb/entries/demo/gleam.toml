@@ -1,5 +1,5 @@
 title = "gleam"
-path = "archive/demo/gleam.exe"
+cmdline = "archive/demo/gleam.exe"
 category = "demoscene"
 broken = true
 status = "opengl"

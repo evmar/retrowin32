@@ -1,6 +1,6 @@
 title = "Win4k"
 desc = "Win4k by Power Flower Crew (2000)"
-path = "archive/demo/win003.exe"
+cmdline = "archive/demo/win003.exe"
 category = "demoscene"
 
 [origin]

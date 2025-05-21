@@ -1,6 +1,6 @@
 title = "Follow Me"
 desc = "Follow Me by 2 Many People (2000)"
-path = "archive/demo/followme/fm_ddraw.exe"
+cmdline = "archive/demo/followme/fm_ddraw.exe"
 category = "demoscene"
 broken = true
 status = "missing VirtualQuery"

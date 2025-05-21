@@ -1,6 +1,6 @@
 title = "chillin"
 desc = "chillin by Haujobb (2000)"
-path = "archive/demo/chillfix.exe"
+cmdline = "archive/demo/chillfix.exe"
 category = "demoscene"
 status = "stuck in first scene"
 

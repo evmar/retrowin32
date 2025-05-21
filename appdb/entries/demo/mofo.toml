@@ -1,6 +1,6 @@
 title = "mofo"
 desc = "mofo by Psikorp (1999)"
-path = "archive/demo/psi_mofo.exe"
+cmdline = "archive/demo/psi_mofo.exe"
 category = "demoscene"
 
 [origin]

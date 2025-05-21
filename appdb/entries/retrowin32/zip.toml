@@ -1,8 +1,8 @@
+category = "retrowin32 test"
 title = "zip/unzip round trip"
 desc = "retrowin32's own performance test"
-path = "local/target/i586-pc-windows-msvc/release/zip.exe"
+dir = "local/target/i586-pc-windows-msvc/release/"
 cmdline = "zip.exe 1 zip.exe"
-category = "retrowin32 test"
 
 [origin]
 desc = "retrowin32"
