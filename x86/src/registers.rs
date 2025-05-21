@@ -4,7 +4,7 @@ use iced_x86::Register::{
 };
 
 bitflags! {
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, PartialEq, Eq)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
@@ -21,6 +21,31 @@ bitflags! {
 
         // any flag may be set by operations like SAHF
         const ALL = !0;
+    }
+}
+
+impl Flags {
+    pub fn debug_str(&self) -> String {
+        let mut s = String::new();
+        if self.contains(Flags::CF) {
+            s.push_str(" CF");
+        }
+        if self.contains(Flags::ZF) {
+            s.push_str(" ZF");
+        }
+        if self.contains(Flags::SF) {
+            s.push_str(" SF");
+        }
+        if self.contains(Flags::DF) {
+            s.push_str(" DF");
+        }
+        if self.contains(Flags::OF) {
+            s.push_str(" OF");
+        }
+        if self.contains(Flags::ID) {
+            s.push_str(" ID");
+        }
+        s
     }
 }
 
