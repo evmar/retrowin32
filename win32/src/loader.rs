@@ -9,10 +9,7 @@ use crate::{
     winapi::{self, kernel32::HMODULE},
 };
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::{
-    collections::{HashMap, HashSet},
-    path::Path,
-};
+use std::collections::{HashMap, HashSet};
 use win32_system::{
     System,
     dll::BuiltinDLL,
@@ -358,8 +355,7 @@ pub async fn start_exe(machine: &mut Machine, relocate: Option<Option<u32>>) -> 
     let stack_size = file.opt_header.SizeOfStackReserve.min(0x10_0000);
     machine.new_thread(false, stack_size, 0, &[]);
 
-    let path = Path::new(path);
-    let filename = path.file_name().unwrap().to_string_lossy();
+    let filename = std::str::from_utf8(path.file_name().unwrap()).unwrap();
     let module_name = normalize_module_name(&filename);
 
     let module = load_one_module(&mut machine.memory, module_name, &buf, &file, relocate)?;

@@ -2,9 +2,6 @@ use crate::{debugger, host::JsHost};
 use wasm_bindgen::prelude::*;
 
 type JsResult<T> = Result<T, JsError>;
-fn err_from_anyhow(err: anyhow::Error) -> JsError {
-    JsError::new(&err.to_string())
-}
 
 #[wasm_bindgen]
 pub struct Emulator {
@@ -26,11 +23,9 @@ impl Emulator {
         self.machine.set_external_dlls(dlls);
     }
 
-    pub fn load_exe(&mut self, buf: Vec<u8>, cmdline: String, relocate: bool) -> JsResult<()> {
+    pub fn start_exe(&mut self, cmdline: String, relocate: bool) {
         self.machine
-            .load_exe(buf, cmdline, if relocate { Some(None) } else { None })
-            .map_err(err_from_anyhow)?;
-        Ok(())
+            .start_exe(cmdline, if relocate { Some(None) } else { None });
     }
 
     pub fn labels(&self) -> JsResult<String> {

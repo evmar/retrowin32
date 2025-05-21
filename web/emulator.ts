@@ -239,8 +239,8 @@ export class Emulator implements wasm.JsHost {
     console.warn('TODO: audio');
   }
 
-  loadExe(cmdLine: string, bytes: Uint8Array, relocate: boolean) {
-    this.emu.load_exe(bytes, cmdLine, relocate);
+  startExe(cmdLine: string, relocate: boolean) {
+    this.emu.start_exe(cmdLine, relocate);
   }
 
   step() {
@@ -405,6 +405,6 @@ export async function load(host: Host) {
   const cmdLine = params.cmdLine ?? params.exe;
   const exePath = (params.dir ?? '') + params.exe;
   const emu = new Emulator(host, fileset, exePath, params.externalDLLs);
-  emu.loadExe(cmdLine, fileset.get(params.exe)!, params.relocate ?? false);
+  emu.startExe(cmdLine, params.relocate ?? false);
   return emu;
 }
