@@ -70,6 +70,10 @@ impl MachineX<Emulator> {
         self.run();
     }
 
+    pub fn block(&mut self, wait: Option<u32>) -> impl std::future::Future<Output = ()> {
+        self.emu.x86.cpu_mut().block(wait)
+    }
+
     pub fn unblock_all(&mut self) {
         for cpu in self.emu.x86.cpus.iter_mut() {
             if matches!(

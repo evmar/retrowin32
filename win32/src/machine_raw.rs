@@ -102,4 +102,10 @@ impl MachineX<Emulator> {
     pub fn exit(&mut self, exit_code: u32) {
         self.status = Status::Exit(exit_code);
     }
+
+    pub async fn block(&mut self, wait: Option<u32>) {
+        if !self.host.block(wait) {
+            panic!("host must support blocking");
+        }
+    }
 }

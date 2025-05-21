@@ -76,16 +76,7 @@ impl System for Machine {
         &mut self,
         wait: Option<u32>,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + '_>> {
-        #[cfg(feature = "x86-emu")]
-        {
-            Box::pin(self.emu.x86.cpu_mut().block(wait))
-        }
-
-        #[cfg(not(feature = "x86-emu"))]
-        {
-            let _ = wait;
-            todo!(); //Box::pin(self.host.block(wait))
-        }
+        Box::pin(Machine::block(self, wait))
     }
 
     fn unblock(&mut self) {
