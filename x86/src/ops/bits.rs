@@ -51,7 +51,7 @@ pub fn bsr_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     cpu.flags.set(Flags::ZF, y == 0);
-    for i in (0..31).rev() {
+    for i in (0..32).rev() {
         if y & (1 << i) != 0 {
             x.set(i);
             break;
