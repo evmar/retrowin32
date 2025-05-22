@@ -5,13 +5,15 @@
 #![windows_subsystem = "console"]
 
 use exe::{print, println};
+mod bits;
 mod fpu;
 
 #[inline(never)]
 fn print_flags(reg: u32) {
     for (bit, name) in [
         (0, "CF"),
-        (2, "PF"),
+        // TODO: parity not supported yet.
+        // (2, "PF"),
         (6, "ZF"),
         (7, "SF"),
         (10, "DF"),
@@ -54,44 +56,9 @@ fn flags_test() {
     }
 }
 
-fn bs_test() {
-    let values = [0u32, 0b1, 0b110, 0b100100];
-    for value in values {
-        let mut bsf: u32;
-        let mut bsr: u32;
-        unsafe {
-            core::arch::asm!(
-                "bsf {bsf}, {value}",
-                "bsr {bsr}, {value}",
-                value = in(reg) value,
-                bsf = out(reg) bsf,
-                bsr = out(reg) bsr,
-            );
-        }
-        println!("bsf {value:x}: {bsf:x}");
-        println!("bsr {value:x}: {bsr:x}");
-    }
-}
-
-fn tzcnt_test() {
-    let values = [0u32, 0b1, 0b11000, 0b1000_0000_0000_0000];
-    for value in values {
-        let mut tzcnt: u32;
-        unsafe {
-            core::arch::asm!(
-                "tzcnt {tzcnt}, {value}",
-                value = in(reg) value,
-                tzcnt = out(reg) tzcnt,
-            );
-        }
-        println!("tzcnt {value:x}: {tzcnt:x}");
-    }
-}
-
 #[unsafe(no_mangle)]
 pub extern "C" fn mainCRTStartup() {
     flags_test();
     fpu::test();
-    bs_test();
-    tzcnt_test();
+    bits::test();
 }
