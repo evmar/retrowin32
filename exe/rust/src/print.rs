@@ -34,7 +34,7 @@ impl core::fmt::Write for Stdout {
 macro_rules! print {
     ($($arg:tt)*) => {
         {
-            use core::fmt::Write;
+            use ::core::fmt::Write;
             let mut stdout = $crate::print::Stdout;
             stdout.write_fmt(format_args!($($arg)*)).ok();
         }
@@ -46,7 +46,7 @@ macro_rules! println {
     () => { $crate::println!("") };
     ($($arg:tt)*) => {
         {
-            use core::fmt::Write;
+            use ::core::fmt::Write;
             let mut stdout = $crate::print::Stdout;
             stdout.write_fmt(format_args!($($arg)*)).ok();
             stdout.write_char('\n').ok();
