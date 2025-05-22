@@ -7,6 +7,8 @@ mod fpu;
 mod helpers;
 mod math;
 mod mmx;
+mod mov;
+mod stack;
 mod string;
 mod table;
 mod test;

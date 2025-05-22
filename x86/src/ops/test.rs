@@ -1,5 +1,5 @@
 use super::math::{and, sub};
-use crate::{registers::Flags, x86::CPU};
+use crate::x86::CPU;
 use iced_x86::Instruction;
 use memory::{Extensions, Mem};
 
@@ -119,13 +119,4 @@ pub fn test_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr).get();
     let y = instr.immediate8();
     and(x, y, &mut cpu.flags);
-}
-
-/// cmov: Conditional Move
-pub fn cmove_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm32(cpu, mem, instr);
-    let x = rm32(cpu, mem, instr);
-    if cpu.flags.contains(Flags::ZF) {
-        x.set(y);
-    }
 }
