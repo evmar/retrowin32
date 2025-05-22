@@ -9,13 +9,12 @@ use num_traits::{
 
 /// This trait is implemented for u32/u16/u8 and lets us write operations generically
 /// over all those bit sizes.
-///
-/// Even when we need size-specific masks like "the high bit"
-/// (which is x.shr(I::bits() - 1))
-/// that math optimizes down to the appropriate constant.
 pub(crate) trait Int: num_traits::PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
+    fn high_bit(&self) -> Self {
+        *self >> (Self::bits() - 1)
+    }
 }
 impl Int for u64 {
     fn as_usize(self) -> usize {
@@ -54,7 +53,7 @@ impl Int for u8 {
 pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x & y;
     flags.set(Flags::ZF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::OF, false);
     flags.set(Flags::CF, false);
     result
@@ -134,7 +133,7 @@ pub fn and_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x | y;
     flags.remove(Flags::OF | Flags::CF);
-    flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
     result
 }
@@ -210,10 +209,10 @@ fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
     }
 
     // Carry is the highest bit that will be shifted out.
-    let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
+    let cf = (x >> (I::bits() - y as usize) & I::one()).is_one();
     let val = x.wrapping_shl(y.as_usize() as u32);
     flags.set(Flags::CF, cf);
-    let msb = val.shr(I::bits() - 1).is_one();
+    let msb = val.high_bit().is_one();
     flags.set(Flags::SF, msb);
     // Note: OF only defined for 1-bit rotates.
     // "For left shifts, the OF flag is set to 0 if the mostsignificant bit of the result is the
@@ -316,7 +315,7 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     flags.set(Flags::ZF, val.is_zero());
 
     // Note: OF state undefined for shifts > 1 bit.
-    flags.set(Flags::OF, (x >> (I::bits() - 1)).is_one());
+    flags.set(Flags::OF, x.high_bit().is_one());
     val
 }
 
@@ -410,7 +409,7 @@ fn sar<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
     let result = x.signed_shr(y as u32);
 
-    flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
     result
 }
@@ -452,7 +451,7 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     let carry = (result & I::one()).is_one();
     flags.set(Flags::CF, carry);
     // Note: OF only defined for 1-bit rotates.
-    flags.set(Flags::OF, carry ^ (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::OF, carry ^ (result.high_bit()).is_one());
     result
 }
 
@@ -497,7 +496,7 @@ fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
         return x;
     }
     let result = x.rotate_right(y as u32);
-    let msb = (result >> (I::bits() - 1)).is_one();
+    let msb = result.high_bit().is_one();
     flags.set(Flags::CF, msb);
     // Note: OF only defined for 1-bit rotates.
     flags.set(Flags::OF, msb ^ (result >> (I::bits() - 2)).is_one());
@@ -539,7 +538,7 @@ fn xor<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     flags.remove(Flags::OF);
     flags.remove(Flags::CF);
     flags.set(Flags::ZF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     result
 }
 
@@ -609,12 +608,12 @@ fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, z: I, flags
     let result = x.wrapping_add(&y);
     flags.set(Flags::CF, result < x || (y.is_zero() && !z.is_zero()));
     flags.set(Flags::ZF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  0  1
     //   1  1  0
-    let of = !(((x ^ !y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
+    let of = !(((x ^ !y) & (x ^ result)).high_bit().is_zero());
     flags.set(Flags::OF, of);
     result
 }
@@ -743,12 +742,12 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     flags.set(Flags::CF, carry || (b && y == I::zero()));
     flags.set(Flags::ZF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  1  1
     //   1  0  0
-    let of = !(((x ^ y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
+    let of = !(((x ^ y) & (x ^ result)).high_bit().is_zero());
     flags.set(Flags::OF, of);
     result
 }
@@ -1043,7 +1042,7 @@ fn dec<I: Int + num_traits::WrappingSub>(x: I, flags: &mut Flags) -> I {
     // Note this is not sub(1) because CF should be preserved.
     let result = x.wrapping_sub(&I::one());
     flags.set(Flags::OF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
     result
 }
@@ -1071,7 +1070,7 @@ fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
     // Note this is not add(1) because CF should be preserved.
     let result = x.wrapping_add(&I::one());
     flags.set(Flags::OF, result.is_zero());
-    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
     result
 }
