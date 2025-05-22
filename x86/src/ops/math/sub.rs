@@ -14,7 +14,6 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
         y = y.wrapping_add(&I::one());
     }
     let (result, carry) = x.overflowing_sub(&y);
-    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     flags.set(Flags::CF, carry || (b && y == I::zero()));
     flags.set(Flags::ZF, result.is_zero());
     flags.set(Flags::SF, result.high_bit().is_one());
@@ -22,7 +21,7 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     //   x  y  result
     //   0  1  1
     //   1  0  0
-    let of = !(((x ^ y) & (x ^ result)).high_bit().is_zero());
+    let of = ((x ^ y) & (x ^ result)).high_bit().is_one();
     flags.set(Flags::OF, of);
     result
 }
@@ -147,4 +146,36 @@ pub fn sbb_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sub() {
+        #[track_caller]
+        fn expect_sub(x: u8, y: u8, borrow: bool, exp: &str) {
+            let mut flags = Flags::default();
+            let res = sbb::<u8>(x, y, borrow, &mut flags);
+            assert_eq!(exp, format!("{:02X}{}", res, flags.debug_str()));
+        }
+
+        expect_sub(0x00, 0x00, false, "00 ZF");
+        expect_sub(0x01, 0x01, false, "00 ZF");
+        expect_sub(0x01, 0x01, true, "FF CF SF");
+        expect_sub(0x80, 0x01, false, "7F OF");
+        expect_sub(0x80, 0x00, true, "7F OF");
+        expect_sub(0x80, 0x01, true, "7E OF");
+        expect_sub(0x80, 0x80, false, "00 ZF");
+        expect_sub(0x80, 0x80, true, "FF CF SF");
+        expect_sub(0x00, 0x01, false, "FF CF SF");
+        expect_sub(0x00, 0x01, true, "FE CF SF");
+        expect_sub(0x7F, 0xFF, false, "80 CF SF OF");
+        expect_sub(0x7F, 0xFF, true, "7F CF");
+        expect_sub(0xFF, 0x01, false, "FE SF");
+        expect_sub(0xFF, 0x01, true, "FD SF");
+        expect_sub(0xFF, 0xFF, false, "00 ZF");
+        expect_sub(0xFF, 0xFF, true, "FF CF SF");
+    }
 }
