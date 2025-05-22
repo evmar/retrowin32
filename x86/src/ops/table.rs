@@ -13,7 +13,8 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     let mut tab: [Option<OpImp>; 2553] = [None; 2553];
 
     use super::{
-        basic::*, control::*, cpuid::*, flags::*, fpu::*, math::*, mmx::*, string::*, test::*,
+        basic::*, bits::*, control::*, cpuid::*, flags::*, fpu::*, math::*, mmx::*, string::*,
+        test::*,
     };
 
     tab[iced_x86::Code::Enterd_imm16_imm8 as usize] = Some(enterd_imm16_imm8);

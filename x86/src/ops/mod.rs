@@ -1,4 +1,5 @@
 mod basic;
+mod bits;
 mod control;
 mod cpuid;
 mod flags;

@@ -413,25 +413,6 @@ pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
     cpu.regs.set8(Register::AL, mem.get_pod::<u8>(addr));
 }
 
-/// bts: Bit Test and Set
-pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm32(cpu, mem, instr) % 32;
-    let x = rm32(cpu, mem, instr);
-    let mask = 1u32 << y;
-    cpu.flags.set(Flags::CF, x.get() & mask != 0);
-    x.set(x.get() | mask);
-}
-
-/// tzcnt: Count the Number of Trailing Zero Bits
-pub fn tzcnt_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm32(cpu, mem, instr);
-    let x = rm32(cpu, mem, instr);
-    let count = y.trailing_zeros();
-    cpu.flags.set(Flags::CF, count == 32);
-    cpu.flags.set(Flags::ZF, count == 0);
-    x.set(count);
-}
-
 /// rdtsc: Read Time-Stamp Counter
 pub fn rdtsc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let value = 0;
