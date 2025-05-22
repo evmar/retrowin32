@@ -3,7 +3,7 @@ use crate::{CPU, ops::helpers::*, registers::Flags};
 use iced_x86::Instruction;
 use memory::Mem;
 
-pub fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, flags: &mut Flags) -> I {
+fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, flags: &mut Flags) -> I {
     addc(x, y, I::zero(), flags)
 }
 
@@ -130,6 +130,17 @@ pub fn adc_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm8(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u8, &mut cpu.flags));
+}
+
+/// xadd: Exchange and Add
+pub fn xadd_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    let prev = x.get();
+
+    let sum = add(prev, y, &mut cpu.flags);
+    cpu.regs.set32(instr.op1_register(), prev);
+    x.set(sum);
 }
 
 #[cfg(test)]

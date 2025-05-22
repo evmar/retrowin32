@@ -3,7 +3,6 @@ use crate::{ops::helpers::*, registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
 use memory::Mem;
 
-/// shl: Shift
 fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
     let y = y % 32;
     if y == 0 {

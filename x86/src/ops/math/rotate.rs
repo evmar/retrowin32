@@ -3,7 +3,6 @@ use crate::{ops::helpers::*, registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
 use memory::Mem;
 
-/// rol: Rotate
 fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x;
@@ -51,7 +50,6 @@ pub fn rol_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(rol(x.get(), y, &mut cpu.flags));
 }
 
-/// ror: Rotate
 fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x;
