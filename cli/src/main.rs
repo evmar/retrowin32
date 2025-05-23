@@ -102,9 +102,13 @@ fn print_trace(machine: &win32::Machine) {
         )
     };
 
-    println!(
-        "@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x} st_top:{st_top}"
+    print!(
+        "@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x}"
     );
+    if st_top != 8 {
+        print!(" st_top:{st_top:x}");
+    }
+    println!();
 }
 
 fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
