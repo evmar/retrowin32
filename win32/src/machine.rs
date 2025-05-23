@@ -170,7 +170,7 @@ impl System for Machine {
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
 /// can be in different states.
-#[derive(PartialEq, Eq, Default)]
+#[derive(PartialEq, Eq, Default, Debug)]
 pub enum Status {
     /// Running normally.
     #[default]

@@ -194,6 +194,12 @@ fn main() -> anyhow::Result<ExitCode> {
                 seen_blocks.insert(regs.eip);
             }
         } else if let Some(mut trace_points) = args.trace_points {
+            // Break once the exe is loaded, so we can set breakpoints within it.
+            machine.state.kernel32.break_on_startup = true;
+            while machine.run() {}
+            assert_eq!(machine.status, win32::Status::DebugBreak);
+            machine.unblock();
+
             while let Some(next_trace) = trace_points.pop_front() {
                 machine.add_breakpoint(next_trace);
                 loop {
@@ -204,6 +210,7 @@ fn main() -> anyhow::Result<ExitCode> {
                     }
                 }
                 machine.clear_breakpoint(next_trace);
+                machine.unblock();
 
                 print_trace(&machine);
             }

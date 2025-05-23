@@ -235,7 +235,10 @@ impl MachineX<Emulator> {
                 self.mem().put_pod::<u8>(addr, prev);
                 true
             }
-            None => false,
+            None => {
+                log::warn!("clear_breakpoint({addr:x}) not set");
+                false
+            }
         }
     }
 
@@ -265,6 +268,10 @@ impl MachineX<Emulator> {
         for &arg in args.iter().rev() {
             x86::ops::push(cpu, self.memory.mem(), arg);
         }
+        // Put a return address here so we crash more obviously if the thread
+        // returns; in practice, it should be retrowin32_thread_main which
+        // stops the thread first.
+        x86::ops::push(cpu, self.memory.mem(), 0);
         cpu.regs.eip = start_addr;
 
         thread.thread.handle.to_raw()
