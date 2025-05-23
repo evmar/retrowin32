@@ -59,5 +59,5 @@ fn sub_test() {
 
 pub fn test() {
     add_test();
-    // TODO: sub_test();
+    sub_test();
 }

@@ -9,12 +9,9 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     b: bool,
     flags: &mut Flags,
 ) -> I {
-    let mut y = y;
-    if b {
-        y = y.wrapping_add(&I::one());
-    }
-    let (result, carry) = x.overflowing_sub(&y);
-    flags.set(Flags::CF, carry || (b && y == I::zero()));
+    let z = if b { y.wrapping_add(&I::one()) } else { y };
+    let (result, borrow) = x.overflowing_sub(&z);
+    flags.set(Flags::CF, borrow || (b && z == I::zero()));
     flags.set(Flags::ZF, result.is_zero());
     flags.set(Flags::SF, result.high_bit().is_one());
     // Overflow is true exactly when the high (sign) bits are like:
@@ -133,7 +130,7 @@ pub fn sbb_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 /// sbb: Integer Subtraction With Borrow
-pub fn sbb_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn sbb_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
