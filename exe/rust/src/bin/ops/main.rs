@@ -7,6 +7,7 @@
 use exe::{print, println};
 mod bits;
 mod fpu;
+mod math;
 
 #[inline(never)]
 fn print_flags(reg: u32) {
@@ -61,4 +62,6 @@ pub extern "C" fn mainCRTStartup() {
     flags_test();
     fpu::test();
     bits::test();
+    math::test();
+    println!("ok exit");
 }
