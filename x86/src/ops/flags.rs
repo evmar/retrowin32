@@ -108,8 +108,13 @@ pub fn popfw(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
 
 /// sahf: Store AH Into Flags
 pub fn sahf(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    let ah = cpu.regs.get8(Register::AH);
-    cpu.flags = Flags::from_bits((cpu.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
+    // This constructs flags from the AH register, but only specific flags.
+    let flags = Flags::from_bits(cpu.regs.get8(Register::AH) as u32).unwrap();
+    cpu.flags.set(Flags::CF, flags.contains(Flags::CF));
+    // cpu.flags.set(Flags::PF, flags.contains(Flags::PF));
+    // cpu.flags.set(Flags::AF, flags.contains(Flags::AF));
+    cpu.flags.set(Flags::ZF, flags.contains(Flags::ZF));
+    cpu.flags.set(Flags::OF, flags.contains(Flags::OF));
 }
 
 /// lahf: Load Status Flags Into AH Register
