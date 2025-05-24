@@ -113,9 +113,12 @@ fn print_trace(machine: &win32::Machine) {
 
 fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
     let mut trace_points = std::collections::VecDeque::new();
-    for addr in param.split(",") {
+    for mut addr in param.split(&[',', ' ']) {
         if addr.is_empty() {
             continue;
+        }
+        if addr.starts_with("@") {
+            addr = &addr[1..];
         }
         let addr = u32::from_str_radix(addr, 16).map_err(|_| format!("bad addr {addr:?}"))?;
         trace_points.push_back(addr);
