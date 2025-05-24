@@ -135,7 +135,10 @@ impl State {
 
         let mut dlls = HashMap::new();
         let module = {
-            let addr = arena.alloc(retrowin32_syscall.len() as u32, 8);
+            // Always alloc a fixed size for the syscall stub,
+            // so different emulators match on memory layout.
+            assert!(retrowin32_syscall.len() <= 8);
+            let addr = arena.alloc(8, 8);
             memory
                 .mem()
                 .sub32_mut(addr, retrowin32_syscall.len() as u32)
