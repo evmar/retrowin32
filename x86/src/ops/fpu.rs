@@ -549,10 +549,13 @@ pub fn fnstsw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 /// fnstcw: Store x87 FPU Control Word
 pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    // TODO: control word
-    let cw = 0x37u16; // default value
+    // "When the x87 FPU is initialized with either an FINIT/FNINIT or FSAVE/FNSAVE
+    // instruction, the x87 FPU control word is set to 037FH, which masks all
+    // floating-point exceptions, sets rounding to nearest, and sets the x87 FPU
+    // precision to 64 bits."
+    let control_word = 0x37fu16;
     let addr = x86_addr(cpu, instr);
-    mem.put_pod::<u16>(addr, cw);
+    mem.put_pod::<u16>(addr, control_word);
 }
 
 /// fldcw: Load x87 FPU Control Word
