@@ -25,6 +25,8 @@ with open('tp') as f:
             addr = int(line.strip()[1:], 16)
             if addr < 0x2000:  # filter out retrowin32 syscalls
                 continue
+            if addr == 0xffff_fff0: # filter out async executor
+                continue
             trace_points.append(addr)
 
 assert len(trace_points) > 0
