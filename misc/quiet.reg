@@ -1,0 +1,10 @@
+REGEDIT4
+
+; WINEDEBUG=relay wine ...
+; will print DLL calls, but there are so many the log is a lot.
+; Install this file with
+;   wine regedit quiet.reg
+; to suppress some.
+
+[HKEY_CURRENT_USER\Software\Wine\Debug]
+"RelayExclude"="ntdll.*;win32u.*;wow64cpu.*;wow64.*;combase.*;winecoreaudio.*;kernel32.HeapFree;"
