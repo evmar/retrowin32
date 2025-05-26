@@ -1,7 +1,7 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
-use crate::{Machine, System};
 use memory::{Extensions, ExtensionsMut};
+use win32_system::System;
 use win32_winapi::Str16;
 
 #[win32_derive::dllexport]
@@ -23,20 +23,20 @@ pub fn lstrlenW(sys: &dyn System, lpString: Option<&Str16>) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn lstrcpyA(machine: &mut Machine, lpString1: u32, lpString2: Option<&str>) -> u32 {
+pub fn lstrcpyA(sys: &dyn System, lpString1: u32, lpString2: Option<&str>) -> u32 {
     let src = lpString2.unwrap();
-    let dst = machine.mem().sub32_mut(lpString1, (src.len() + 1) as u32);
+    let dst = sys.mem().sub32_mut(lpString1, (src.len() + 1) as u32);
     dst[..src.len()].copy_from_slice(src.as_bytes());
     dst[src.len()] = 0;
     lpString1
 }
 
 #[win32_derive::dllexport]
-pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>) -> u32 {
+pub fn lstrcpyW(sys: &dyn System, lpString1: u32, lpString2: Option<&Str16>) -> u32 {
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
     let copy_len = lpString2.len();
-    let dst = machine.mem().sub32_mut(lpString1, copy_len as u32 + 2);
+    let dst = sys.mem().sub32_mut(lpString1, copy_len as u32 + 2);
     let src = lpString2.as_bytes();
     dst[..copy_len].copy_from_slice(src);
     dst[copy_len..copy_len + 2].copy_from_slice(&[0, 0]);

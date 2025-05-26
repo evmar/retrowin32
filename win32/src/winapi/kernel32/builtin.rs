@@ -6490,11 +6490,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcpyA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpString1,
-                lpString2,
-            );
+            let result = kernel32::lstrcpyA(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6517,11 +6513,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcpyW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpString1,
-                lpString2,
-            );
+            let result = kernel32::lstrcpyW(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
