@@ -1,9 +1,8 @@
 use std::ops::Range;
-pub use win32_system::{
-    System,
-    resource::{ResourceKey, find_resource},
-};
+use win32_system::{System, resource::find_resource};
 use win32_winapi::{HANDLE, HMODULE, Handles, Str16};
+
+pub use win32_system::resource::ResourceKey;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HRSRCT;
