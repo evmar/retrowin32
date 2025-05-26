@@ -1,13 +1,16 @@
 use super::HFILE;
 use crate::{
-    Machine, System,
-    calling_convention::{self, ArrayOut},
-    loader,
+    Machine, loader,
     winapi::{self, kernel32::set_last_error, *},
 };
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
-use win32_winapi::{HMODULE, Str16, encoding::*};
+use win32_system::System;
+use win32_winapi::{
+    HMODULE, Str16,
+    calling_convention::{self, ArrayOut},
+    encoding::*,
+};
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {

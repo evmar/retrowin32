@@ -1,7 +1,9 @@
-use crate::{Machine, System, calling_convention};
+use crate::Machine;
 use bitflags::bitflags;
 use memory::{ExtensionsMut, Mem};
 use std::cmp::max;
+use win32_system::System;
+use win32_winapi::calling_convention;
 
 bitflags! {
     #[derive(Copy, Clone, Debug, Default, win32_derive::TryFromBitflags)]

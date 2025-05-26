@@ -1,5 +1,5 @@
-use crate::System;
 use memory::Pod;
+use win32_system::System;
 
 #[repr(C)]
 #[derive(Debug)]

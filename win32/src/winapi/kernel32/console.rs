@@ -1,8 +1,9 @@
 use crate::{
-    Machine, System,
-    calling_convention::Array,
+    Machine,
     winapi::{self, DWORD, HANDLE, WORD},
 };
+use win32_system::System;
+use win32_winapi::calling_convention::Array;
 
 use super::HFILE;
 

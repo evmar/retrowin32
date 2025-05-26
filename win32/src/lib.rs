@@ -21,5 +21,5 @@ mod shims_raw;
 mod machine_unicorn;
 
 pub use machine::{Machine, Status};
-pub use win32_system::{System, host, trace};
-pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf, calling_convention};
+pub use win32_system::{host, trace};
+pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf};

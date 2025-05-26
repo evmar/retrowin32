@@ -1,13 +1,12 @@
-use win32_system::host;
-use win32_winapi::{Str16, WindowsPath};
-
 use crate::{
-    Machine, System,
+    Machine,
     winapi::{
         DWORD, ERROR, HANDLE,
         kernel32::{FILETIME, FileAttribute, set_last_error},
     },
 };
+use win32_system::{System, host};
+use win32_winapi::{Str16, WindowsPath};
 
 use super::{HFILE, MAX_PATH, normalize_dos_path};
 

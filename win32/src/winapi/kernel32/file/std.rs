@@ -1,5 +1,5 @@
 use super::HFILE;
-use crate::System;
+use win32_system::System;
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum STD {

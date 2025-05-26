@@ -1,10 +1,9 @@
-use crate::System;
 use crate::winapi::kernel32;
 use crate::{loader, winapi};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
-use win32_system::{ArcEvent, Wait, WaitResult, host};
+use win32_system::{ArcEvent, System, Wait, WaitResult, host};
 use win32_winapi::{HANDLE, HMODULE};
 
 #[cfg(feature = "x86-emu")]

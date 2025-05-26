@@ -1,5 +1,5 @@
 use super::{SECURITY_ATTRIBUTES, STARTUPINFOA};
-use crate::System;
+use win32_system::System;
 use win32_winapi::{HANDLE, Str16};
 
 pub type HPROCESS = HANDLE<()>;

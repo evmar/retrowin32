@@ -1,10 +1,11 @@
 use crate::{
-    Machine, System,
+    Machine,
     winapi::{
         ERROR,
         kernel32::{SECURITY_ATTRIBUTES, set_last_error},
     },
 };
+use win32_system::System;
 use win32_winapi::{Str16, WindowsPath, encoding::*};
 
 #[win32_derive::dllexport]

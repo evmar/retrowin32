@@ -1,10 +1,9 @@
 //! File API for 16-bit Windows backward compat.
 
-use std::io::SeekFrom;
-
 use super::{HFILE, OpenFile};
-use crate::{Machine, calling_convention::ArrayOut, winapi::kernel32::set_last_error};
-use win32_winapi::ERROR;
+use crate::{Machine, winapi::kernel32::set_last_error};
+use std::io::SeekFrom;
+use win32_winapi::{ERROR, calling_convention::ArrayOut};
 
 #[win32_derive::dllexport]
 pub fn _lopen(machine: &mut Machine, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {

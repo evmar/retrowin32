@@ -1,6 +1,6 @@
+use crate::Machine;
 use memory::str16::Str16;
-
-use crate::{Machine, System};
+use win32_system::System;
 
 #[win32_derive::dllexport]
 pub fn GetDiskFreeSpaceA(

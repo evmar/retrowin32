@@ -1,7 +1,5 @@
-use crate::{
-    System,
-    winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES},
-};
+use crate::winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES};
+use win32_system::System;
 
 #[win32_derive::dllexport]
 pub fn CreateMutexA(

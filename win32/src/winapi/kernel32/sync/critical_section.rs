@@ -1,4 +1,4 @@
-use crate::System;
+use win32_system::System;
 
 #[win32_derive::dllexport]
 pub fn InitializeCriticalSection(sys: &dyn System, lpCriticalSection: u32) {}

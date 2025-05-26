@@ -5,9 +5,9 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::{Machine, calling_convention::ArrayOut};
-
 use super::kernel32::HFILE;
+use crate::Machine;
+use win32_winapi::calling_convention::ArrayOut;
 
 const STATUS_SUCCESS: u32 = 0;
 
