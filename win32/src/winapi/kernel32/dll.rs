@@ -18,13 +18,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
 
     let name = loader::normalize_module_name(name);
 
-    if let Some((hmodule, _)) = machine
-        .state
-        .kernel32
-        .modules
-        .iter()
-        .find(|(_, dll)| dll.name == name)
-    {
+    if let Some((hmodule, _)) = machine.modules.iter().find(|(_, dll)| dll.name == name) {
         return *hmodule;
     }
 
@@ -167,7 +161,7 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    let module = machine.state.kernel32.modules.get_mut(&hModule).unwrap();
+    let module = machine.modules.get_mut(&hModule).unwrap();
     let Some(addr) = module.exports.resolve(&lpProcName.0) else {
         log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);
         return 0; // fail

@@ -6,15 +6,12 @@ use super::{
     command_line::CommandLine,
     file::{FindHandle, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE},
 };
-use crate::{
-    Machine,
-    loader::{self, Module},
-};
+use crate::Machine;
 use ::memory::Mem;
-use memory::{Extensions, ExtensionsMut};
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use memory::Extensions;
+use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, host, memory::Memory};
-use win32_winapi::{DWORD, HANDLE, HMODULE, Handles, WORD};
+use win32_winapi::{DWORD, HANDLE, Handles, WORD};
 
 #[repr(C)]
 pub struct UNICODE_STRING {
@@ -107,9 +104,6 @@ pub struct State {
     /// Address of PEB (process information exposed to executable).
     pub peb: u32,
 
-    /// Loaded PE modules: the exe and all DLLs.
-    pub modules: HashMap<HMODULE, Module>,
-
     // There is a collection of handle types that are all from the same key space,
     // because they can be passed to the various Wait functions.
     pub objects: Handles<HANDLE<()>, KernelObject>,
@@ -125,43 +119,16 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(memory: &mut Memory, retrowin32_syscall: &[u8]) -> Self {
+    pub fn new(memory: &mut Memory) -> Self {
         let mapping = memory
             .mappings
             .alloc(memory.imp.mem(), 0x1000, "kernel32 data".into());
-        let mut arena = Arena::new(mapping.addr, mapping.size);
-
-        let mut dlls = HashMap::new();
-        let module = {
-            // Always alloc a fixed size for the syscall stub,
-            // so different emulators match on memory layout.
-            assert!(retrowin32_syscall.len() <= 8);
-            let addr = arena.alloc(8, 8);
-            memory
-                .mem()
-                .sub32_mut(addr, retrowin32_syscall.len() as u32)
-                .copy_from_slice(retrowin32_syscall);
-            let mut names = HashMap::new();
-            names.insert("retrowin32_syscall".into(), addr);
-            let exports = loader::Exports {
-                names,
-                ..Default::default()
-            };
-            loader::Module {
-                name: "retrowin32.dll".into(),
-                // use a non-zero base address so it doesn't register as the null HMODULE
-                image_base: 1,
-                exports,
-                ..Default::default() // rest of fields unused
-            }
-        };
-        dlls.insert(HMODULE::from_raw(module.image_base), module);
+        let arena = Arena::new(mapping.addr, mapping.size);
 
         State {
             arena,
             image_base: 0,
             peb: 0,
-            modules: dlls,
             objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),

@@ -160,7 +160,7 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
         let res = resolve_dll(machine, dll_name);
         let mut module = {
             match load_dll(machine, &res).await {
-                Ok(hmodule) => machine.state.kernel32.modules.get_mut(&hmodule),
+                Ok(hmodule) => machine.modules.get_mut(&hmodule),
                 Err(err) => {
                     log::warn!("failed to load import {dll_name:?}: {err}");
                     None
@@ -304,7 +304,7 @@ async fn init_module(
 
     // Register module before loading imports, because loaded imports may refer back to this module.
     let hmodule = HMODULE::from_raw(image_base);
-    machine.state.kernel32.modules.insert(hmodule, module);
+    machine.modules.insert(hmodule, module);
 
     if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
         Box::pin(load_imports(machine, image_base, imports)).await;
@@ -366,7 +366,7 @@ pub async fn start_exe(machine: &mut Machine, relocate: Option<Option<u32>>) -> 
 
     let hmodule = init_module(machine, &file, module).await.unwrap();
 
-    let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
+    let module = machine.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
     winapi::kernel32::retrowin32_main(machine, module.entry_point.unwrap()).await;
@@ -486,8 +486,6 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
     let module_name = res.name();
     // See if already loaded.
     if let Some((&hmodule, _)) = machine
-        .state
-        .kernel32
         .modules
         .iter()
         .find(|(_, dll)| dll.name == module_name)
@@ -506,7 +504,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
                 Some(None),
             )
             .await?;
-            let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
+            let module = machine.modules.get(&hmodule).unwrap();
 
             // For builtins, register all the exports as known symbols.
             // It is critical that the DLL's exports match up to the shims array;
@@ -547,8 +545,6 @@ pub fn get_symbol(machine: &Machine, dll: &str, name: &str) -> u32 {
     let dll_name = res.name();
 
     let module = machine
-        .state
-        .kernel32
         .modules
         .values()
         .find(|m| m.name == dll_name)

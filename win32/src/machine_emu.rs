@@ -3,7 +3,7 @@
 use crate::{
     loader,
     machine::{MachineX, Status},
-    shims::Shims,
+    shims::{Shims, retrowin32_dll_module},
     winapi::{
         self,
         kernel32::{self, CommandLine},
@@ -12,7 +12,7 @@ use crate::{
 use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::collections::HashMap;
 use win32_system::{dll::Handler, host, memory::Memory};
-use win32_winapi::calling_convention::ABIReturn;
+use win32_winapi::{HMODULE, calling_convention::ABIReturn};
 
 pub struct Emulator {
     pub x86: x86::X86,
@@ -29,11 +29,16 @@ impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = Memory::new(MemImpl::new(256 << 20));
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-        let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
+
+        let kernel32 = winapi::kernel32::State::new(&mut memory);
+        let module = retrowin32_dll_module(&mut memory, retrowin32_syscall);
+        let modules = HashMap::from([(HMODULE::from_raw(module.image_base), module)]);
+
         let shims = Shims::default();
         let state = winapi::State::new(kernel32);
 
         Machine {
+            status: Default::default(),
             emu: Emulator {
                 x86: x86::X86::new(),
                 shims,
@@ -44,7 +49,7 @@ impl MachineX<Emulator> {
             state,
             state2: Default::default(),
             external_dlls: Default::default(),
-            status: Default::default(),
+            modules,
         }
     }
 

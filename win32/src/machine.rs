@@ -15,13 +15,16 @@ pub use crate::machine_unicorn::Machine;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct MachineX<Emu> {
+    pub status: Status,
     pub emu: Emu,
     pub memory: Memory,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
-    pub status: Status,
+
+    /// Loaded PE modules: the exe and all DLLs.
+    pub modules: HashMap<HMODULE, loader::Module>,
 }
 
 impl<Emu> MachineX<Emu> {
@@ -140,7 +143,7 @@ impl System for Machine {
     }
 
     fn get_resources(&self, module: HMODULE) -> Option<&[u8]> {
-        let module = self.state.kernel32.modules.get(&module)?;
+        let module = self.modules.get(&module)?;
         module.resources(self.mem())
     }
 
