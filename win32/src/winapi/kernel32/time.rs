@@ -1,16 +1,16 @@
-use crate::{Machine, System};
 use chrono::{Datelike, Timelike, Utc};
 use memory::{ExtensionsMut, Pod};
+use win32_system::System;
 
 #[win32_derive::dllexport]
-pub fn GetTickCount(machine: &mut Machine) -> u32 {
-    machine.host.ticks()
+pub fn GetTickCount(sys: &dyn System) -> u32 {
+    sys.host().ticks()
 }
 
 // The number of "counts" per second, where counts are the units returned by
 // QueryPerformanceCounter.  On my Windows machine this value was 10m, which
 // is to say a count is 0.1us.
-const QUERY_PERFORMANCE_FREQ: u32 = 10_000_000;
+const QUERY_PERFORMANCE_FREQ: u64 = 10_000_000;
 
 // This is effectively a 64-bit integer but defined as two u32s for alignment reasons.
 #[repr(C)]
@@ -23,24 +23,21 @@ unsafe impl memory::Pod for LARGE_INTEGER {}
 
 #[win32_derive::dllexport]
 pub fn QueryPerformanceCounter(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpPerformanceCount: Option<&mut LARGE_INTEGER>,
 ) -> bool {
     let counter = lpPerformanceCount.unwrap();
-    let ms = machine.host.ticks();
-    let counts = ms as u64 * (QUERY_PERFORMANCE_FREQ as u64 / 1000);
+    let ms = sys.host().ticks();
+    let counts = ms as u64 * (QUERY_PERFORMANCE_FREQ / 1000);
     counter.LowPart = counts as u32;
     counter.HighPart = (counts >> 32) as u32 as i32;
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
-    // 64-bit write
-    machine
-        .mem()
-        .put_pod::<u32>(lpFrequency, QUERY_PERFORMANCE_FREQ);
-    machine.mem().put_pod::<u32>(lpFrequency + 4, 0);
+pub fn QueryPerformanceFrequency(sys: &dyn System, lpFrequency: u32) -> bool {
+    sys.mem()
+        .put_pod::<u64>(lpFrequency, QUERY_PERFORMANCE_FREQ);
     true
 }
 
@@ -97,23 +94,20 @@ impl FILETIME {
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemTimeAsFileTime(
-    machine: &mut Machine,
-    lpSystemTimeAsFileTime: Option<&mut FILETIME>,
-) {
-    let date_time = machine.host.system_time().to_utc();
+pub fn GetSystemTimeAsFileTime(sys: &dyn System, lpSystemTimeAsFileTime: Option<&mut FILETIME>) {
+    let date_time = sys.host().system_time().to_utc();
     *lpSystemTimeAsFileTime.unwrap() = FILETIME::from_chrono(date_time);
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) {
-    let date_time = machine.host.system_time().to_utc();
+pub fn GetSystemTime(sys: &dyn System, lpSystemTime: Option<&mut SYSTEMTIME>) {
+    let date_time = sys.host().system_time().to_utc();
     *lpSystemTime.unwrap() = SYSTEMTIME::from_chrono(&date_time);
 }
 
 #[win32_derive::dllexport]
-pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) {
-    let date_time = machine.host.system_time();
+pub fn GetLocalTime(sys: &dyn System, lpSystemTime: Option<&mut SYSTEMTIME>) {
+    let date_time = sys.host().system_time();
     *lpSystemTime.unwrap() = SYSTEMTIME::from_chrono(&date_time);
 }
 
@@ -124,7 +118,7 @@ pub fn SetLocalTime(sys: &dyn System, lpSystemTime: Option<&mut SYSTEMTIME>) -> 
 
 #[win32_derive::dllexport]
 pub fn SystemTimeToFileTime(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpSystemTime: Option<&SYSTEMTIME>,
     lpFileTime: Option<&mut FILETIME>,
 ) -> bool {
@@ -135,7 +129,7 @@ pub fn SystemTimeToFileTime(
 
 #[win32_derive::dllexport]
 pub fn FileTimeToSystemTime(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpFileTime: Option<&FILETIME>,
     lpSystemTime: Option<&mut SYSTEMTIME>,
 ) -> bool {

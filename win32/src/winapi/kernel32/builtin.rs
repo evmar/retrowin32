@@ -1004,11 +1004,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FileTimeToSystemTime(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileTime,
-                lpSystemTime,
-            );
+            let result = kernel32::FileTimeToSystemTime(sys, lpFileTime, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2185,8 +2181,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetLocalTime(&mut *(sys.machine() as *mut crate::Machine), lpSystemTime);
+            let result = kernel32::GetLocalTime(sys, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2886,8 +2881,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetSystemTime(&mut *(sys.machine() as *mut crate::Machine), lpSystemTime);
+            let result = kernel32::GetSystemTime(sys, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2910,10 +2904,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetSystemTimeAsFileTime(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpSystemTimeAsFileTime,
-            );
+            let result = kernel32::GetSystemTimeAsFileTime(sys, lpSystemTimeAsFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2977,7 +2968,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetTickCount(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::GetTickCount(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4674,10 +4665,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::QueryPerformanceCounter(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpPerformanceCount,
-            );
+            let result = kernel32::QueryPerformanceCounter(sys, lpPerformanceCount);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4699,10 +4687,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::QueryPerformanceFrequency(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFrequency,
-            );
+            let result = kernel32::QueryPerformanceFrequency(sys, lpFrequency);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5668,11 +5653,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SystemTimeToFileTime(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpSystemTime,
-                lpFileTime,
-            );
+            let result = kernel32::SystemTimeToFileTime(sys, lpSystemTime, lpFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
