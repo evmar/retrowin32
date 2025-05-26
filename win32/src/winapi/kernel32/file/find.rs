@@ -1,6 +1,6 @@
 use crate::{
     Machine,
-    winapi::kernel32::{FILETIME, file::FileAttribute, set_last_error},
+    winapi::kernel32::{FILETIME, file::FileAttribute},
 };
 use win32_system::{System, host};
 use win32_winapi::{DWORD, ERROR, HANDLE, Str16, WindowsPath};
@@ -81,7 +81,7 @@ pub fn FindFirstFileA(
 ) -> HFIND {
     let Some(file_name) = lpFileName else {
         log::debug!("FindFirstFileA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return HFIND::invalid();
     };
     let file_name = normalize_dos_path(file_name);
@@ -96,14 +96,14 @@ pub fn FindFirstFileA(
     };
     let Some(pattern) = path.file_name() else {
         log::debug!("FindFirstFileA({file_name:?}) no file name");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return HFIND::invalid();
     };
     let mut pattern = match String::from_utf8(pattern.to_vec()) {
         Ok(value) => value,
         Err(e) => {
             log::debug!("FindFirstFileA({file_name:?}) invalid file name: {:?}", e);
-            set_last_error(machine, ERROR::INVALID_DATA);
+            machine.set_last_error(ERROR::INVALID_DATA);
             return HFIND::invalid();
         }
     };
@@ -115,7 +115,7 @@ pub fn FindFirstFileA(
         Ok(handle) => handle,
         Err(err) => {
             log::debug!("FindFirstFileA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return HFIND::invalid();
         }
     };
@@ -129,12 +129,12 @@ pub fn FindFirstFileA(
             }
             Ok(None) => {
                 log::debug!("FindFirstFileA({file_name:?}) not found");
-                set_last_error(machine, ERROR::FILE_NOT_FOUND);
+                machine.set_last_error(ERROR::FILE_NOT_FOUND);
                 return HFIND::invalid();
             }
             Err(err) => {
                 log::debug!("FindFirstFileA({file_name:?}) failed: {err:?}",);
-                set_last_error(machine, err);
+                machine.set_last_error(err);
                 return HFIND::invalid();
             }
         }
@@ -144,7 +144,7 @@ pub fn FindFirstFileA(
         *data = WIN32_FIND_DATAA::from(&next);
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     machine
         .state
         .kernel32
@@ -171,7 +171,7 @@ pub fn FindNextFileA(
         Some(handle) => handle,
         None => {
             log::debug!("FindNextFileA({hFindFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_HANDLE);
+            machine.set_last_error(ERROR::INVALID_HANDLE);
             return false;
         }
     };
@@ -184,12 +184,12 @@ pub fn FindNextFileA(
                 }
             }
             Ok(None) => {
-                set_last_error(machine, ERROR::FILE_NOT_FOUND);
+                machine.set_last_error(ERROR::FILE_NOT_FOUND);
                 return false;
             }
             Err(err) => {
                 log::debug!("FindNextFileA({hFindFile:?}) failed: {err:?}",);
-                set_last_error(machine, err);
+                machine.set_last_error(err);
                 return false;
             }
         };
@@ -199,7 +199,7 @@ pub fn FindNextFileA(
         *data = WIN32_FIND_DATAA::from(&next);
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     true
 }
 
@@ -213,11 +213,11 @@ pub fn FindClose(machine: &mut Machine, hFindFile: HFIND) -> bool {
         .is_none()
     {
         log::debug!("FindClose({hFindFile:?}): unknown handle");
-        set_last_error(machine, ERROR::INVALID_HANDLE);
+        machine.set_last_error(ERROR::INVALID_HANDLE);
         return false;
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     true
 }
 

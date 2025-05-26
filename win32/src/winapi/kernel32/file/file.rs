@@ -1,5 +1,5 @@
 use super::{FileAttribute, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
-use crate::{Machine, winapi::kernel32::set_last_error};
+use crate::Machine;
 use bitflags::bitflags;
 use memory::Pod;
 use win32_system::{System, host};
@@ -63,7 +63,7 @@ pub fn CreateFileA(
 ) -> HFILE {
     let Some(file_name) = lpFileName else {
         log::debug!("CreateFileA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return HFILE::invalid();
     };
 
@@ -73,7 +73,7 @@ pub fn CreateFileA(
         Ok(value) => value,
         Err(value) => {
             log::debug!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
-            set_last_error(machine, ERROR::INVALID_DATA);
+            machine.set_last_error(ERROR::INVALID_DATA);
             return HFILE::invalid();
         }
     };
@@ -111,12 +111,12 @@ pub fn CreateFileA(
     let path = WindowsPath::new(file_name);
     match machine.host.open(path, file_options) {
         Ok(file) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             machine.state.kernel32.files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             HFILE::invalid()
         }
     }
@@ -183,12 +183,12 @@ pub fn OpenFile(
     let path = WindowsPath::new(file_name);
     let hfile = match machine.host.open(path, file_options) {
         Ok(file) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             machine.state.kernel32.files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return HFILE::invalid();
         }
     };
@@ -224,7 +224,7 @@ pub fn ReadFile(
         _ => machine.state.kernel32.files.get_mut(hFile),
     }) else {
         log::debug!("ReadFile({hFile:?}) unknown handle");
-        set_last_error(machine, ERROR::INVALID_HANDLE);
+        machine.set_last_error(ERROR::INVALID_HANDLE);
         return false;
     };
     if lpOverlapped != 0 {
@@ -242,13 +242,13 @@ pub fn ReadFile(
             }
             Err(err) => {
                 log::debug!("ReadFile({hFile:?}) failed: {:?}", err);
-                set_last_error(machine, ERROR::from(err));
+                machine.set_last_error(ERROR::from(err));
                 return false;
             }
         }
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     if let Some(bytes) = lpNumberOfBytesRead {
         *bytes = read as u32;
     }
@@ -303,11 +303,11 @@ pub fn WriteFile(
 
     match write_file(machine, hFile, &lpBuffer) {
         Err(err) => {
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             false
         }
         Ok(n) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             if let Some(written) = lpNumberOfBytesWritten {
                 *written = n as u32;
             }
@@ -322,7 +322,7 @@ pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
         Some(f) => f,
         None => {
             log::debug!("SetEndOfFile({hFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_HANDLE);
+            machine.set_last_error(ERROR::INVALID_HANDLE);
             return false;
         }
     };
@@ -331,18 +331,18 @@ pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
         Ok(pos) => pos,
         Err(err) => {
             log::debug!("SetEndOfFile({hFile:?}) failed: {:?}", err);
-            set_last_error(machine, ERROR::from(err));
+            machine.set_last_error(ERROR::from(err));
             return false;
         }
     };
     match file.set_len(len) {
         Ok(()) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             true
         }
         Err(err) => {
             log::debug!("SetEndOfFile({hFile:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             false
         }
     }

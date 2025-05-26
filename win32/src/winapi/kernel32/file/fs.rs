@@ -1,7 +1,4 @@
-use crate::{
-    Machine,
-    winapi::kernel32::{SECURITY_ATTRIBUTES, set_last_error},
-};
+use crate::{Machine, winapi::kernel32::SECURITY_ATTRIBUTES};
 use win32_system::System;
 use win32_winapi::{ERROR, Str16, WindowsPath, encoding::*};
 
@@ -14,19 +11,19 @@ pub fn DeleteFileW(sys: &dyn System, lpFileName: Option<&Str16>) -> bool {
 pub fn DeleteFileA(machine: &mut Machine, lpFileName: Option<&str>) -> bool {
     let Some(file_name) = lpFileName else {
         log::debug!("DeleteFileA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return false;
     };
 
     let path = WindowsPath::new(file_name);
     match machine.host.remove_file(path) {
         Ok(()) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             true
         }
         Err(err) => {
             log::debug!("DeleteFileA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             false
         }
     }
@@ -41,19 +38,19 @@ pub fn RemoveDirectoryW(sys: &dyn System, lpPathName: Option<&Str16>) -> bool {
 pub fn RemoveDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool {
     let Some(path_name) = lpPathName else {
         log::debug!("RemoveDirectoryA failed: null lpPathName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return false;
     };
 
     let path = WindowsPath::new(path_name);
     match machine.host.remove_dir(path) {
         Ok(()) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             true
         }
         Err(err) => {
             log::debug!("RemoveDirectoryA({path_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             false
         }
     }
@@ -64,7 +61,7 @@ fn get_current_directory(machine: &mut Machine, buf: &mut dyn Encoder) -> u32 {
         Ok(value) => value,
         Err(err) => {
             log::debug!("GetCurrentDirectory failed: {err:?}");
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return 0;
         }
     };
@@ -78,7 +75,7 @@ fn get_current_directory(machine: &mut Machine, buf: &mut dyn Encoder) -> u32 {
         }
     };
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     len
 }
 
@@ -122,19 +119,19 @@ pub fn CreateDirectoryA(
 ) -> bool {
     let Some(path_name) = lpPathName else {
         log::debug!("CreateDirectoryA failed: null lpPathName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return false;
     };
 
     let path = WindowsPath::new(path_name);
     match machine.host.create_dir(path) {
         Ok(()) => {
-            set_last_error(machine, ERROR::SUCCESS);
+            machine.set_last_error(ERROR::SUCCESS);
             true
         }
         Err(error) => {
             log::debug!("CreateDirectoryA({path_name:?}) failed: {error:?}",);
-            set_last_error(machine, error);
+            machine.set_last_error(error);
             false
         }
     }

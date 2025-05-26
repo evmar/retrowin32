@@ -1,5 +1,6 @@
-use crate::{Machine, winapi::kernel32::set_last_error};
+use crate::Machine;
 use memory::ExtensionsMut;
+use win32_system::System;
 use win32_winapi::{ERROR, Str16};
 
 pub const MAX_PATH: usize = 260;
@@ -25,7 +26,7 @@ pub fn GetFullPathNameA(
 ) -> u32 {
     let Some(file_name) = lpFileName else {
         log::debug!("GetFullPathNameA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return 0;
     };
 
@@ -33,14 +34,14 @@ pub fn GetFullPathNameA(
         Ok(value) => value,
         Err(err) => {
             log::debug!("GetFullPathNameA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return 0;
         }
     };
     let out_path = cwd.join(file_name).normalize();
     let out_bytes = out_path.as_bytes();
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
 
     let buf = machine.mem().sub32_mut(lpBuffer, nBufferLength);
     if let Some(part) = lpFilePart {

@@ -10,10 +10,6 @@ use win32_winapi::{DWORD, ERROR, HANDLE, encoding::*};
 
 pub type SECURITY_ATTRIBUTES = u32; // TODO
 
-pub fn set_last_error(machine: &mut Machine, err: ERROR) {
-    teb_mut(machine).LastErrorValue = err.into();
-}
-
 #[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: Result<ERROR, u32>) {
     teb_mut(machine).LastErrorValue = dwErrCode.map_or_else(|err| err, |err| err as u32);
@@ -246,11 +242,11 @@ pub fn FormatMessageW(
 pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
     if machine.state.kernel32.files.remove(hObject).is_none() {
         log::debug!("CloseHandle({hObject:?}): unknown handle");
-        set_last_error(machine, ERROR::INVALID_HANDLE);
+        machine.set_last_error(ERROR::INVALID_HANDLE);
         return false;
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     true
 }
 
@@ -261,7 +257,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     if lpBuffer != 0 {
         let buf = machine.mem().sub32_mut(lpBuffer, uSize);
         buf[..path_bytes.len()].copy_from_slice(path_bytes);
@@ -274,7 +270,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
 pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows";
     let path_bytes = path.as_bytes();
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }

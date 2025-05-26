@@ -4,7 +4,7 @@ use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
 use win32_system::{ArcEvent, System, Wait, WaitResult, host};
-use win32_winapi::{HANDLE, HMODULE};
+use win32_winapi::{ERROR, HANDLE, HMODULE};
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::Machine;
@@ -129,6 +129,10 @@ impl System for Machine {
             })
             .collect();
         Box::pin(kernel32::wait_for_events(self, objects, wait_all, wait))
+    }
+
+    fn set_last_error(&self, err: ERROR) {
+        kernel32::teb_mut(self).LastErrorValue = err.into();
     }
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32 {

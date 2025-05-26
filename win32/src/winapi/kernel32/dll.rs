@@ -1,5 +1,5 @@
 use super::file::HFILE;
-use crate::{Machine, loader, winapi::kernel32::set_last_error};
+use crate::{Machine, loader};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -28,7 +28,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         return *hmodule;
     }
 
-    set_last_error(machine, ERROR::MOD_NOT_FOUND);
+    machine.set_last_error(ERROR::MOD_NOT_FOUND);
     return HMODULE::null();
 }
 
@@ -66,7 +66,7 @@ fn get_module_file_name(
         match filename.status() {
             Ok(n) => n - 1,
             Err(_) => {
-                set_last_error(machine, ERROR::INSUFFICIENT_BUFFER);
+                machine.set_last_error(ERROR::INSUFFICIENT_BUFFER);
                 // TODO: nul termination behavior.
                 // Docs say this returns buffer size, not needed space.
                 return filename.capacity() as u32;
@@ -105,7 +105,7 @@ async fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
         Err(e) => {
             // TODO: set_last_error fails here if this happens before TEB setup
             log::error!("LoadLibraryA({:?}) failed: {:?}", filename, e);
-            // set_last_error(machine, winapi::ERROR::MOD_NOT_FOUND);
+            // machine.set_last_error(winapi::ERROR::MOD_NOT_FOUND);
             HMODULE::null()
         }
     }

@@ -150,7 +150,7 @@ pub fn teb(machine: &Machine) -> &TEB {
         .get_aligned_ref::<TEB>(machine.teb_addr())
 }
 
-pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
+pub fn teb_mut(machine: &Machine) -> &mut TEB {
     machine
         .memory
         .mem()

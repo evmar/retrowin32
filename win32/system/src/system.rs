@@ -5,7 +5,7 @@ use crate::{
 };
 use memory::Mem;
 use std::pin::Pin;
-use win32_winapi::{HANDLE, HMODULE};
+use win32_winapi::{ERROR, HANDLE, HMODULE};
 
 /// The interface for the system beneath all the Windows DLLs, providing the lowest-level
 /// functionality that the DLLs cannot implement themselves.  See discussion in win32/README.md.
@@ -43,6 +43,8 @@ pub trait System {
         wait_all: bool,
         wait: Wait,
     ) -> Pin<Box<dyn Future<Output = WaitResult> + '_>>;
+
+    fn set_last_error(&self, err: ERROR);
 
     /// Look up a symbol from a DLL; DLL must have already been loaded.
     fn get_symbol(&self, dll: &str, name: &str) -> u32;

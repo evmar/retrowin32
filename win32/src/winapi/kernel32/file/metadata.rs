@@ -3,7 +3,6 @@ use crate::{
     winapi::kernel32::{
         FILETIME,
         file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
-        set_last_error,
     },
 };
 use bitflags::bitflags;
@@ -129,7 +128,7 @@ pub fn GetFileInformationByHandle(
         Some(f) => f,
         None => {
             log::debug!("GetFileInformationByHandle({hFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_DATA);
+            machine.set_last_error(ERROR::INVALID_DATA);
             return false;
         }
     };
@@ -138,7 +137,7 @@ pub fn GetFileInformationByHandle(
         Ok(stat) => stat,
         Err(err) => {
             log::debug!("GetFileInformationByHandle({hFile:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return false;
         }
     };
@@ -147,7 +146,7 @@ pub fn GetFileInformationByHandle(
         *info = BY_HANDLE_FILE_INFORMATION::from(&stat);
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     true
 }
 
@@ -172,7 +171,7 @@ pub fn SetFilePointer(
     }
     let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
         log::debug!("SetFilePointer({hFile:?}) unknown handle");
-        set_last_error(machine, ERROR::INVALID_HANDLE);
+        machine.set_last_error(ERROR::INVALID_HANDLE);
         return u32::MAX;
     };
     let seek = match dwMoveMethod.unwrap() {
@@ -184,7 +183,7 @@ pub fn SetFilePointer(
         Ok(pos) => pos,
         Err(err) => {
             log::debug!("SetFilePointer({hFile:?}) failed: {:?}", err);
-            set_last_error(machine, ERROR::from(err));
+            machine.set_last_error(ERROR::from(err));
             return u32::MAX;
         }
     };
@@ -192,10 +191,10 @@ pub fn SetFilePointer(
         *high = (pos >> 32) as i32;
     } else if pos >> 32 != 0 {
         log::debug!("SetFilePointer({hFile:?}) overflow");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return u32::MAX;
     }
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     pos as u32
 }
 
@@ -208,7 +207,7 @@ pub fn GetFileAttributesW(sys: &dyn System, lpFileName: Option<&Str16>) -> u32 {
 pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> FileAttribute {
     let Some(file_name) = lpFileName else {
         log::debug!("CreateFileA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return FileAttribute::invalid();
     };
 
@@ -217,12 +216,12 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
         Ok(stat) => stat,
         Err(err) => {
             log::debug!("GetFileAttributesA({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return FileAttribute::invalid();
         }
     };
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
 
     match stat.kind {
         host::StatKind::File => FileAttribute::NORMAL,
@@ -237,7 +236,7 @@ pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&
         Some(f) => f,
         None => {
             log::debug!("GetFileSize({hFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_HANDLE);
+            machine.set_last_error(ERROR::INVALID_HANDLE);
             return u32::MAX;
         }
     };
@@ -246,12 +245,12 @@ pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&
         Ok(stat) => stat,
         Err(err) => {
             log::debug!("GetFileSize({hFile:?}) failed: {err:?}");
-            set_last_error(machine, err);
+            machine.set_last_error(err);
             return u32::MAX;
         }
     };
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
 
     if let Some(high) = lpFileSizeHigh {
         *high = (stat.size >> 32) as u32;
@@ -274,7 +273,7 @@ pub fn GetFileTime(
         Some(f) => f,
         None => {
             log::debug!("GetFileTime({hFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_HANDLE);
+            machine.set_last_error(ERROR::INVALID_HANDLE);
             return false;
         }
     };
@@ -283,7 +282,7 @@ pub fn GetFileTime(
         Ok(stat) => stat,
         Err(error) => {
             log::debug!("GetFileTime({hFile:?}) failed: {error:?}");
-            set_last_error(machine, error);
+            machine.set_last_error(error);
             return false;
         }
     };
@@ -298,7 +297,7 @@ pub fn GetFileTime(
         *time = FILETIME::from_unix_nanos(stat.mtime);
     }
 
-    set_last_error(machine, ERROR::SUCCESS);
+    machine.set_last_error(ERROR::SUCCESS);
     true
 }
 
@@ -319,7 +318,7 @@ pub fn SetFileAttributesA(
 ) -> bool {
     let Some(file_name) = lpFileName else {
         log::debug!("SetFileAttributesA failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
+        machine.set_last_error(ERROR::INVALID_DATA);
         return false;
     };
     dwFileAttributes.unwrap();
@@ -341,7 +340,7 @@ pub fn SetFileTime(
         Some(f) => f,
         None => {
             log::debug!("SetFileTime({hFile:?}) unknown handle");
-            set_last_error(machine, ERROR::INVALID_HANDLE);
+            machine.set_last_error(ERROR::INVALID_HANDLE);
             return false;
         }
     };
@@ -350,7 +349,7 @@ pub fn SetFileTime(
         Ok(stat) => stat,
         Err(error) => {
             log::debug!("SetFileTime({hFile:?}) failed: {error:?}");
-            set_last_error(machine, error);
+            machine.set_last_error(error);
             return false;
         }
     };
