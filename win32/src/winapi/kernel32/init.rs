@@ -1,8 +1,7 @@
 //! Process initialization and startup.
 
 use super::{
-    FindHandle, HEVENT, HFILE, HFIND, HMODULE, STDERR_HFILE, STDOUT_HFILE, Thread,
-    command_line::CommandLine,
+    FindHandle, HEVENT, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE, Thread, command_line::CommandLine,
 };
 use crate::{
     Machine,
@@ -13,6 +12,7 @@ use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 use win32_system::{Event, host, memory::Memory};
+use win32_winapi::HMODULE;
 
 #[repr(C)]
 pub struct UNICODE_STRING {

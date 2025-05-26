@@ -90,7 +90,7 @@ bitflags! {
 
 fn load_image(
     sys: &mut dyn System,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     name: ResourceKey<&Str16>,
     typ: IMAGE,
     cx: u32,
@@ -160,7 +160,7 @@ fn load_image(
 #[win32_derive::dllexport]
 pub fn LoadImageA(
     sys: &mut dyn System,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     name: ResourceKey<&str>,
     typ: Result<IMAGE, u32>,
     cx: u32,
@@ -181,7 +181,7 @@ pub fn LoadImageA(
 #[win32_derive::dllexport]
 pub fn LoadImageW(
     sys: &mut dyn System,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     name: ResourceKey<&Str16>,
     typ: Result<IMAGE, u32>,
     cx: u32,
@@ -247,7 +247,7 @@ fn find_string(sys: &dyn System, hInstance: HINSTANCE, uID: u32) -> Option<Range
 #[win32_derive::dllexport]
 pub fn LoadStringA(
     sys: &mut dyn System,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     uID: u32,
     lpBuffer: u32,
     cchBufferMax: u32,
@@ -269,7 +269,7 @@ pub fn LoadStringA(
 #[win32_derive::dllexport]
 pub fn LoadStringW(
     sys: &mut dyn System,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     uID: u32,
     lpBuffer: u32,
     cchBufferMax: u32,

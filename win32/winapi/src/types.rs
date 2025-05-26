@@ -30,3 +30,9 @@ pub type HRESULT = u32;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HMODULET;
+/// HMODULE is the address of the loaded PE image.
+// (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
+pub type HMODULE = HANDLE<HMODULET>;

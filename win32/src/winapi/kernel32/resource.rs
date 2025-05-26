@@ -1,10 +1,10 @@
-use crate::winapi::{Str16, kernel32::HMODULE};
+use crate::winapi::Str16;
 use std::ops::Range;
 pub use win32_system::{
     System,
     resource::{ResourceKey, find_resource},
 };
-use win32_winapi::{HANDLE, Handles};
+use win32_winapi::{HANDLE, HMODULE, Handles};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HRSRCT;
@@ -43,7 +43,7 @@ pub fn FindResourceW(
     lpName: ResourceKey<&Str16>,
     lpType: ResourceKey<&Str16>,
 ) -> HRSRC {
-    match find_resource(sys, hModule.to_raw(), lpType, &lpName) {
+    match find_resource(sys, hModule, lpType, &lpName) {
         None => HRSRC::null(),
         Some(mem) => get_state(sys).add(ResourceHandle(mem)),
     }

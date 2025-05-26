@@ -1,3 +1,4 @@
+use super::HFILE;
 use crate::{
     Machine, System,
     calling_convention::{self, ArrayOut},
@@ -6,15 +7,7 @@ use crate::{
 };
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
-use win32_winapi::encoding::*;
-
-use super::HFILE;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct HMODULET;
-/// HMODULE is the address of the loaded PE image.
-// (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
-pub type HMODULE = HANDLE<HMODULET>;
+use win32_winapi::{HMODULE, encoding::*};
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {

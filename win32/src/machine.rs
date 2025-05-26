@@ -5,7 +5,7 @@ use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
 use win32_system::{ArcEvent, Wait, WaitResult, host};
-use win32_winapi::HANDLE;
+use win32_winapi::{HANDLE, HMODULE};
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::Machine;
@@ -136,12 +136,8 @@ impl System for Machine {
         loader::get_symbol(self, dll, name)
     }
 
-    fn get_resources(&self, module: u32) -> Option<&[u8]> {
-        let module = self
-            .state
-            .kernel32
-            .modules
-            .get(&winapi::kernel32::HMODULE::from_raw(module))?;
+    fn get_resources(&self, module: HMODULE) -> Option<&[u8]> {
+        let module = self.state.kernel32.modules.get(&module)?;
         module.resources(self.mem())
     }
 

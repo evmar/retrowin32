@@ -4,10 +4,7 @@
 //! These call into a shared load_module, which does the PE loading
 //! as well as recursively resolving imported modules.
 
-use crate::{
-    machine::Machine,
-    winapi::{self, kernel32::HMODULE},
-};
+use crate::{machine::Machine, winapi};
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::{HashMap, HashSet};
 use win32_system::{
@@ -16,7 +13,7 @@ use win32_system::{
     host,
     memory::{Mapping, Memory},
 };
-use win32_winapi::WindowsPath;
+use win32_winapi::{HMODULE, WindowsPath};
 
 /// Create a memory mapping, optionally copying some data to it.
 fn map_memory(memory: &mut Memory, mapping: Mapping, buf: Option<&[u8]>) {

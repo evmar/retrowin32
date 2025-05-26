@@ -345,7 +345,7 @@ pub async fn CreateWindowExA(
     nHeight: u32,
     hWndParent: HWND,
     hMenu: u32,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     lpParam: u32,
 ) -> HWND {
     let class_name_wide: String16;
@@ -388,7 +388,7 @@ pub async fn CreateWindowExW(
     nHeight: u32,
     hWndParent: HWND,
     hMenu: u32,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     lpParam: u32,
 ) -> HWND {
     let class_name = match lpClassName {

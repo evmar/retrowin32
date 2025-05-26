@@ -1,11 +1,11 @@
 use memory::ExtensionsMut;
 use std::io::{Cursor, Write};
 use win32_system::System;
-use win32_winapi::{HWND, POINT, RECT, Str16, calling_convention::VarArgs};
+use win32_winapi::{HMODULE, HWND, POINT, RECT, Str16, calling_convention::VarArgs};
 
 use crate::printf;
 
-pub type HINSTANCE = u32;
+pub type HINSTANCE = HMODULE;
 pub type HMONITOR = u32;
 
 #[win32_derive::dllexport]

@@ -3,7 +3,7 @@
 
 use memory::Mem;
 use std::ops::Range;
-use win32_winapi::{Str16, String16, calling_convention::FromArg};
+use win32_winapi::{HMODULE, Str16, String16, calling_convention::FromArg};
 
 use crate::System;
 
@@ -65,11 +65,12 @@ where
 
 pub fn find_resource<'a>(
     sys: &dyn System,
-    hinstance: u32,
+    hinstance: HMODULE,
     typ: ResourceKey<&Str16>,
     name: &ResourceKey<&Str16>,
 ) -> Option<Range<u32>> {
     let resources = sys.get_resources(hinstance)?;
+    let addr = hinstance.to_raw();
     pe::find_resource(resources, typ.into_pe(), name.into_pe())
-        .map(|r| (hinstance + r.start)..(hinstance + r.end))
+        .map(|r| (addr + r.start)..(addr + r.end))
 }

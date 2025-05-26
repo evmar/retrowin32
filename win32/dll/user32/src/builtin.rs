@@ -404,7 +404,7 @@ mod wrappers {
             let nHeight = <u32>::from_stack(mem, stack_args + 28u32);
             let hWndParent = <HWND>::from_stack(mem, stack_args + 32u32);
             let hMenu = <u32>::from_stack(mem, stack_args + 36u32);
-            let hInstance = <u32>::from_stack(mem, stack_args + 40u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 40u32);
             let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
@@ -473,7 +473,7 @@ mod wrappers {
             let nHeight = <u32>::from_stack(mem, stack_args + 28u32);
             let hWndParent = <HWND>::from_stack(mem, stack_args + 32u32);
             let hMenu = <u32>::from_stack(mem, stack_args + 36u32);
-            let hInstance = <u32>::from_stack(mem, stack_args + 40u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 40u32);
             let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_record = if trace::enabled("user32/window") {
                 trace::Record::new(
@@ -2305,7 +2305,7 @@ mod wrappers {
     pub unsafe fn LoadImageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
             let name = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
             let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
             let cx = <u32>::from_stack(mem, stack_args + 12u32);
@@ -2339,7 +2339,7 @@ mod wrappers {
     pub unsafe fn LoadImageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
             let name = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 4u32);
             let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
             let cx = <u32>::from_stack(mem, stack_args + 12u32);
@@ -2419,7 +2419,7 @@ mod wrappers {
     pub unsafe fn LoadStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
             let uID = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);
@@ -2449,7 +2449,7 @@ mod wrappers {
     pub unsafe fn LoadStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = sys.mem().detach();
-            let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
+            let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
             let uID = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
             let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);

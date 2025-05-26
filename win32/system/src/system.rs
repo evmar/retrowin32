@@ -5,7 +5,7 @@ use crate::{
 };
 use memory::Mem;
 use std::pin::Pin;
-use win32_winapi::HANDLE;
+use win32_winapi::{HANDLE, HMODULE};
 
 /// The interface for the system beneath all the Windows DLLs, providing the lowest-level
 /// functionality that the DLLs cannot implement themselves.  See discussion in win32/README.md.
@@ -48,7 +48,7 @@ pub trait System {
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
 
     /// Get the resources section of a given module handle.
-    fn get_resources(&self, module: u32) -> Option<&[u8]>;
+    fn get_resources(&self, module: HMODULE) -> Option<&[u8]>;
 
     fn get_thread_id(&self) -> u32;
 
