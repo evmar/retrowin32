@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod arena;
 mod builtin;
 mod command_line;
 mod console;

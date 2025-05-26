@@ -1,4 +1,3 @@
-mod arena;
 pub mod builtin;
 pub mod kernel32;
 mod ntdll;

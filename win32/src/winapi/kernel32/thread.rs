@@ -1,5 +1,5 @@
-use super::{KernelObject, peb_mut};
-use crate::{Machine, winapi::arena::Arena};
+use super::{KernelObject, arena::Arena, peb_mut};
+use crate::Machine;
 use memory::{Extensions, Mem};
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System};

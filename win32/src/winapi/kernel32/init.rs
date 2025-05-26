@@ -2,13 +2,13 @@
 
 use super::{
     HEVENT, Thread,
+    arena::Arena,
     command_line::CommandLine,
     file::{FindHandle, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE},
 };
 use crate::{
     Machine,
     loader::{self, Module},
-    winapi::arena::Arena,
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};

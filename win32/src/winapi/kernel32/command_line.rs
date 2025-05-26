@@ -1,7 +1,7 @@
 //! Process command line.
 
-use super::UNICODE_STRING;
-use crate::{Machine, winapi::arena::Arena};
+use super::{UNICODE_STRING, arena::Arena};
+use crate::Machine;
 use memory::{ExtensionsMut, Mem};
 use win32_winapi::String16;
 
