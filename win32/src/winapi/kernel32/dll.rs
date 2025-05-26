@@ -1,4 +1,4 @@
-use super::HFILE;
+use super::file::HFILE;
 use crate::{Machine, loader, winapi::kernel32::set_last_error};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;

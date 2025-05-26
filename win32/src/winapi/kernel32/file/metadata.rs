@@ -1,6 +1,10 @@
 use crate::{
     Machine,
-    winapi::kernel32::{FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
+    winapi::kernel32::{
+        FILETIME,
+        file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
+        set_last_error,
+    },
 };
 use bitflags::bitflags;
 use win32_system::{System, host};

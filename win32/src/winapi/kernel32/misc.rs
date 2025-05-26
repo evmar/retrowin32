@@ -1,7 +1,7 @@
 //! kernel32 API without a better home.
 
-use super::{HFILE, teb_mut};
-use crate::{Machine, winapi::kernel32::CURRENT_PROCESS_HANDLE};
+use super::{CURRENT_PROCESS_HANDLE, file::HFILE, teb_mut};
+use crate::Machine;
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;

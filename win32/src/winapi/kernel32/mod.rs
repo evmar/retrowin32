@@ -6,7 +6,7 @@ mod command_line;
 mod console;
 mod dll;
 mod env;
-mod file;
+pub mod file;
 mod ini;
 mod init;
 mod libc;

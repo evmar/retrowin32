@@ -1,6 +1,6 @@
 use crate::{
     Machine,
-    winapi::kernel32::{FILETIME, FileAttribute, set_last_error},
+    winapi::kernel32::{FILETIME, file::FileAttribute, set_last_error},
 };
 use win32_system::{System, host};
 use win32_winapi::{DWORD, ERROR, HANDLE, Str16, WindowsPath};

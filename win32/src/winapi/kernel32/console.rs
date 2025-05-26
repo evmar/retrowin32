@@ -1,9 +1,8 @@
+use super::file::HFILE;
 use crate::Machine;
 use crate::winapi::kernel32;
 use win32_system::System;
 use win32_winapi::{DWORD, HANDLE, WORD, calling_convention::Array};
-
-use super::HFILE;
 
 #[win32_derive::dllexport]
 pub fn SetConsoleCtrlHandler(sys: &dyn System, _handlerRoutine: DWORD, _add: u32) -> bool {
@@ -84,7 +83,7 @@ pub fn WriteConsoleW(
     lpNumberOfCharsWritten: Option<&mut u32>,
     _lpReserved: u32,
 ) -> bool {
-    match kernel32::write_file(machine, hConsoleOutput, &lpBuffer) {
+    match kernel32::file::write_file(machine, hConsoleOutput, &lpBuffer) {
         Err(err) => {
             log::debug!("WriteConsoleW({hConsoleOutput:?}) failed: {:?}", err);
             false

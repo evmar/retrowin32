@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::kernel32::HFILE;
+use super::kernel32::file::HFILE;
 use crate::Machine;
 use win32_winapi::calling_convention::ArrayOut;
 

@@ -1,8 +1,5 @@
-use super::FileAttribute;
-use crate::{
-    Machine,
-    winapi::kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
-};
+use super::{FileAttribute, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
+use crate::{Machine, winapi::kernel32::set_last_error};
 use bitflags::bitflags;
 use memory::Pod;
 use win32_system::{System, host};

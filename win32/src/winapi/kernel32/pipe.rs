@@ -1,4 +1,4 @@
-use super::{HFILE, SECURITY_ATTRIBUTES};
+use super::{SECURITY_ATTRIBUTES, file::HFILE};
 use win32_system::System;
 
 #[win32_derive::dllexport]

@@ -199,8 +199,7 @@ pub async fn CreateThread(
     dwCreationFlags: u32,
     lpThreadId: u32,
 ) -> HTHREAD {
-    let retrowin32_thread_main =
-        crate::loader::get_symbol(machine, "kernel32.dll", "retrowin32_thread_main");
+    let retrowin32_thread_main = machine.get_symbol("kernel32.dll", "retrowin32_thread_main");
 
     let stack_size = if dwStackSize > 0 {
         dwStackSize

@@ -3,7 +3,7 @@ pub mod builtin;
 pub mod kernel32;
 mod ntdll;
 
-pub use kernel32::HFILE;
+pub use kernel32::file::HFILE;
 
 pub struct State {
     pub ddraw: std::cell::RefCell<builtin_ddraw::State>,

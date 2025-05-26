@@ -1,7 +1,9 @@
 //! Process initialization and startup.
 
 use super::{
-    FindHandle, HEVENT, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE, Thread, command_line::CommandLine,
+    HEVENT, Thread,
+    command_line::CommandLine,
+    file::{FindHandle, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE},
 };
 use crate::{
     Machine,
