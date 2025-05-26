@@ -2,6 +2,7 @@ use crate::System;
 use crate::winapi::kernel32;
 use crate::{loader, winapi};
 use std::any::{Any, TypeId};
+use std::collections::HashMap;
 use win32_system::memory::Memory;
 use win32_system::{ArcEvent, Wait, WaitResult, host};
 use win32_winapi::HANDLE;
@@ -19,6 +20,7 @@ pub struct MachineX<Emu> {
     pub memory: Memory,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
+    pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
     pub status: Status,
 }
@@ -165,6 +167,18 @@ impl System for Machine {
         } else {
             panic!()
         }
+    }
+
+    fn state2(&self, id: &TypeId, init: fn() -> Box<dyn std::any::Any>) -> &dyn Any {
+        // Safety: we only ever insert into this hashmap, so existing references
+        // to values remain valid even though here we mutate it.
+        let state2 = unsafe { &mut *self.state2.get() };
+        if let Some(state) = state2.get(id) {
+            return state.as_ref();
+        }
+        let state2 = unsafe { &mut *self.state2.get() };
+        state2.insert(id.clone(), init());
+        state2.get(id).unwrap().as_ref()
     }
 }
 

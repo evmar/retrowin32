@@ -58,4 +58,10 @@ pub trait System {
     /// can store its own state in the system, without this API needing to depend
     /// on the gdi32 library.
     fn state(&self, id: &std::any::TypeId) -> &dyn std::any::Any;
+    // TODO: migrate to this new API.
+    fn state2(
+        &self,
+        id: &std::any::TypeId,
+        init: fn() -> Box<dyn std::any::Any>,
+    ) -> &dyn std::any::Any;
 }
