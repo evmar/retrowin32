@@ -1,17 +1,16 @@
+use super::FileAttribute;
 use crate::{
     Machine, System,
     calling_convention::{Array, ArrayOut},
     winapi::{
-        ERROR, HANDLE, Str16,
+        ERROR, HANDLE,
         kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
     },
 };
 use bitflags::bitflags;
 use memory::Pod;
 use win32_system::host;
-use win32_winapi::WindowsPath;
-
-use super::FileAttribute;
+use win32_winapi::{Str16, WindowsPath};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFILET;

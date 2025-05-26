@@ -1,11 +1,12 @@
 use super::{KernelObject, peb_mut};
 use crate::{
     Machine, System,
-    winapi::{HANDLE, Str16, arena::Arena},
+    winapi::{HANDLE, arena::Arena},
 };
 use memory::{Extensions, Mem};
 use std::{rc::Rc, sync::Arc};
 use win32_system::Event;
+use win32_winapi::Str16;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;

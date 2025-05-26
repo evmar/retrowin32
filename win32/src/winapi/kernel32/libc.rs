@@ -1,7 +1,8 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
-use crate::{Machine, System, winapi::Str16};
+use crate::{Machine, System};
 use memory::{Extensions, ExtensionsMut};
+use win32_winapi::Str16;
 
 #[win32_derive::dllexport]
 pub fn lstrlenA(sys: &dyn System, lpString: Option<&str>) -> u32 {

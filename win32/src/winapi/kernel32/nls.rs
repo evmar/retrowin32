@@ -1,8 +1,9 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{Machine, System, calling_convention::ArrayOut, winapi::Str16};
+use crate::{Machine, System, calling_convention::ArrayOut};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
+use win32_winapi::Str16;
 
 /// Code pages
 #[derive(Debug, win32_derive::TryFromEnum)]

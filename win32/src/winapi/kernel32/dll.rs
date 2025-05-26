@@ -7,7 +7,7 @@ use crate::{
 };
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
-use win32_winapi::{HMODULE, encoding::*};
+use win32_winapi::{HMODULE, Str16, encoding::*};
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {

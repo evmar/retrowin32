@@ -1,11 +1,9 @@
 //! Process command line.
 
 use super::UNICODE_STRING;
-use crate::{
-    Machine,
-    winapi::{String16, arena::Arena},
-};
+use crate::{Machine, winapi::arena::Arena};
 use memory::{ExtensionsMut, Mem};
+use win32_winapi::String16;
 
 /// Process command line, as exposed in GetCommandLine() and also TEB.
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,

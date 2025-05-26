@@ -1,8 +1,9 @@
 use crate::{
     Machine,
-    winapi::{ERROR, Str16, kernel32::set_last_error},
+    winapi::{ERROR, kernel32::set_last_error},
 };
 use memory::ExtensionsMut;
+use win32_winapi::Str16;
 
 pub const MAX_PATH: usize = 260;
 
