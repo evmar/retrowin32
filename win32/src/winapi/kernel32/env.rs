@@ -1,5 +1,21 @@
-use crate::{Machine, System, calling_convention::ArrayOut};
-use win32_winapi::{Str16, encoding::*};
+use win32_system::System;
+use win32_winapi::{Str16, calling_convention::ArrayOut, encoding::*};
+
+type State = Vec<(String, String)>;
+
+fn initial_environment() -> State {
+    vec![(String::from("WINDIR"), String::from("C:\\Windows"))]
+}
+
+fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    type SysState = std::cell::RefCell<State>;
+    sys.state2(&std::any::TypeId::of::<SysState>(), || {
+        Box::new(std::cell::RefCell::new(initial_environment()))
+    })
+    .downcast_ref::<SysState>()
+    .unwrap()
+    .borrow_mut()
+}
 
 /// Encode environment variables in the environment block format.
 fn encode_env(w: &mut dyn Encoder, env: &[(String, String)]) {
@@ -16,53 +32,49 @@ fn encode_env(w: &mut dyn Encoder, env: &[(String, String)]) {
 }
 
 #[win32_derive::dllexport]
-pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
+pub fn GetEnvironmentStrings(sys: &dyn System) -> u32 {
     // Yes, this function without "A" suffix exists:
     // https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533
     let mut measure = EncoderAnsi::new(&mut []);
-    encode_env(&mut measure, &machine.state.kernel32.env);
+    let env = get_state(sys);
+    encode_env(&mut measure, &env);
     let len = measure.status().unwrap_err();
 
-    let addr = machine
-        .memory
-        .process_heap
-        .alloc(machine.memory.mem(), len as u32);
+    let addr = sys.memory().process_heap.alloc(sys.mem(), len as u32);
 
-    let mut env = EncoderAnsi::from_mem(machine.memory.mem(), addr, len as u32);
-    encode_env(&mut env, &machine.state.kernel32.env);
-    env.status().unwrap();
+    let mut encoder = EncoderAnsi::from_mem(sys.mem(), addr, len as u32);
+    encode_env(&mut encoder, &env);
+    encoder.status().unwrap();
 
     addr
 }
 
 #[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsA(machine: &mut Machine, penv: u32) -> bool {
-    machine.memory.process_heap.free(machine.memory.mem(), penv);
+pub fn FreeEnvironmentStringsA(sys: &dyn System, penv: u32) -> bool {
+    sys.memory().process_heap.free(sys.mem(), penv);
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
+pub fn GetEnvironmentStringsW(sys: &dyn System) -> u32 {
     // Yuck, this is copy of GetEnvironmentStringsA, because we need to create two Encoder types.
     let mut measure = EncoderWide::new(&mut []);
-    encode_env(&mut measure, &machine.state.kernel32.env);
+    let env = get_state(sys);
+    encode_env(&mut measure, &env);
     let len = measure.status().unwrap_err();
 
-    let addr = machine
-        .memory
-        .process_heap
-        .alloc(machine.memory.mem(), len as u32);
+    let addr = sys.memory().process_heap.alloc(sys.mem(), len as u32);
 
-    let mut env = EncoderWide::from_mem(machine.memory.mem(), addr, len as u32);
-    encode_env(&mut env, &machine.state.kernel32.env);
-    env.status().unwrap();
+    let mut encoder = EncoderWide::from_mem(sys.mem(), addr, len as u32);
+    encode_env(&mut encoder, &env);
+    encoder.status().unwrap();
 
     addr
 }
 
 #[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsW(machine: &mut Machine, penv: u32) -> bool {
-    machine.memory.process_heap.free(machine.memory.mem(), penv);
+pub fn FreeEnvironmentStringsW(sys: &dyn System, penv: u32) -> bool {
+    sys.memory().process_heap.free(sys.mem(), penv);
     true // success
 }
 

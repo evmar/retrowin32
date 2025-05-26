@@ -116,8 +116,6 @@ pub struct State {
 
     pub find_handles: Handles<HFIND, FindHandle>,
 
-    pub env: Vec<(String, String)>,
-
     pub cmdline: CommandLine,
 
     /// If true, debug break when entering the exe entry point.
@@ -157,8 +155,6 @@ impl State {
         };
         dlls.insert(HMODULE::from_raw(module.image_base), module);
 
-        let env = vec![(String::from("WINDIR"), String::from("C:\\Windows"))];
-
         State {
             arena,
             image_base: 0,
@@ -167,7 +163,6 @@ impl State {
             objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
-            env,
             cmdline: CommandLine::default(),
             break_on_startup: false,
         }

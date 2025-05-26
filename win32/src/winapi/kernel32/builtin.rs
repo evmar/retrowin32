@@ -1334,10 +1334,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeEnvironmentStringsA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                penv,
-            );
+            let result = kernel32::FreeEnvironmentStringsA(sys, penv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1359,10 +1356,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeEnvironmentStringsW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                penv,
-            );
+            let result = kernel32::FreeEnvironmentStringsW(sys, penv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1803,8 +1797,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetEnvironmentStrings(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::GetEnvironmentStrings(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1825,8 +1818,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetEnvironmentStringsW(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::GetEnvironmentStringsW(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4437,7 +4429,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::MultiByteToWideChar(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 CodePage,
                 dwFlags,
                 lpMultiByteStr,
@@ -6093,7 +6085,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::WideCharToMultiByte(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 CodePage,
                 dwFlags,
                 lpWideCharStr,
