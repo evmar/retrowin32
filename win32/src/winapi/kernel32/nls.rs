@@ -1,9 +1,9 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{Machine, System, calling_convention::ArrayOut};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
-use win32_winapi::Str16;
+use win32_system::System;
+use win32_winapi::{Str16, calling_convention::ArrayOut};
 
 /// Code pages
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -52,7 +52,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn MultiByteToWideChar(
-    machine: &mut Machine,
+    sys: &dyn System,
     CodePage: Result<CP, u32>,
     dwFlags: Result<MB, u32>,
     lpMultiByteStr: u32,
@@ -68,8 +68,8 @@ pub fn MultiByteToWideChar(
 
     let src_addr = lpMultiByteStr;
     let src_len = match cbMultiByte {
-        0 => return 0,                                         // TODO: invalid param
-        -1 => machine.mem().slicez(src_addr).len() as u32 + 1, // include nul
+        0 => return 0,                                     // TODO: invalid param
+        -1 => sys.mem().slicez(src_addr).len() as u32 + 1, // include nul
         len => len as u32,
     };
 
@@ -84,7 +84,7 @@ pub fn MultiByteToWideChar(
     match dst {
         None => src_len,
         Some(dst) => {
-            let src = machine.mem().sub32(src_addr, src_len);
+            let src = sys.mem().sub32(src_addr, src_len);
             let mut len = 0;
             for &c in src {
                 if c > 0x7f {
@@ -116,7 +116,7 @@ fn strlen16(buf: &[u8]) -> usize {
 
 #[win32_derive::dllexport]
 pub fn WideCharToMultiByte(
-    machine: &mut Machine,
+    sys: &dyn System,
     CodePage: Result<CP, u32>,
     dwFlags: Result<WC, u32>,
     lpWideCharStr: u32,
@@ -135,14 +135,14 @@ pub fn WideCharToMultiByte(
     let src = {
         let len = match cchWideChar {
             0 => todo!(),
-            -1 => strlen16(machine.mem().slice(lpWideCharStr..)) + 1, // include nul
+            -1 => strlen16(sys.mem().slice(lpWideCharStr..)) + 1, // include nul
             len => len as usize,
         };
-        machine.mem().sub32(lpWideCharStr, len as u32 * 2)
+        sys.mem().sub32(lpWideCharStr, len as u32 * 2)
     };
 
     let dst = if cbMultiByte > 0 {
-        machine.mem().sub32_mut(lpMultiByteStr, cbMultiByte as u32)
+        sys.mem().sub32_mut(lpMultiByteStr, cbMultiByte as u32)
     } else {
         &mut []
     };
