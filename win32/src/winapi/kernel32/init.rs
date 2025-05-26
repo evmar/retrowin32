@@ -1,7 +1,7 @@
 //! Process initialization and startup.
 
 use super::{
-    FindHandle, HEVENT, HFILE, HFIND, HMODULE, ResourceHandle, STDERR_HFILE, STDOUT_HFILE, Thread,
+    FindHandle, HEVENT, HFILE, HFIND, HMODULE, STDERR_HFILE, STDOUT_HFILE, Thread,
     command_line::CommandLine,
 };
 use crate::{
@@ -108,8 +108,6 @@ pub struct State {
     /// Loaded PE modules: the exe and all DLLs.
     pub modules: HashMap<HMODULE, Module>,
 
-    pub resource_handles: Handles<HRSRC, ResourceHandle>,
-
     // There is a collection of handle types that are all from the same key space,
     // because they can be passed to the various Wait functions.
     pub objects: Handles<HANDLE<()>, KernelObject>,
@@ -171,7 +169,6 @@ impl State {
             find_handles: Default::default(),
             env,
             cmdline: CommandLine::default(),
-            resource_handles: Default::default(),
             break_on_startup: false,
         }
     }

@@ -28,9 +28,5 @@ pub type LPARAM = u32;
 pub type HRESULT = u32;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct HRSRCT;
-pub type HRSRC = HANDLE<HRSRCT>;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;

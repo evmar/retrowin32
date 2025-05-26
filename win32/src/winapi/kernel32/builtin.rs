@@ -1171,12 +1171,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindResourceA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                lpName,
-                lpType,
-            );
+            let result = kernel32::FindResourceA(sys, hModule, lpName, lpType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1204,12 +1199,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindResourceW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                lpName,
-                lpType,
-            );
+            let result = kernel32::FindResourceW(sys, hModule, lpName, lpType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1416,8 +1406,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::FreeResource(&mut *(sys.machine() as *mut crate::Machine), hResData);
+            let result = kernel32::FreeResource(sys, hResData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4199,11 +4188,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LoadResource(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                hResInfo,
-            );
+            let result = kernel32::LoadResource(sys, hModule, hResInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4339,8 +4324,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::LockResource(&mut *(sys.machine() as *mut crate::Machine), hResData);
+            let result = kernel32::LockResource(sys, hResData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5564,11 +5548,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SizeofResource(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                hResInfo,
-            );
+            let result = kernel32::SizeofResource(sys, hModule, hResInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

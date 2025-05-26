@@ -6,8 +6,7 @@ mod ntdll;
 pub use kernel32::HFILE;
 pub use memory::str16::{Str16, String16};
 pub use win32_winapi::{
-    CStr, DWORD, ERROR, HANDLE, HRSRC, HWND, Handles, LPARAM, POINT, RECT, StrExt, WORD,
-    WindowsPath,
+    CStr, DWORD, ERROR, HANDLE, HWND, Handles, LPARAM, POINT, RECT, StrExt, WORD, WindowsPath,
 };
 
 pub struct State {
