@@ -1,16 +1,13 @@
 use super::FileAttribute;
 use crate::{
     Machine,
-    winapi::{
-        ERROR, HANDLE,
-        kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
-    },
+    winapi::kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
 };
 use bitflags::bitflags;
 use memory::Pod;
 use win32_system::{System, host};
 use win32_winapi::{
-    Str16, WindowsPath,
+    ERROR, HANDLE, Str16, WindowsPath,
     calling_convention::{Array, ArrayOut},
 };
 

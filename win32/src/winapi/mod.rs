@@ -4,9 +4,6 @@ pub mod kernel32;
 mod ntdll;
 
 pub use kernel32::HFILE;
-pub use win32_winapi::{
-    CStr, DWORD, ERROR, HANDLE, HWND, Handles, LPARAM, POINT, RECT, StrExt, WORD, WindowsPath,
-};
 
 pub struct State {
     pub ddraw: std::cell::RefCell<builtin_ddraw::State>,

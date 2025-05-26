@@ -1,9 +1,7 @@
-use crate::{
-    Machine,
-    winapi::{self, DWORD, HANDLE, WORD},
-};
+use crate::Machine;
+use crate::winapi::kernel32;
 use win32_system::System;
-use win32_winapi::calling_convention::Array;
+use win32_winapi::{DWORD, HANDLE, WORD, calling_convention::Array};
 
 use super::HFILE;
 
@@ -86,7 +84,7 @@ pub fn WriteConsoleW(
     lpNumberOfCharsWritten: Option<&mut u32>,
     _lpReserved: u32,
 ) -> bool {
-    match winapi::kernel32::write_file(machine, hConsoleOutput, &lpBuffer) {
+    match kernel32::write_file(machine, hConsoleOutput, &lpBuffer) {
         Err(err) => {
             log::debug!("WriteConsoleW({hConsoleOutput:?}) failed: {:?}", err);
             false

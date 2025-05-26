@@ -1,6 +1,7 @@
 use super::HFILE;
-use crate::winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES};
+use crate::winapi::kernel32::SECURITY_ATTRIBUTES;
 use win32_system::System;
+use win32_winapi::HANDLE;
 
 #[win32_derive::dllexport]
 pub fn CreateFileMappingA(

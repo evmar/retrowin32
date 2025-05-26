@@ -1,11 +1,9 @@
 use crate::{
     Machine,
-    winapi::{
-        HANDLE,
-        kernel32::{KernelObject, KernelObjectsMethods},
-    },
+    winapi::kernel32::{KernelObject, KernelObjectsMethods},
 };
 use win32_system::{Event, System};
+use win32_winapi::HANDLE;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HEVENTT;

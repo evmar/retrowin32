@@ -1,12 +1,9 @@
 use crate::{
     Machine,
-    winapi::{
-        ERROR,
-        kernel32::{SECURITY_ATTRIBUTES, set_last_error},
-    },
+    winapi::kernel32::{SECURITY_ATTRIBUTES, set_last_error},
 };
 use win32_system::System;
-use win32_winapi::{Str16, WindowsPath, encoding::*};
+use win32_winapi::{ERROR, Str16, WindowsPath, encoding::*};
 
 #[win32_derive::dllexport]
 pub fn DeleteFileW(sys: &dyn System, lpFileName: Option<&Str16>) -> bool {

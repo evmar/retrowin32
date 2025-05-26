@@ -1,15 +1,12 @@
 //! kernel32 API without a better home.
 
 use super::{HFILE, teb_mut};
-use crate::{
-    Machine,
-    winapi::{ERROR, kernel32::CURRENT_PROCESS_HANDLE, *},
-};
+use crate::{Machine, winapi::kernel32::CURRENT_PROCESS_HANDLE};
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
 use win32_system::System;
-use win32_winapi::encoding::*;
+use win32_winapi::{DWORD, ERROR, HANDLE, encoding::*};
 
 pub type SECURITY_ATTRIBUTES = u32; // TODO
 

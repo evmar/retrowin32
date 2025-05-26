@@ -1,13 +1,10 @@
 use super::HFILE;
-use crate::{
-    Machine, loader,
-    winapi::{self, kernel32::set_last_error, *},
-};
+use crate::{Machine, loader, winapi::kernel32::set_last_error};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
 use win32_winapi::{
-    HMODULE, Str16,
+    DWORD, ERROR, HMODULE, Str16,
     calling_convention::{self, ArrayOut},
     encoding::*,
 };
@@ -31,7 +28,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         return *hmodule;
     }
 
-    set_last_error(machine, winapi::ERROR::MOD_NOT_FOUND);
+    set_last_error(machine, ERROR::MOD_NOT_FOUND);
     return HMODULE::null();
 }
 
