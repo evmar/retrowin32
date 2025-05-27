@@ -20,7 +20,7 @@ fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
 }
 
 /// Parse a directory's collection of files.
-fn parse_files(module_name: &str, root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
+fn parse_files(dll_name: &str, root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root).sort_by_file_name() {
         let entry = entry?;
@@ -38,15 +38,21 @@ fn parse_files(module_name: &str, root: &Path) -> anyhow::Result<Vec<(String, sy
         let file =
             syn::parse_file(&buf).map_err(|err| anyhow::anyhow!("{}: {}", path.display(), err))?;
 
-        let mut trace_name_path = path.strip_prefix(root).unwrap().with_extension("");
-        // e.g. "kernel32/env"
-        if trace_name_path.ends_with("mod") || trace_name_path.ends_with("lib") {
-            trace_name_path.pop();
+        // Construct relative module path, e.g. ["kernel32", "env"]
+        let mut rel_path = path
+            .strip_prefix(root)
+            .unwrap()
+            .with_extension("")
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned())
+            .collect::<Vec<String>>();
+        rel_path.insert(0, dll_name.to_string());
+        let last = rel_path.last().unwrap();
+        if last == "mod" || last == "lib" {
+            rel_path.pop();
         }
-        let mut trace_name = format!("{}", Path::new(module_name).join(trace_name_path).display());
-        if trace_name.ends_with("/") {
-            trace_name.pop();
-        }
+
+        let trace_name = rel_path.join("/");
         files.push((trace_name, file));
     }
     Ok(files)
@@ -97,20 +103,20 @@ fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_builtin_dll(src_path: &Path, out_dir: &Path) -> anyhow::Result<()> {
-    let mut module_name = src_path.file_stem().unwrap().to_string_lossy();
+fn process_builtin_dll(src_dir: &Path, out_dir: &Path) -> anyhow::Result<()> {
+    let mut dll_name = src_dir.file_name().unwrap().to_string_lossy();
     let mut is_split = false;
-    if module_name == "src" {
-        module_name = src_path
+    if dll_name == "src" {
+        dll_name = src_dir
             .parent()
             .unwrap()
-            .file_stem()
+            .file_name()
             .unwrap()
             .to_string_lossy();
         is_split = true;
     }
 
-    let files = parse_files(&module_name, src_path)?;
+    let files = parse_files(&dll_name, src_dir)?;
     let mut dllexports = parse::DllExports::default();
     for (name, file) in &files {
         if let Err(err) = parse::gather_dllexports(name, &file.items, &mut dllexports) {
@@ -126,13 +132,13 @@ fn process_builtin_dll(src_path: &Path, out_dir: &Path) -> anyhow::Result<()> {
     assign_ordinals(&mut dllexports.fns).unwrap();
     dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 
-    dll::generate_dll(&module_name, &dllexports, |name, content| {
+    dll::generate_dll(&dll_name, &dllexports, |name, content| {
         write_if_changed(&out_dir.join(name), &content)
     })?;
 
-    let builtins_module = generate::shims_module(&module_name, is_split, dllexports);
+    let builtins_module = generate::shims_module(&dll_name, is_split, dllexports);
     let text = rustfmt(&builtins_module.to_string())?;
-    write_if_changed(&src_path.join("builtin.rs"), text.as_bytes())?;
+    write_if_changed(&src_dir.join("builtin.rs"), text.as_bytes())?;
 
     Ok(())
 }
@@ -152,8 +158,8 @@ struct Args {
 fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
 
-    for path in &args.inputs {
-        process_builtin_dll(path.as_ref(), args.out_dir.as_ref())
+    for src_dir in &args.inputs {
+        process_builtin_dll(src_dir.as_ref(), args.out_dir.as_ref())
             .map_err(|err| anyhow::anyhow!("processing module: {}", err))?;
     }
 

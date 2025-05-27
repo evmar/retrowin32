@@ -124,13 +124,9 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
 }
 
 /// Generate one module (e.g. kernel32) of shim functions.
-pub fn shims_module(
-    module_name: &str,
-    is_split: bool,
-    dllexports: parse::DllExports,
-) -> TokenStream {
-    let module = quote::format_ident!("{}", module_name);
-    let dll_name = format!("{}.dll", module_name);
+pub fn shims_module(dll_name: &str, is_split: bool, dllexports: parse::DllExports) -> TokenStream {
+    let module = quote::format_ident!("{}", dll_name);
+    let dll_name = format!("{}.dll", dll_name);
 
     let mut wrappers = Vec::new();
     let mut shims = Vec::new();
