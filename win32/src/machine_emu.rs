@@ -3,7 +3,7 @@
 use crate::{
     command_line::CommandLine,
     loader,
-    machine::{MachineX, Status},
+    machine::{MachineX, Process, Status},
     shims::{Shims, retrowin32_dll_module},
     winapi,
 };
@@ -47,8 +47,10 @@ impl MachineX<Emulator> {
             state,
             state2: Default::default(),
             external_dlls: Default::default(),
-            cmdline: Default::default(),
-            modules,
+            process: Process {
+                cmdline: CommandLine::default(),
+                modules,
+            },
         }
     }
 
@@ -57,10 +59,10 @@ impl MachineX<Emulator> {
     }
 
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
+        self.process.cmdline = CommandLine::new(cmdline);
         self.state
             .kernel32
-            .init_process(self.memory.mem(), &cmdline);
-        self.cmdline = CommandLine::new(cmdline);
+            .init_process(self.memory.mem(), &self.process.cmdline.string);
 
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();

@@ -23,11 +23,11 @@ pub struct MachineX<Emu> {
     pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
 
-    // TODO: fields below here maybe belong in some Process struct.
-    //
-    /// Process command line.
+    pub process: Process,
+}
+
+pub struct Process {
     pub cmdline: CommandLine,
-    /// Loaded PE modules: the exe and all DLLs.
     pub modules: HashMap<HMODULE, loader::Module>,
 }
 
@@ -147,7 +147,7 @@ impl System for Machine {
     }
 
     fn get_resources(&self, module: HMODULE) -> Option<&[u8]> {
-        let module = self.modules.get(&module)?;
+        let module = self.process.modules.get(&module)?;
         module.resources(self.mem())
     }
 

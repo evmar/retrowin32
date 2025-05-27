@@ -18,7 +18,12 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
 
     let name = loader::normalize_module_name(name);
 
-    if let Some((hmodule, _)) = machine.modules.iter().find(|(_, dll)| dll.name == name) {
+    if let Some((hmodule, _)) = machine
+        .process
+        .modules
+        .iter()
+        .find(|(_, dll)| dll.name == name)
+    {
         return *hmodule;
     }
 
@@ -55,7 +60,7 @@ fn get_module_file_name(
     filename: &mut dyn Encoder,
 ) -> u32 {
     if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
-        let exe = machine.cmdline.exe_name();
+        let exe = machine.process.cmdline.exe_name();
         filename.write_nul(&exe);
         match filename.status() {
             Ok(n) => n - 1,
@@ -161,7 +166,7 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    let module = machine.modules.get_mut(&hModule).unwrap();
+    let module = machine.process.modules.get_mut(&hModule).unwrap();
     let Some(addr) = module.exports.resolve(&lpProcName.0) else {
         log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);
         return 0; // fail

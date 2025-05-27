@@ -67,7 +67,7 @@ impl CommandLineState {
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
     machine.state.kernel32.cmdline.cmdline8(
-        &machine.cmdline.string,
+        &machine.process.cmdline.string,
         &mut machine.state.kernel32.arena,
         machine.memory.mem(),
     )
@@ -76,7 +76,7 @@ pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
     machine.state.kernel32.cmdline.cmdline16(
-        &machine.cmdline.string,
+        &machine.process.cmdline.string,
         &mut machine.state.kernel32.arena,
         machine.memory.mem(),
     )
