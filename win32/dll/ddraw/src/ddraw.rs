@@ -12,8 +12,7 @@ use std::{
     rc::Rc,
 };
 use win32_system::{Heap, System, host};
-pub use win32_winapi::com::GUID;
-use win32_winapi::{HWND, RECT};
+use win32_winapi::{HWND, RECT, com::GUID};
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,

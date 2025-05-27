@@ -7,7 +7,7 @@ use super::{
 };
 use memory::Pod;
 use win32_system::System;
-use win32_winapi::{RECT, vtable};
+use win32_winapi::{RECT, com::GUID, vtable};
 
 pub const IID_IDirectDraw2: GUID = GUID((
     0xb3a6f3e0,

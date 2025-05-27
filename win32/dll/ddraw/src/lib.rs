@@ -14,11 +14,6 @@ mod types;
 
 pub use builtin::DLL;
 
-pub use clipper::*;
-pub use ddraw::*;
-pub use ddraw1::*;
-pub use ddraw2::*;
-pub use ddraw3::*;
-pub use ddraw7::*;
-pub use palette::IDirectDrawPalette;
+pub use ddraw::State;
 pub use types::*;
+pub use win32_winapi::com::GUID;

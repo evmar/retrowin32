@@ -1,7 +1,9 @@
 //! Implementation of DirectDraw7 interfaces.
 
-use super::types::*;
-use super::{IDirectDrawClipper, IDirectDrawPalette, ddraw, get_state, palette::Palette};
+use crate::{
+    clipper::IDirectDrawClipper, ddraw, ddraw::get_state, palette::IDirectDrawPalette,
+    palette::Palette, types::*,
+};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
 use builtin_user32 as user32;
@@ -64,7 +66,6 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
-
     use super::*;
 
     vtable![
