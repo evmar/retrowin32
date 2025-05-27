@@ -12,24 +12,26 @@ use quote::quote;
 ///
 /// This macro generates handler wrappers of functions, taking their
 /// input args off the stack and returning their return values that belong in eax.
-fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream, TokenStream) {
+fn fn_wrapper(dllexport: &parse::DllExport) -> (TokenStream, TokenStream) {
+    let src_module = dllexport
+        .module_name
+        .iter()
+        .map(|s| format_ident!("{}", s))
+        .collect::<Vec<_>>();
+    let src_module = quote!(#(#src_module)::*);
+
     let base_name = &dllexport.func.sig.ident; // QueryInterface
     let name_str = match dllexport.vtable {
         Some(vtable) => format!("{}::{}", vtable, base_name), // "IDirectDraw::QueryInterface"
         None => format!("{}", base_name),                     // "LoadLibrary"
     };
     let impls_mod = match dllexport.vtable {
-        Some(vtable) => quote!(#module::#vtable), // ddraw::IDirectDraw
-        None => module,                           // kernel32
+        Some(vtable) => quote!(#src_module::#vtable), // ddraw::IDirectDraw
+        None => quote!(#src_module),                  // kernel32
     };
     let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
-    let module_name = dllexport
-        .module_name
-        .iter()
-        .map(|s| format_ident!("{}", s))
-        .collect::<Vec<_>>();
-    let import = quote!(use #(#module_name)::*::*;);
+    let import = quote!(use #src_module::*;);
     let mut body = quote!(let mem = sys.mem().detach(););
 
     let mut stack_offset = 0;
@@ -140,7 +142,7 @@ pub fn shims_module(dll_name: &str, is_split: bool, dllexports: parse::DllExport
     let mut wrappers = Vec::new();
     let mut shims = Vec::new();
     for dllexport in &dllexports.fns {
-        let (wrapper, shim) = fn_wrapper(quote!(#module), dllexport);
+        let (wrapper, shim) = fn_wrapper(dllexport);
         wrappers.push(wrapper);
         shims.push(shim);
     }

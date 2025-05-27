@@ -14,7 +14,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::_EH_prolog_pos,
+                    ucrtbase::memory::_EH_prolog_pos,
                     "ucrtbase/memory",
                     "_EH_prolog",
                     &[],
@@ -23,7 +23,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_EH_prolog(sys);
+            let result = ucrtbase::memory::_EH_prolog(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -38,7 +38,7 @@ mod wrappers {
             let pxcptinfoptrs = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_XcptFilter_pos,
+                    ucrtbase::init::_XcptFilter_pos,
                     "ucrtbase/init",
                     "_XcptFilter",
                     &[("xcptnum", &xcptnum), ("pxcptinfoptrs", &pxcptinfoptrs)],
@@ -47,7 +47,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_XcptFilter(sys, xcptnum, pxcptinfoptrs);
+            let result = ucrtbase::init::_XcptFilter(sys, xcptnum, pxcptinfoptrs);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -64,7 +64,7 @@ mod wrappers {
             let pDC = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::__CxxFrameHandler_pos,
+                    ucrtbase::memory::__CxxFrameHandler_pos,
                     "ucrtbase/memory",
                     "__CxxFrameHandler",
                     &[
@@ -78,7 +78,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__CxxFrameHandler(sys, pExcept, pRN, pContext, pDC);
+            let result = ucrtbase::memory::__CxxFrameHandler(sys, pExcept, pRN, pContext, pDC);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -94,7 +94,7 @@ mod wrappers {
             let f = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::__dllonexit_pos,
+                    ucrtbase::init::__dllonexit_pos,
                     "ucrtbase/init",
                     "__dllonexit",
                     &[("func", &func), ("d", &d), ("f", &f)],
@@ -103,7 +103,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__dllonexit(sys, func, d, f);
+            let result = ucrtbase::init::__dllonexit(sys, func, d, f);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -121,7 +121,7 @@ mod wrappers {
             let startInfo = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::__getmainargs_pos,
+                    ucrtbase::init::__getmainargs_pos,
                     "ucrtbase/init",
                     "__getmainargs",
                     &[
@@ -136,7 +136,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__getmainargs(sys, argc, argv, env, doWildCard, startInfo);
+            let result = ucrtbase::init::__getmainargs(sys, argc, argv, env, doWildCard, startInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -148,12 +148,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
-                trace::Record::new(ucrtbase::__p___argc_pos, "ucrtbase/init", "__p___argc", &[])
-                    .enter()
+                trace::Record::new(
+                    ucrtbase::init::__p___argc_pos,
+                    "ucrtbase/init",
+                    "__p___argc",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::__p___argc(sys);
+            let result = ucrtbase::init::__p___argc(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -165,12 +170,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
-                trace::Record::new(ucrtbase::__p___argv_pos, "ucrtbase/init", "__p___argv", &[])
-                    .enter()
+                trace::Record::new(
+                    ucrtbase::init::__p___argv_pos,
+                    "ucrtbase/init",
+                    "__p___argv",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::__p___argv(sys);
+            let result = ucrtbase::init::__p___argv(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -183,7 +193,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::__p__environ_pos,
+                    ucrtbase::init::__p__environ_pos,
                     "ucrtbase/init",
                     "__p__environ",
                     &[],
@@ -192,7 +202,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__p__environ(sys);
+            let result = ucrtbase::init::__p__environ(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -206,7 +216,7 @@ mod wrappers {
             let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::__set_app_type_pos,
+                    ucrtbase::init::__set_app_type_pos,
                     "ucrtbase/init",
                     "__set_app_type",
                     &[("app_type", &_app_type)],
@@ -215,7 +225,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__set_app_type(sys, _app_type);
+            let result = ucrtbase::init::__set_app_type(sys, _app_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -229,7 +239,7 @@ mod wrappers {
             let pf = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/math") {
                 trace::Record::new(
-                    ucrtbase::__setusermatherr_pos,
+                    ucrtbase::math::__setusermatherr_pos,
                     "ucrtbase/math",
                     "__setusermatherr",
                     &[("pf", &pf)],
@@ -238,7 +248,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::__setusermatherr(sys, pf);
+            let result = ucrtbase::math::__setusermatherr(sys, pf);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -250,11 +260,12 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
-                trace::Record::new(ucrtbase::_cexit_pos, "ucrtbase/misc", "_cexit", &[]).enter()
+                trace::Record::new(ucrtbase::misc::_cexit_pos, "ucrtbase/misc", "_cexit", &[])
+                    .enter()
             } else {
                 None
             };
-            let result = ucrtbase::_cexit(sys);
+            let result = ucrtbase::misc::_cexit(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -268,7 +279,7 @@ mod wrappers {
             let per_thread_locale_type = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_configthreadlocale_pos,
+                    ucrtbase::init::_configthreadlocale_pos,
                     "ucrtbase/init",
                     "_configthreadlocale",
                     &[("per_thread_locale_type", &per_thread_locale_type)],
@@ -277,7 +288,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_configthreadlocale(sys, per_thread_locale_type);
+            let result = ucrtbase::init::_configthreadlocale(sys, per_thread_locale_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -291,7 +302,7 @@ mod wrappers {
             let _mode = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_configure_narrow_argv_pos,
+                    ucrtbase::init::_configure_narrow_argv_pos,
                     "ucrtbase/init",
                     "_configure_narrow_argv",
                     &[("mode", &_mode)],
@@ -300,7 +311,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_configure_narrow_argv(sys, _mode);
+            let result = ucrtbase::init::_configure_narrow_argv(sys, _mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -315,7 +326,7 @@ mod wrappers {
             let _mask = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_controlfp_pos,
+                    ucrtbase::init::_controlfp_pos,
                     "ucrtbase/init",
                     "_controlfp",
                     &[("new", &_new), ("mask", &_mask)],
@@ -324,7 +335,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_controlfp(sys, _new, _mask);
+            let result = ucrtbase::init::_controlfp(sys, _new, _mask);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -340,7 +351,7 @@ mod wrappers {
             let _mask = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_controlfp_s_pos,
+                    ucrtbase::init::_controlfp_s_pos,
                     "ucrtbase/init",
                     "_controlfp_s",
                     &[
@@ -353,7 +364,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_controlfp_s(sys, _currentControl, _newControl, _mask);
+            let result = ucrtbase::init::_controlfp_s(sys, _currentControl, _newControl, _mask);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -367,7 +378,7 @@ mod wrappers {
             let _function = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_crt_atexit_pos,
+                    ucrtbase::init::_crt_atexit_pos,
                     "ucrtbase/init",
                     "_crt_atexit",
                     &[("function", &_function)],
@@ -376,7 +387,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_crt_atexit(sys, _function);
+            let result = ucrtbase::init::_crt_atexit(sys, _function);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -393,7 +404,7 @@ mod wrappers {
             let dispatcher = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_except_handler3_pos,
+                    ucrtbase::init::_except_handler3_pos,
                     "ucrtbase/init",
                     "_except_handler3",
                     &[
@@ -407,7 +418,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_except_handler3(
+            let result = ucrtbase::init::_except_handler3(
                 sys,
                 exception_record,
                 registration,
@@ -427,7 +438,7 @@ mod wrappers {
             let status = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::_exit_pos,
+                    ucrtbase::misc::_exit_pos,
                     "ucrtbase/misc",
                     "_exit",
                     &[("status", &status)],
@@ -436,7 +447,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_exit(sys, status);
+            let result = ucrtbase::misc::_exit(sys, status);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -452,7 +463,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_get_initial_narrow_environment_pos,
+                    ucrtbase::init::_get_initial_narrow_environment_pos,
                     "ucrtbase/init",
                     "_get_initial_narrow_environment",
                     &[],
@@ -461,7 +472,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_get_initial_narrow_environment(sys);
+            let result = ucrtbase::init::_get_initial_narrow_environment(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -477,7 +488,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_initialize_narrow_environment_pos,
+                    ucrtbase::init::_initialize_narrow_environment_pos,
                     "ucrtbase/init",
                     "_initialize_narrow_environment",
                     &[],
@@ -486,7 +497,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_initialize_narrow_environment(sys);
+            let result = ucrtbase::init::_initialize_narrow_environment(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -504,7 +515,7 @@ mod wrappers {
             let end = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_initterm_pos,
+                    ucrtbase::init::_initterm_pos,
                     "ucrtbase/init",
                     "_initterm",
                     &[("start", &start), ("end", &end)],
@@ -516,7 +527,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = ucrtbase::_initterm(sys, start, end).await;
+                let result = ucrtbase::init::_initterm(sys, start, end).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -535,7 +546,7 @@ mod wrappers {
             let end = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_initterm_e_pos,
+                    ucrtbase::init::_initterm_e_pos,
                     "ucrtbase/init",
                     "_initterm_e",
                     &[("start", &start), ("end", &end)],
@@ -547,7 +558,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = ucrtbase::_initterm_e(sys, start, end).await;
+                let result = ucrtbase::init::_initterm_e(sys, start, end).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -562,7 +573,7 @@ mod wrappers {
             let locknum = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_lock_pos,
+                    ucrtbase::init::_lock_pos,
                     "ucrtbase/init",
                     "_lock",
                     &[("locknum", &locknum)],
@@ -571,7 +582,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_lock(sys, locknum);
+            let result = ucrtbase::init::_lock(sys, locknum);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -585,7 +596,7 @@ mod wrappers {
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::_onexit_pos,
+                    ucrtbase::misc::_onexit_pos,
                     "ucrtbase/misc",
                     "_onexit",
                     &[("func", &func)],
@@ -594,7 +605,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_onexit(sys, func);
+            let result = ucrtbase::misc::_onexit(sys, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -608,7 +619,7 @@ mod wrappers {
             let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_set_app_type_pos,
+                    ucrtbase::init::_set_app_type_pos,
                     "ucrtbase/init",
                     "_set_app_type",
                     &[("app_type", &_app_type)],
@@ -617,7 +628,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_set_app_type(sys, _app_type);
+            let result = ucrtbase::init::_set_app_type(sys, _app_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -631,7 +642,7 @@ mod wrappers {
             let newhandlermode = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_set_new_mode_pos,
+                    ucrtbase::init::_set_new_mode_pos,
                     "ucrtbase/init",
                     "_set_new_mode",
                     &[("newhandlermode", &newhandlermode)],
@@ -640,7 +651,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_set_new_mode(sys, newhandlermode);
+            let result = ucrtbase::init::_set_new_mode(sys, newhandlermode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -655,7 +666,7 @@ mod wrappers {
             let mode = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_setmode_pos,
+                    ucrtbase::init::_setmode_pos,
                     "ucrtbase/init",
                     "_setmode",
                     &[("fd", &fd), ("mode", &mode)],
@@ -664,7 +675,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_setmode(sys, fd, mode);
+            let result = ucrtbase::init::_setmode(sys, fd, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -678,7 +689,7 @@ mod wrappers {
             let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/time") {
                 trace::Record::new(
-                    ucrtbase::_time64_pos,
+                    ucrtbase::time::_time64_pos,
                     "ucrtbase/time",
                     "_time64",
                     &[("destTime", &destTime)],
@@ -687,7 +698,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_time64(sys, destTime);
+            let result = ucrtbase::time::_time64(sys, destTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -701,7 +712,7 @@ mod wrappers {
             let locknum = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/init") {
                 trace::Record::new(
-                    ucrtbase::_unlock_pos,
+                    ucrtbase::init::_unlock_pos,
                     "ucrtbase/init",
                     "_unlock",
                     &[("locknum", &locknum)],
@@ -710,7 +721,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::_unlock(sys, locknum);
+            let result = ucrtbase::init::_unlock(sys, locknum);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -722,11 +733,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
-                trace::Record::new(ucrtbase::abort_pos, "ucrtbase/misc", "abort", &[]).enter()
+                trace::Record::new(ucrtbase::misc::abort_pos, "ucrtbase/misc", "abort", &[]).enter()
             } else {
                 None
             };
-            let result = ucrtbase::abort(sys);
+            let result = ucrtbase::misc::abort(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -740,7 +751,7 @@ mod wrappers {
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::atexit_pos,
+                    ucrtbase::misc::atexit_pos,
                     "ucrtbase/misc",
                     "atexit",
                     &[("func", &func)],
@@ -749,7 +760,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::atexit(sys, func);
+            let result = ucrtbase::misc::atexit(sys, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -764,7 +775,7 @@ mod wrappers {
             let size = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::calloc_pos,
+                    ucrtbase::memory::calloc_pos,
                     "ucrtbase/memory",
                     "calloc",
                     &[("count", &count), ("size", &size)],
@@ -773,7 +784,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::calloc(sys, count, size);
+            let result = ucrtbase::memory::calloc(sys, count, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -786,11 +797,17 @@ mod wrappers {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/math") {
-                trace::Record::new(ucrtbase::cos_pos, "ucrtbase/math", "cos", &[("x", &x)]).enter()
+                trace::Record::new(
+                    ucrtbase::math::cos_pos,
+                    "ucrtbase/math",
+                    "cos",
+                    &[("x", &x)],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::cos(sys, x);
+            let result = ucrtbase::math::cos(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -804,7 +821,7 @@ mod wrappers {
             let status = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::exit_pos,
+                    ucrtbase::misc::exit_pos,
                     "ucrtbase/misc",
                     "exit",
                     &[("status", &status)],
@@ -813,7 +830,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::exit(sys, status);
+            let result = ucrtbase::misc::exit(sys, status);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -826,12 +843,17 @@ mod wrappers {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/math") {
-                trace::Record::new(ucrtbase::floor_pos, "ucrtbase/math", "floor", &[("x", &x)])
-                    .enter()
+                trace::Record::new(
+                    ucrtbase::math::floor_pos,
+                    "ucrtbase/math",
+                    "floor",
+                    &[("x", &x)],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::floor(sys, x);
+            let result = ucrtbase::math::floor(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -845,7 +867,7 @@ mod wrappers {
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::free_pos,
+                    ucrtbase::memory::free_pos,
                     "ucrtbase/memory",
                     "free",
                     &[("ptr", &ptr)],
@@ -854,7 +876,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::free(sys, ptr);
+            let result = ucrtbase::memory::free(sys, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -869,7 +891,7 @@ mod wrappers {
             let mode = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::fwrite_pos,
+                    ucrtbase::misc::fwrite_pos,
                     "ucrtbase/misc",
                     "fwrite",
                     &[("filename", &filename), ("mode", &mode)],
@@ -878,7 +900,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::fwrite(sys, filename, mode);
+            let result = ucrtbase::misc::fwrite(sys, filename, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -892,7 +914,7 @@ mod wrappers {
             let size = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::malloc_pos,
+                    ucrtbase::memory::malloc_pos,
                     "ucrtbase/memory",
                     "malloc",
                     &[("size", &size)],
@@ -901,7 +923,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::malloc(sys, size);
+            let result = ucrtbase::memory::malloc(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -917,7 +939,7 @@ mod wrappers {
             let count = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::memcpy_pos,
+                    ucrtbase::memory::memcpy_pos,
                     "ucrtbase/memory",
                     "memcpy",
                     &[("dest", &dest), ("src", &src), ("count", &count)],
@@ -926,7 +948,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::memcpy(sys, dest, src, count);
+            let result = ucrtbase::memory::memcpy(sys, dest, src, count);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -942,7 +964,7 @@ mod wrappers {
             let len = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::memset_pos,
+                    ucrtbase::memory::memset_pos,
                     "ucrtbase/memory",
                     "memset",
                     &[("dst", &dst), ("val", &val), ("len", &len)],
@@ -951,7 +973,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::memset(sys, dst, val, len);
+            let result = ucrtbase::memory::memset(sys, dst, val, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -965,7 +987,7 @@ mod wrappers {
             let size = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::operator_delete_pos,
+                    ucrtbase::memory::operator_delete_pos,
                     "ucrtbase/memory",
                     "operator_delete",
                     &[("size", &size)],
@@ -974,7 +996,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::operator_delete(sys, size);
+            let result = ucrtbase::memory::operator_delete(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -988,7 +1010,7 @@ mod wrappers {
             let size = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::operator_new_pos,
+                    ucrtbase::memory::operator_new_pos,
                     "ucrtbase/memory",
                     "operator_new",
                     &[("size", &size)],
@@ -997,7 +1019,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::operator_new(sys, size);
+            let result = ucrtbase::memory::operator_new(sys, size);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1012,7 +1034,7 @@ mod wrappers {
             let args = <VarArgs>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::printf_pos,
+                    ucrtbase::misc::printf_pos,
                     "ucrtbase/misc",
                     "printf",
                     &[("fmt", &fmt), ("args", &args)],
@@ -1021,7 +1043,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::printf(sys, fmt, args);
+            let result = ucrtbase::misc::printf(sys, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1033,11 +1055,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/rand") {
-                trace::Record::new(ucrtbase::rand_pos, "ucrtbase/rand", "rand", &[]).enter()
+                trace::Record::new(ucrtbase::rand::rand_pos, "ucrtbase/rand", "rand", &[]).enter()
             } else {
                 None
             };
-            let result = ucrtbase::rand(sys);
+            let result = ucrtbase::rand::rand(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1052,7 +1074,7 @@ mod wrappers {
             let func = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::signal_pos,
+                    ucrtbase::misc::signal_pos,
                     "ucrtbase/misc",
                     "signal",
                     &[("sig", &sig), ("func", &func)],
@@ -1061,7 +1083,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::signal(sys, sig, func);
+            let result = ucrtbase::misc::signal(sys, sig, func);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1074,11 +1096,17 @@ mod wrappers {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/math") {
-                trace::Record::new(ucrtbase::sin_pos, "ucrtbase/math", "sin", &[("x", &x)]).enter()
+                trace::Record::new(
+                    ucrtbase::math::sin_pos,
+                    "ucrtbase/math",
+                    "sin",
+                    &[("x", &x)],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::sin(sys, x);
+            let result = ucrtbase::math::sin(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1094,7 +1122,7 @@ mod wrappers {
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::sprintf_pos,
+                    ucrtbase::misc::sprintf_pos,
                     "ucrtbase/misc",
                     "sprintf",
                     &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
@@ -1103,7 +1131,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::sprintf(sys, buf, fmt, args);
+            let result = ucrtbase::misc::sprintf(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1116,12 +1144,17 @@ mod wrappers {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/math") {
-                trace::Record::new(ucrtbase::sqrt_pos, "ucrtbase/math", "sqrt", &[("x", &x)])
-                    .enter()
+                trace::Record::new(
+                    ucrtbase::math::sqrt_pos,
+                    "ucrtbase/math",
+                    "sqrt",
+                    &[("x", &x)],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::sqrt(sys, x);
+            let result = ucrtbase::math::sqrt(sys, x);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1135,7 +1168,7 @@ mod wrappers {
             let seed = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/rand") {
                 trace::Record::new(
-                    ucrtbase::srand_pos,
+                    ucrtbase::rand::srand_pos,
                     "ucrtbase/rand",
                     "srand",
                     &[("seed", &seed)],
@@ -1144,7 +1177,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::srand(sys, seed);
+            let result = ucrtbase::rand::srand(sys, seed);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1158,7 +1191,7 @@ mod wrappers {
             let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/memory") {
                 trace::Record::new(
-                    ucrtbase::strlen_pos,
+                    ucrtbase::memory::strlen_pos,
                     "ucrtbase/memory",
                     "strlen",
                     &[("lpString", &lpString)],
@@ -1167,7 +1200,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::strlen(sys, lpString);
+            let result = ucrtbase::memory::strlen(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1179,12 +1212,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
-                trace::Record::new(ucrtbase::terminate_pos, "ucrtbase/misc", "terminate", &[])
-                    .enter()
+                trace::Record::new(
+                    ucrtbase::misc::terminate_pos,
+                    "ucrtbase/misc",
+                    "terminate",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ucrtbase::terminate(sys);
+            let result = ucrtbase::misc::terminate(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1198,7 +1236,7 @@ mod wrappers {
             let destTime = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("ucrtbase/time") {
                 trace::Record::new(
-                    ucrtbase::time_pos,
+                    ucrtbase::time::time_pos,
                     "ucrtbase/time",
                     "time",
                     &[("destTime", &destTime)],
@@ -1207,7 +1245,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::time(sys, destTime);
+            let result = ucrtbase::time::time(sys, destTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1223,7 +1261,7 @@ mod wrappers {
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("ucrtbase/misc") {
                 trace::Record::new(
-                    ucrtbase::vfprintf_pos,
+                    ucrtbase::misc::vfprintf_pos,
                     "ucrtbase/misc",
                     "vfprintf",
                     &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
@@ -1232,7 +1270,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ucrtbase::vfprintf(sys, buf, fmt, args);
+            let result = ucrtbase::misc::vfprintf(sys, buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

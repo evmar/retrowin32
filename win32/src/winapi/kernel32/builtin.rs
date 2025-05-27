@@ -14,7 +14,7 @@ mod wrappers {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
                 trace::Record::new(
-                    kernel32::AcquireSRWLockExclusive_pos,
+                    kernel32::sync::srw_lock::AcquireSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "AcquireSRWLockExclusive",
                     &[("SRWLock", &SRWLock)],
@@ -23,7 +23,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::AcquireSRWLockExclusive(sys, SRWLock);
+            let result = kernel32::sync::srw_lock::AcquireSRWLockExclusive(sys, SRWLock);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -37,7 +37,7 @@ mod wrappers {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
                 trace::Record::new(
-                    kernel32::AcquireSRWLockShared_pos,
+                    kernel32::sync::srw_lock::AcquireSRWLockShared_pos,
                     "kernel32/sync/srw_lock",
                     "AcquireSRWLockShared",
                     &[("SRWLock", &SRWLock)],
@@ -46,7 +46,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::AcquireSRWLockShared(sys, SRWLock);
+            let result = kernel32::sync::srw_lock::AcquireSRWLockShared(sys, SRWLock);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -61,7 +61,7 @@ mod wrappers {
             let handler = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::AddVectoredExceptionHandler_pos,
+                    kernel32::misc::AddVectoredExceptionHandler_pos,
                     "kernel32/misc",
                     "AddVectoredExceptionHandler",
                     &[("first", &first), ("handler", &handler)],
@@ -70,7 +70,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::AddVectoredExceptionHandler(sys, first, handler);
+            let result = kernel32::misc::AddVectoredExceptionHandler(sys, first, handler);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -85,7 +85,7 @@ mod wrappers {
             let dwDuration = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::Beep_pos,
+                    kernel32::misc::Beep_pos,
                     "kernel32/misc",
                     "Beep",
                     &[("dwFreq", &dwFreq), ("dwDuration", &dwDuration)],
@@ -94,7 +94,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::Beep(sys, dwFreq, dwDuration);
+            let result = kernel32::misc::Beep(sys, dwFreq, dwDuration);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -108,7 +108,7 @@ mod wrappers {
             let hObject = <HFILE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::CloseHandle_pos,
+                    kernel32::misc::CloseHandle_pos,
                     "kernel32/misc",
                     "CloseHandle",
                     &[("hObject", &hObject)],
@@ -118,7 +118,7 @@ mod wrappers {
                 None
             };
             let result =
-                kernel32::CloseHandle(&mut *(sys.machine() as *mut crate::Machine), hObject);
+                kernel32::misc::CloseHandle(&mut *(sys.machine() as *mut crate::Machine), hObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -137,7 +137,7 @@ mod wrappers {
             let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::CompareStringA_pos,
+                    kernel32::misc::CompareStringA_pos,
                     "kernel32/misc",
                     "CompareStringA",
                     &[
@@ -153,7 +153,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CompareStringA(
+            let result = kernel32::misc::CompareStringA(
                 sys, Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -174,7 +174,7 @@ mod wrappers {
             let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::CompareStringW_pos,
+                    kernel32::misc::CompareStringW_pos,
                     "kernel32/misc",
                     "CompareStringW",
                     &[
@@ -190,7 +190,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CompareStringW(
+            let result = kernel32::misc::CompareStringW(
                 sys, Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -207,7 +207,7 @@ mod wrappers {
             let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::CreateDirectoryA_pos,
+                    kernel32::file::fs::CreateDirectoryA_pos,
                     "kernel32/file/fs",
                     "CreateDirectoryA",
                     &[
@@ -219,7 +219,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateDirectoryA(
+            let result = kernel32::file::fs::CreateDirectoryA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpPathName,
                 lpSecurityAttributes,
@@ -239,7 +239,7 @@ mod wrappers {
                 <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::CreateDirectoryW_pos,
+                    kernel32::file::fs::CreateDirectoryW_pos,
                     "kernel32/file/fs",
                     "CreateDirectoryW",
                     &[
@@ -251,7 +251,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateDirectoryW(sys, lpPathName, lpSecurityAttributes);
+            let result =
+                kernel32::file::fs::CreateDirectoryW(sys, lpPathName, lpSecurityAttributes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -268,7 +269,7 @@ mod wrappers {
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/sync/event") {
                 trace::Record::new(
-                    kernel32::CreateEventA_pos,
+                    kernel32::sync::event::CreateEventA_pos,
                     "kernel32/sync/event",
                     "CreateEventA",
                     &[
@@ -282,7 +283,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateEventA(
+            let result = kernel32::sync::event::CreateEventA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpEventAttributes,
                 bManualReset,
@@ -310,7 +311,7 @@ mod wrappers {
             let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::CreateFileA_pos,
+                    kernel32::file::file::CreateFileA_pos,
                     "kernel32/file/file",
                     "CreateFileA",
                     &[
@@ -327,7 +328,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateFileA(
+            let result = kernel32::file::file::CreateFileA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 dwDesiredAccess,
@@ -356,7 +357,7 @@ mod wrappers {
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/file/mapping") {
                 trace::Record::new(
-                    kernel32::CreateFileMappingA_pos,
+                    kernel32::file::mapping::CreateFileMappingA_pos,
                     "kernel32/file/mapping",
                     "CreateFileMappingA",
                     &[
@@ -372,7 +373,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateFileMappingA(
+            let result = kernel32::file::mapping::CreateFileMappingA(
                 sys,
                 hFile,
                 lpFileMappingAttributes,
@@ -402,7 +403,7 @@ mod wrappers {
             let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::CreateFileW_pos,
+                    kernel32::file::file::CreateFileW_pos,
                     "kernel32/file/file",
                     "CreateFileW",
                     &[
@@ -419,7 +420,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateFileW(
+            let result = kernel32::file::file::CreateFileW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 dwDesiredAccess,
@@ -445,7 +446,7 @@ mod wrappers {
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/sync/mutex") {
                 trace::Record::new(
-                    kernel32::CreateMutexA_pos,
+                    kernel32::sync::mutex::CreateMutexA_pos,
                     "kernel32/sync/mutex",
                     "CreateMutexA",
                     &[
@@ -458,7 +459,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateMutexA(sys, lpMutexAttributes, bInitialOwner, lpName);
+            let result =
+                kernel32::sync::mutex::CreateMutexA(sys, lpMutexAttributes, bInitialOwner, lpName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -476,7 +478,7 @@ mod wrappers {
             let nSize = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/pipe") {
                 trace::Record::new(
-                    kernel32::CreatePipe_pos,
+                    kernel32::pipe::CreatePipe_pos,
                     "kernel32/pipe",
                     "CreatePipe",
                     &[
@@ -490,7 +492,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreatePipe(sys, hReadPipe, hWritePipe, lpPipeAttributes, nSize);
+            let result =
+                kernel32::pipe::CreatePipe(sys, hReadPipe, hWritePipe, lpPipeAttributes, nSize);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -516,7 +519,7 @@ mod wrappers {
                 <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
             let __trace_record = if trace::enabled("kernel32/process") {
                 trace::Record::new(
-                    kernel32::CreateProcessA_pos,
+                    kernel32::process::CreateProcessA_pos,
                     "kernel32/process",
                     "CreateProcessA",
                     &[
@@ -536,7 +539,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateProcessA(
+            let result = kernel32::process::CreateProcessA(
                 sys,
                 lpApplicationName,
                 lpCommandLine,
@@ -574,7 +577,7 @@ mod wrappers {
                 <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
             let __trace_record = if trace::enabled("kernel32/process") {
                 trace::Record::new(
-                    kernel32::CreateProcessW_pos,
+                    kernel32::process::CreateProcessW_pos,
                     "kernel32/process",
                     "CreateProcessW",
                     &[
@@ -594,7 +597,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::CreateProcessW(
+            let result = kernel32::process::CreateProcessW(
                 sys,
                 lpApplicationName,
                 lpCommandLine,
@@ -628,7 +631,7 @@ mod wrappers {
             let lpThreadId = <u32>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::CreateThread_pos,
+                    kernel32::thread::CreateThread_pos,
                     "kernel32/thread",
                     "CreateThread",
                     &[
@@ -647,7 +650,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::CreateThread(
+                let result = kernel32::thread::CreateThread(
                     &mut *(sys.machine() as *mut crate::Machine),
                     lpThreadAttributes,
                     dwStackSize,
@@ -669,12 +672,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
-                trace::Record::new(kernel32::DebugBreak_pos, "kernel32/misc", "DebugBreak", &[])
-                    .enter()
+                trace::Record::new(
+                    kernel32::misc::DebugBreak_pos,
+                    "kernel32/misc",
+                    "DebugBreak",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = kernel32::DebugBreak(sys);
+            let result = kernel32::misc::DebugBreak(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -688,7 +696,7 @@ mod wrappers {
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::DecodePointer_pos,
+                    kernel32::misc::DecodePointer_pos,
                     "kernel32/misc",
                     "DecodePointer",
                     &[("ptr", &ptr)],
@@ -697,7 +705,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::DecodePointer(sys, ptr);
+            let result = kernel32::misc::DecodePointer(sys, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -711,7 +719,7 @@ mod wrappers {
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::DeleteCriticalSection_pos,
+                    kernel32::sync::critical_section::DeleteCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "DeleteCriticalSection",
                     &[("lpCriticalSection", &lpCriticalSection)],
@@ -720,7 +728,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::DeleteCriticalSection(sys, lpCriticalSection);
+            let result =
+                kernel32::sync::critical_section::DeleteCriticalSection(sys, lpCriticalSection);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -734,7 +743,7 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::DeleteFileA_pos,
+                    kernel32::file::fs::DeleteFileA_pos,
                     "kernel32/file/fs",
                     "DeleteFileA",
                     &[("lpFileName", &lpFileName)],
@@ -743,8 +752,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::DeleteFileA(&mut *(sys.machine() as *mut crate::Machine), lpFileName);
+            let result = kernel32::file::fs::DeleteFileA(
+                &mut *(sys.machine() as *mut crate::Machine),
+                lpFileName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -758,7 +769,7 @@ mod wrappers {
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::DeleteFileW_pos,
+                    kernel32::file::fs::DeleteFileW_pos,
                     "kernel32/file/fs",
                     "DeleteFileW",
                     &[("lpFileName", &lpFileName)],
@@ -767,7 +778,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::DeleteFileW(sys, lpFileName);
+            let result = kernel32::file::fs::DeleteFileW(sys, lpFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -781,7 +792,7 @@ mod wrappers {
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::DisableThreadLibraryCalls_pos,
+                    kernel32::dll::DisableThreadLibraryCalls_pos,
                     "kernel32/dll",
                     "DisableThreadLibraryCalls",
                     &[("hLibModule", &hLibModule)],
@@ -790,7 +801,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::DisableThreadLibraryCalls(sys, hLibModule);
+            let result = kernel32::dll::DisableThreadLibraryCalls(sys, hLibModule);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -810,7 +821,7 @@ mod wrappers {
             let dwOptions = <u32>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::DuplicateHandle_pos,
+                    kernel32::misc::DuplicateHandle_pos,
                     "kernel32/misc",
                     "DuplicateHandle",
                     &[
@@ -827,7 +838,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::DuplicateHandle(
+            let result = kernel32::misc::DuplicateHandle(
                 sys,
                 hSourceProcessHandle,
                 hSourceHandle,
@@ -850,7 +861,7 @@ mod wrappers {
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::EncodePointer_pos,
+                    kernel32::misc::EncodePointer_pos,
                     "kernel32/misc",
                     "EncodePointer",
                     &[("ptr", &ptr)],
@@ -859,7 +870,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::EncodePointer(sys, ptr);
+            let result = kernel32::misc::EncodePointer(sys, ptr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -873,7 +884,7 @@ mod wrappers {
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::EnterCriticalSection_pos,
+                    kernel32::sync::critical_section::EnterCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "EnterCriticalSection",
                     &[("lpCriticalSection", &lpCriticalSection)],
@@ -882,7 +893,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::EnterCriticalSection(sys, lpCriticalSection);
+            let result =
+                kernel32::sync::critical_section::EnterCriticalSection(sys, lpCriticalSection);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -897,7 +909,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::EnumSystemLocalesA_pos,
+                    kernel32::nls::EnumSystemLocalesA_pos,
                     "kernel32/nls",
                     "EnumSystemLocalesA",
                     &[
@@ -909,7 +921,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::EnumSystemLocalesA(sys, lpLocaleEnumProc, dwFlags);
+            let result = kernel32::nls::EnumSystemLocalesA(sys, lpLocaleEnumProc, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -923,7 +935,7 @@ mod wrappers {
             let uExitCode = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::ExitProcess_pos,
+                    kernel32::misc::ExitProcess_pos,
                     "kernel32/misc",
                     "ExitProcess",
                     &[("uExitCode", &uExitCode)],
@@ -932,8 +944,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::ExitProcess(&mut *(sys.machine() as *mut crate::Machine), uExitCode);
+            let result = kernel32::misc::ExitProcess(
+                &mut *(sys.machine() as *mut crate::Machine),
+                uExitCode,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -947,7 +961,7 @@ mod wrappers {
             let dwExitCode = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::ExitThread_pos,
+                    kernel32::thread::ExitThread_pos,
                     "kernel32/thread",
                     "ExitThread",
                     &[("dwExitCode", &dwExitCode)],
@@ -956,8 +970,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::ExitThread(&mut *(sys.machine() as *mut crate::Machine), dwExitCode);
+            let result = kernel32::thread::ExitThread(
+                &mut *(sys.machine() as *mut crate::Machine),
+                dwExitCode,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -973,7 +989,7 @@ mod wrappers {
             let lpFatTime = <Option<&mut u16>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::FileTimeToDosDateTime_pos,
+                    kernel32::time::FileTimeToDosDateTime_pos,
                     "kernel32/time",
                     "FileTimeToDosDateTime",
                     &[
@@ -986,7 +1002,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FileTimeToDosDateTime(sys, lpFileTime, lpFatDate, lpFatTime);
+            let result =
+                kernel32::time::FileTimeToDosDateTime(sys, lpFileTime, lpFatDate, lpFatTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1001,7 +1018,7 @@ mod wrappers {
             let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::FileTimeToLocalFileTime_pos,
+                    kernel32::time::FileTimeToLocalFileTime_pos,
                     "kernel32/time",
                     "FileTimeToLocalFileTime",
                     &[
@@ -1013,7 +1030,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FileTimeToLocalFileTime(sys, lpFileTime, lpLocalFileTime);
+            let result = kernel32::time::FileTimeToLocalFileTime(sys, lpFileTime, lpLocalFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1028,7 +1045,7 @@ mod wrappers {
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::FileTimeToSystemTime_pos,
+                    kernel32::time::FileTimeToSystemTime_pos,
                     "kernel32/time",
                     "FileTimeToSystemTime",
                     &[("lpFileTime", &lpFileTime), ("lpSystemTime", &lpSystemTime)],
@@ -1037,7 +1054,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FileTimeToSystemTime(sys, lpFileTime, lpSystemTime);
+            let result = kernel32::time::FileTimeToSystemTime(sys, lpFileTime, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1051,7 +1068,7 @@ mod wrappers {
             let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/find") {
                 trace::Record::new(
-                    kernel32::FindClose_pos,
+                    kernel32::file::find::FindClose_pos,
                     "kernel32/file/find",
                     "FindClose",
                     &[("hFindFile", &hFindFile)],
@@ -1060,8 +1077,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::FindClose(&mut *(sys.machine() as *mut crate::Machine), hFindFile);
+            let result = kernel32::file::find::FindClose(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFindFile,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1077,7 +1096,7 @@ mod wrappers {
                 <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/find") {
                 trace::Record::new(
-                    kernel32::FindFirstFileA_pos,
+                    kernel32::file::find::FindFirstFileA_pos,
                     "kernel32/file/find",
                     "FindFirstFileA",
                     &[
@@ -1089,7 +1108,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindFirstFileA(
+            let result = kernel32::file::find::FindFirstFileA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 lpFindFileData,
@@ -1109,7 +1128,7 @@ mod wrappers {
                 <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/find") {
                 trace::Record::new(
-                    kernel32::FindFirstFileW_pos,
+                    kernel32::file::find::FindFirstFileW_pos,
                     "kernel32/file/find",
                     "FindFirstFileW",
                     &[
@@ -1121,7 +1140,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindFirstFileW(sys, lpFileName, lpFindFileData);
+            let result = kernel32::file::find::FindFirstFileW(sys, lpFileName, lpFindFileData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1137,7 +1156,7 @@ mod wrappers {
                 <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/find") {
                 trace::Record::new(
-                    kernel32::FindNextFileA_pos,
+                    kernel32::file::find::FindNextFileA_pos,
                     "kernel32/file/find",
                     "FindNextFileA",
                     &[
@@ -1149,7 +1168,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindNextFileA(
+            let result = kernel32::file::find::FindNextFileA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFindFile,
                 lpFindFileData,
@@ -1169,7 +1188,7 @@ mod wrappers {
                 <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/find") {
                 trace::Record::new(
-                    kernel32::FindNextFileW_pos,
+                    kernel32::file::find::FindNextFileW_pos,
                     "kernel32/file/find",
                     "FindNextFileW",
                     &[
@@ -1181,7 +1200,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindNextFileW(sys, hFindFile, lpFindFileData);
+            let result = kernel32::file::find::FindNextFileW(sys, hFindFile, lpFindFileData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1197,7 +1216,7 @@ mod wrappers {
             let lpType = <ResourceKey<&str>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::FindResourceA_pos,
+                    kernel32::resource::FindResourceA_pos,
                     "kernel32/resource",
                     "FindResourceA",
                     &[
@@ -1210,7 +1229,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindResourceA(sys, hModule, lpName, lpType);
+            let result = kernel32::resource::FindResourceA(sys, hModule, lpName, lpType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1226,7 +1245,7 @@ mod wrappers {
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::FindResourceW_pos,
+                    kernel32::resource::FindResourceW_pos,
                     "kernel32/resource",
                     "FindResourceW",
                     &[
@@ -1239,7 +1258,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FindResourceW(sys, hModule, lpName, lpType);
+            let result = kernel32::resource::FindResourceW(sys, hModule, lpName, lpType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1253,7 +1272,7 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::FlushFileBuffers_pos,
+                    kernel32::file::file::FlushFileBuffers_pos,
                     "kernel32/file/file",
                     "FlushFileBuffers",
                     &[("hFile", &hFile)],
@@ -1262,8 +1281,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::FlushFileBuffers(&mut *(sys.machine() as *mut crate::Machine), hFile);
+            let result = kernel32::file::file::FlushFileBuffers(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1283,7 +1304,7 @@ mod wrappers {
             let args = <u32>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::FormatMessageA_pos,
+                    kernel32::misc::FormatMessageA_pos,
                     "kernel32/misc",
                     "FormatMessageA",
                     &[
@@ -1300,7 +1321,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FormatMessageA(
+            let result = kernel32::misc::FormatMessageA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 dwFlags,
                 lpSource,
@@ -1329,7 +1350,7 @@ mod wrappers {
             let args = <u32>::from_stack(mem, stack_args + 24u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::FormatMessageW_pos,
+                    kernel32::misc::FormatMessageW_pos,
                     "kernel32/misc",
                     "FormatMessageW",
                     &[
@@ -1346,7 +1367,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FormatMessageW(
+            let result = kernel32::misc::FormatMessageW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 dwFlags,
                 lpSource,
@@ -1369,7 +1390,7 @@ mod wrappers {
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::FreeEnvironmentStringsA_pos,
+                    kernel32::env::FreeEnvironmentStringsA_pos,
                     "kernel32/env",
                     "FreeEnvironmentStringsA",
                     &[("penv", &penv)],
@@ -1378,7 +1399,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeEnvironmentStringsA(sys, penv);
+            let result = kernel32::env::FreeEnvironmentStringsA(sys, penv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1392,7 +1413,7 @@ mod wrappers {
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::FreeEnvironmentStringsW_pos,
+                    kernel32::env::FreeEnvironmentStringsW_pos,
                     "kernel32/env",
                     "FreeEnvironmentStringsW",
                     &[("penv", &penv)],
@@ -1401,7 +1422,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeEnvironmentStringsW(sys, penv);
+            let result = kernel32::env::FreeEnvironmentStringsW(sys, penv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1415,7 +1436,7 @@ mod wrappers {
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::FreeLibrary_pos,
+                    kernel32::dll::FreeLibrary_pos,
                     "kernel32/dll",
                     "FreeLibrary",
                     &[("hLibModule", &hLibModule)],
@@ -1424,7 +1445,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeLibrary(sys, hLibModule);
+            let result = kernel32::dll::FreeLibrary(sys, hLibModule);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1438,7 +1459,7 @@ mod wrappers {
             let hResData = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::FreeResource_pos,
+                    kernel32::resource::FreeResource_pos,
                     "kernel32/resource",
                     "FreeResource",
                     &[("hResData", &hResData)],
@@ -1447,7 +1468,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::FreeResource(sys, hResData);
+            let result = kernel32::resource::FreeResource(sys, hResData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1459,11 +1480,11 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
-                trace::Record::new(kernel32::GetACP_pos, "kernel32/nls", "GetACP", &[]).enter()
+                trace::Record::new(kernel32::nls::GetACP_pos, "kernel32/nls", "GetACP", &[]).enter()
             } else {
                 None
             };
-            let result = kernel32::GetACP(sys);
+            let result = kernel32::nls::GetACP(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1478,7 +1499,7 @@ mod wrappers {
             let _lpCPInfo = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetCPInfo_pos,
+                    kernel32::nls::GetCPInfo_pos,
                     "kernel32/nls",
                     "GetCPInfo",
                     &[("CodePage", &_CodePage), ("lpCPInfo", &_lpCPInfo)],
@@ -1487,7 +1508,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCPInfo(sys, _CodePage, _lpCPInfo);
+            let result = kernel32::nls::GetCPInfo(sys, _CodePage, _lpCPInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1500,7 +1521,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/command_line") {
                 trace::Record::new(
-                    kernel32::GetCommandLineA_pos,
+                    kernel32::command_line::GetCommandLineA_pos,
                     "kernel32/command_line",
                     "GetCommandLineA",
                     &[],
@@ -1509,7 +1530,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCommandLineA(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::command_line::GetCommandLineA(
+                &mut *(sys.machine() as *mut crate::Machine),
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1522,7 +1545,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/command_line") {
                 trace::Record::new(
-                    kernel32::GetCommandLineW_pos,
+                    kernel32::command_line::GetCommandLineW_pos,
                     "kernel32/command_line",
                     "GetCommandLineW",
                     &[],
@@ -1531,7 +1554,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCommandLineW(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::command_line::GetCommandLineW(
+                &mut *(sys.machine() as *mut crate::Machine),
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1546,7 +1571,7 @@ mod wrappers {
             let lpMode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::GetConsoleMode_pos,
+                    kernel32::console::GetConsoleMode_pos,
                     "kernel32/console",
                     "GetConsoleMode",
                     &[("hConsoleHandle", &hConsoleHandle), ("lpMode", &lpMode)],
@@ -1555,7 +1580,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetConsoleMode(sys, hConsoleHandle, lpMode);
+            let result = kernel32::console::GetConsoleMode(sys, hConsoleHandle, lpMode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1568,7 +1593,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetConsoleOutputCP_pos,
+                    kernel32::nls::GetConsoleOutputCP_pos,
                     "kernel32/nls",
                     "GetConsoleOutputCP",
                     &[],
@@ -1577,7 +1602,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetConsoleOutputCP(sys);
+            let result = kernel32::nls::GetConsoleOutputCP(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1593,7 +1618,7 @@ mod wrappers {
                 <Option<&mut CONSOLE_SCREEN_BUFFER_INFO>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::GetConsoleScreenBufferInfo_pos,
+                    kernel32::console::GetConsoleScreenBufferInfo_pos,
                     "kernel32/console",
                     "GetConsoleScreenBufferInfo",
                     &[
@@ -1605,7 +1630,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetConsoleScreenBufferInfo(
+            let result = kernel32::console::GetConsoleScreenBufferInfo(
                 sys,
                 _hConsoleOutput,
                 lpConsoleScreenBufferInfo,
@@ -1624,7 +1649,7 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::GetCurrentDirectoryA_pos,
+                    kernel32::file::fs::GetCurrentDirectoryA_pos,
                     "kernel32/file/fs",
                     "GetCurrentDirectoryA",
                     &[("nBufferLength", &nBufferLength), ("lpBuffer", &lpBuffer)],
@@ -1633,7 +1658,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentDirectoryA(
+            let result = kernel32::file::fs::GetCurrentDirectoryA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 nBufferLength,
                 lpBuffer,
@@ -1652,7 +1677,7 @@ mod wrappers {
             let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::GetCurrentDirectoryW_pos,
+                    kernel32::file::fs::GetCurrentDirectoryW_pos,
                     "kernel32/file/fs",
                     "GetCurrentDirectoryW",
                     &[("nBufferLength", &nBufferLength), ("lpBuffer", &lpBuffer)],
@@ -1661,7 +1686,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentDirectoryW(
+            let result = kernel32::file::fs::GetCurrentDirectoryW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 nBufferLength,
                 lpBuffer,
@@ -1678,7 +1703,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/process") {
                 trace::Record::new(
-                    kernel32::GetCurrentProcess_pos,
+                    kernel32::process::GetCurrentProcess_pos,
                     "kernel32/process",
                     "GetCurrentProcess",
                     &[],
@@ -1687,7 +1712,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentProcess(sys);
+            let result = kernel32::process::GetCurrentProcess(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1700,7 +1725,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetCurrentProcessId_pos,
+                    kernel32::misc::GetCurrentProcessId_pos,
                     "kernel32/misc",
                     "GetCurrentProcessId",
                     &[],
@@ -1709,7 +1734,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentProcessId(sys);
+            let result = kernel32::misc::GetCurrentProcessId(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1722,7 +1747,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::GetCurrentThread_pos,
+                    kernel32::thread::GetCurrentThread_pos,
                     "kernel32/thread",
                     "GetCurrentThread",
                     &[],
@@ -1731,7 +1756,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentThread(&mut *(sys.machine() as *mut crate::Machine));
+            let result =
+                kernel32::thread::GetCurrentThread(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1744,7 +1770,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::GetCurrentThreadId_pos,
+                    kernel32::thread::GetCurrentThreadId_pos,
                     "kernel32/thread",
                     "GetCurrentThreadId",
                     &[],
@@ -1753,7 +1779,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetCurrentThreadId(&mut *(sys.machine() as *mut crate::Machine));
+            let result =
+                kernel32::thread::GetCurrentThreadId(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1771,7 +1798,7 @@ mod wrappers {
             let lpTotalNumberOfClusters = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/file/misc") {
                 trace::Record::new(
-                    kernel32::GetDiskFreeSpaceA_pos,
+                    kernel32::file::misc::GetDiskFreeSpaceA_pos,
                     "kernel32/file/misc",
                     "GetDiskFreeSpaceA",
                     &[
@@ -1786,7 +1813,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetDiskFreeSpaceA(
+            let result = kernel32::file::misc::GetDiskFreeSpaceA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpRootPathName,
                 lpSectorsPerCluster,
@@ -1807,7 +1834,7 @@ mod wrappers {
             let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/misc") {
                 trace::Record::new(
-                    kernel32::GetDriveTypeA_pos,
+                    kernel32::file::misc::GetDriveTypeA_pos,
                     "kernel32/file/misc",
                     "GetDriveTypeA",
                     &[("lpRootPathName", &lpRootPathName)],
@@ -1816,7 +1843,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetDriveTypeA(sys, lpRootPathName);
+            let result = kernel32::file::misc::GetDriveTypeA(sys, lpRootPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1830,7 +1857,7 @@ mod wrappers {
             let lpRootPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/misc") {
                 trace::Record::new(
-                    kernel32::GetDriveTypeW_pos,
+                    kernel32::file::misc::GetDriveTypeW_pos,
                     "kernel32/file/misc",
                     "GetDriveTypeW",
                     &[("lpRootPathName", &lpRootPathName)],
@@ -1839,7 +1866,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetDriveTypeW(sys, lpRootPathName);
+            let result = kernel32::file::misc::GetDriveTypeW(sys, lpRootPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1852,7 +1879,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::GetEnvironmentStrings_pos,
+                    kernel32::env::GetEnvironmentStrings_pos,
                     "kernel32/env",
                     "GetEnvironmentStrings",
                     &[],
@@ -1861,7 +1888,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetEnvironmentStrings(sys);
+            let result = kernel32::env::GetEnvironmentStrings(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1874,7 +1901,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::GetEnvironmentStringsW_pos,
+                    kernel32::env::GetEnvironmentStringsW_pos,
                     "kernel32/env",
                     "GetEnvironmentStringsW",
                     &[],
@@ -1883,7 +1910,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetEnvironmentStringsW(sys);
+            let result = kernel32::env::GetEnvironmentStringsW(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1898,7 +1925,7 @@ mod wrappers {
             let buf = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::GetEnvironmentVariableA_pos,
+                    kernel32::env::GetEnvironmentVariableA_pos,
                     "kernel32/env",
                     "GetEnvironmentVariableA",
                     &[("name", &name), ("buf", &buf)],
@@ -1907,7 +1934,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetEnvironmentVariableA(sys, name, buf);
+            let result = kernel32::env::GetEnvironmentVariableA(sys, name, buf);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1922,7 +1949,7 @@ mod wrappers {
             let buf = <ArrayOut<u16>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::GetEnvironmentVariableW_pos,
+                    kernel32::env::GetEnvironmentVariableW_pos,
                     "kernel32/env",
                     "GetEnvironmentVariableW",
                     &[("name", &name), ("buf", &buf)],
@@ -1931,7 +1958,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetEnvironmentVariableW(sys, name, buf);
+            let result = kernel32::env::GetEnvironmentVariableW(sys, name, buf);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1946,7 +1973,7 @@ mod wrappers {
             let lpExitCode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/process") {
                 trace::Record::new(
-                    kernel32::GetExitCodeProcess_pos,
+                    kernel32::process::GetExitCodeProcess_pos,
                     "kernel32/process",
                     "GetExitCodeProcess",
                     &[("hProcess", &hProcess), ("lpExitCode", &lpExitCode)],
@@ -1955,7 +1982,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetExitCodeProcess(sys, hProcess, lpExitCode);
+            let result = kernel32::process::GetExitCodeProcess(sys, hProcess, lpExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1969,7 +1996,7 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileAttributesA_pos,
+                    kernel32::file::metadata::GetFileAttributesA_pos,
                     "kernel32/file/metadata",
                     "GetFileAttributesA",
                     &[("lpFileName", &lpFileName)],
@@ -1978,7 +2005,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileAttributesA(
+            let result = kernel32::file::metadata::GetFileAttributesA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
             );
@@ -1995,7 +2022,7 @@ mod wrappers {
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileAttributesW_pos,
+                    kernel32::file::metadata::GetFileAttributesW_pos,
                     "kernel32/file/metadata",
                     "GetFileAttributesW",
                     &[("lpFileName", &lpFileName)],
@@ -2004,7 +2031,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileAttributesW(sys, lpFileName);
+            let result = kernel32::file::metadata::GetFileAttributesW(sys, lpFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2020,7 +2047,7 @@ mod wrappers {
                 <Option<&mut BY_HANDLE_FILE_INFORMATION>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileInformationByHandle_pos,
+                    kernel32::file::metadata::GetFileInformationByHandle_pos,
                     "kernel32/file/metadata",
                     "GetFileInformationByHandle",
                     &[("hFile", &hFile), ("lpFileInformation", &lpFileInformation)],
@@ -2029,7 +2056,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileInformationByHandle(
+            let result = kernel32::file::metadata::GetFileInformationByHandle(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpFileInformation,
@@ -2048,7 +2075,7 @@ mod wrappers {
             let lpFileSizeHigh = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileSize_pos,
+                    kernel32::file::metadata::GetFileSize_pos,
                     "kernel32/file/metadata",
                     "GetFileSize",
                     &[("hFile", &hFile), ("lpFileSizeHigh", &lpFileSizeHigh)],
@@ -2057,7 +2084,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileSize(
+            let result = kernel32::file::metadata::GetFileSize(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpFileSizeHigh,
@@ -2078,7 +2105,7 @@ mod wrappers {
             let lpLastWriteTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileTime_pos,
+                    kernel32::file::metadata::GetFileTime_pos,
                     "kernel32/file/metadata",
                     "GetFileTime",
                     &[
@@ -2092,7 +2119,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileTime(
+            let result = kernel32::file::metadata::GetFileTime(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpCreationTime,
@@ -2112,7 +2139,7 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::GetFileType_pos,
+                    kernel32::file::metadata::GetFileType_pos,
                     "kernel32/file/metadata",
                     "GetFileType",
                     &[("hFile", &hFile)],
@@ -2121,7 +2148,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFileType(&mut *(sys.machine() as *mut crate::Machine), hFile);
+            let result = kernel32::file::metadata::GetFileType(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2138,7 +2168,7 @@ mod wrappers {
             let lpFilePart = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/file/path") {
                 trace::Record::new(
-                    kernel32::GetFullPathNameA_pos,
+                    kernel32::file::path::GetFullPathNameA_pos,
                     "kernel32/file/path",
                     "GetFullPathNameA",
                     &[
@@ -2152,7 +2182,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFullPathNameA(
+            let result = kernel32::file::path::GetFullPathNameA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 nBufferLength,
@@ -2175,7 +2205,7 @@ mod wrappers {
             let lpFilePart = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/file/path") {
                 trace::Record::new(
-                    kernel32::GetFullPathNameW_pos,
+                    kernel32::file::path::GetFullPathNameW_pos,
                     "kernel32/file/path",
                     "GetFullPathNameW",
                     &[
@@ -2189,7 +2219,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetFullPathNameW(
+            let result = kernel32::file::path::GetFullPathNameW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 nBufferLength,
@@ -2208,7 +2238,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetLastError_pos,
+                    kernel32::misc::GetLastError_pos,
                     "kernel32/misc",
                     "GetLastError",
                     &[],
@@ -2217,7 +2247,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetLastError(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::misc::GetLastError(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2231,7 +2261,7 @@ mod wrappers {
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::GetLocalTime_pos,
+                    kernel32::time::GetLocalTime_pos,
                     "kernel32/time",
                     "GetLocalTime",
                     &[("lpSystemTime", &lpSystemTime)],
@@ -2240,7 +2270,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetLocalTime(sys, lpSystemTime);
+            let result = kernel32::time::GetLocalTime(sys, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2257,7 +2287,7 @@ mod wrappers {
             let cchData = <i32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetLocaleInfoA_pos,
+                    kernel32::nls::GetLocaleInfoA_pos,
                     "kernel32/nls",
                     "GetLocaleInfoA",
                     &[
@@ -2271,7 +2301,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetLocaleInfoA(sys, Locale, LCType, lpLCData, cchData);
+            let result = kernel32::nls::GetLocaleInfoA(sys, Locale, LCType, lpLCData, cchData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2288,7 +2318,7 @@ mod wrappers {
             let cchData = <i32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetLocaleInfoW_pos,
+                    kernel32::nls::GetLocaleInfoW_pos,
                     "kernel32/nls",
                     "GetLocaleInfoW",
                     &[
@@ -2302,7 +2332,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetLocaleInfoW(sys, Locale, LCType, lpLCData, cchData);
+            let result = kernel32::nls::GetLocaleInfoW(sys, Locale, LCType, lpLCData, cchData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2315,7 +2345,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/file/misc") {
                 trace::Record::new(
-                    kernel32::GetLogicalDrives_pos,
+                    kernel32::file::misc::GetLogicalDrives_pos,
                     "kernel32/file/misc",
                     "GetLogicalDrives",
                     &[],
@@ -2324,7 +2354,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetLogicalDrives(sys);
+            let result = kernel32::file::misc::GetLogicalDrives(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2339,7 +2369,7 @@ mod wrappers {
             let filename = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetModuleFileNameA_pos,
+                    kernel32::dll::GetModuleFileNameA_pos,
                     "kernel32/dll",
                     "GetModuleFileNameA",
                     &[("hModule", &hModule), ("filename", &filename)],
@@ -2348,7 +2378,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetModuleFileNameA(
+            let result = kernel32::dll::GetModuleFileNameA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hModule,
                 filename,
@@ -2368,7 +2398,7 @@ mod wrappers {
             let nSize = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetModuleFileNameW_pos,
+                    kernel32::dll::GetModuleFileNameW_pos,
                     "kernel32/dll",
                     "GetModuleFileNameW",
                     &[
@@ -2381,7 +2411,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetModuleFileNameW(
+            let result = kernel32::dll::GetModuleFileNameW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hModule,
                 lpFilename,
@@ -2400,7 +2430,7 @@ mod wrappers {
             let lpModuleName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetModuleHandleA_pos,
+                    kernel32::dll::GetModuleHandleA_pos,
                     "kernel32/dll",
                     "GetModuleHandleA",
                     &[("lpModuleName", &lpModuleName)],
@@ -2409,7 +2439,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetModuleHandleA(
+            let result = kernel32::dll::GetModuleHandleA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpModuleName,
             );
@@ -2428,7 +2458,7 @@ mod wrappers {
             let hModule = <Option<&mut HMODULE>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetModuleHandleExW_pos,
+                    kernel32::dll::GetModuleHandleExW_pos,
                     "kernel32/dll",
                     "GetModuleHandleExW",
                     &[
@@ -2441,7 +2471,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetModuleHandleExW(
+            let result = kernel32::dll::GetModuleHandleExW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 dwFlags,
                 lpModuleName,
@@ -2460,7 +2490,7 @@ mod wrappers {
             let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetModuleHandleW_pos,
+                    kernel32::dll::GetModuleHandleW_pos,
                     "kernel32/dll",
                     "GetModuleHandleW",
                     &[("lpModuleName", &lpModuleName)],
@@ -2469,7 +2499,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetModuleHandleW(
+            let result = kernel32::dll::GetModuleHandleW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpModuleName,
             );
@@ -2490,7 +2520,7 @@ mod wrappers {
             let lpNumberOfEvents = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::GetNumberOfConsoleInputEvents_pos,
+                    kernel32::console::GetNumberOfConsoleInputEvents_pos,
                     "kernel32/console",
                     "GetNumberOfConsoleInputEvents",
                     &[
@@ -2502,8 +2532,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetNumberOfConsoleInputEvents(sys, hConsoleInput, lpNumberOfEvents);
+            let result = kernel32::console::GetNumberOfConsoleInputEvents(
+                sys,
+                hConsoleInput,
+                lpNumberOfEvents,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2515,11 +2548,12 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
-                trace::Record::new(kernel32::GetOEMCP_pos, "kernel32/nls", "GetOEMCP", &[]).enter()
+                trace::Record::new(kernel32::nls::GetOEMCP_pos, "kernel32/nls", "GetOEMCP", &[])
+                    .enter()
             } else {
                 None
             };
-            let result = kernel32::GetOEMCP(sys);
+            let result = kernel32::nls::GetOEMCP(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2536,7 +2570,7 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetPrivateProfileIntA_pos,
+                    kernel32::ini::GetPrivateProfileIntA_pos,
                     "kernel32/ini",
                     "GetPrivateProfileIntA",
                     &[
@@ -2550,8 +2584,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetPrivateProfileIntA(sys, lpAppName, lpKeyName, nDefault, lpFileName);
+            let result = kernel32::ini::GetPrivateProfileIntA(
+                sys, lpAppName, lpKeyName, nDefault, lpFileName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2568,7 +2603,7 @@ mod wrappers {
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetPrivateProfileIntW_pos,
+                    kernel32::ini::GetPrivateProfileIntW_pos,
                     "kernel32/ini",
                     "GetPrivateProfileIntW",
                     &[
@@ -2582,8 +2617,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetPrivateProfileIntW(sys, lpAppName, lpKeyName, nDefault, lpFileName);
+            let result = kernel32::ini::GetPrivateProfileIntW(
+                sys, lpAppName, lpKeyName, nDefault, lpFileName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2602,7 +2638,7 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetPrivateProfileStringA_pos,
+                    kernel32::ini::GetPrivateProfileStringA_pos,
                     "kernel32/ini",
                     "GetPrivateProfileStringA",
                     &[
@@ -2618,7 +2654,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetPrivateProfileStringA(
+            let result = kernel32::ini::GetPrivateProfileStringA(
                 sys,
                 lpAppName,
                 lpKeyName,
@@ -2644,7 +2680,7 @@ mod wrappers {
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetPrivateProfileStringW_pos,
+                    kernel32::ini::GetPrivateProfileStringW_pos,
                     "kernel32/ini",
                     "GetPrivateProfileStringW",
                     &[
@@ -2659,7 +2695,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetPrivateProfileStringW(
+            let result = kernel32::ini::GetPrivateProfileStringW(
                 sys,
                 lpAppName,
                 lpKeyName,
@@ -2681,7 +2717,7 @@ mod wrappers {
             let lpProcName = <GetProcAddressArg>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetProcAddress_pos,
+                    kernel32::dll::GetProcAddress_pos,
                     "kernel32/dll",
                     "GetProcAddress",
                     &[("hModule", &hModule), ("lpProcName", &lpProcName)],
@@ -2690,7 +2726,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetProcAddress(
+            let result = kernel32::dll::GetProcAddress(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hModule,
                 lpProcName,
@@ -2707,7 +2743,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GetProcessHeap_pos,
+                    kernel32::memory::GetProcessHeap_pos,
                     "kernel32/memory",
                     "GetProcessHeap",
                     &[],
@@ -2716,7 +2752,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetProcessHeap(&mut *(sys.machine() as *mut crate::Machine));
+            let result =
+                kernel32::memory::GetProcessHeap(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2732,7 +2769,7 @@ mod wrappers {
             let nDefault = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetProfileIntW_pos,
+                    kernel32::ini::GetProfileIntW_pos,
                     "kernel32/ini",
                     "GetProfileIntW",
                     &[
@@ -2745,7 +2782,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetProfileIntW(sys, lpAppName, lpKeyName, nDefault);
+            let result = kernel32::ini::GetProfileIntW(sys, lpAppName, lpKeyName, nDefault);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2762,7 +2799,7 @@ mod wrappers {
             let lpReturnedString = <ArrayOut<u16>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::GetProfileStringW_pos,
+                    kernel32::ini::GetProfileStringW_pos,
                     "kernel32/ini",
                     "GetProfileStringW",
                     &[
@@ -2776,8 +2813,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetProfileStringW(sys, lpAppName, lpKeyName, lpDefault, lpReturnedString);
+            let result = kernel32::ini::GetProfileStringW(
+                sys,
+                lpAppName,
+                lpKeyName,
+                lpDefault,
+                lpReturnedString,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2791,7 +2833,7 @@ mod wrappers {
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetStartupInfoA_pos,
+                    kernel32::dll::GetStartupInfoA_pos,
                     "kernel32/dll",
                     "GetStartupInfoA",
                     &[("lpStartupInfo", &lpStartupInfo)],
@@ -2800,7 +2842,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetStartupInfoA(sys, lpStartupInfo);
+            let result = kernel32::dll::GetStartupInfoA(sys, lpStartupInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2814,7 +2856,7 @@ mod wrappers {
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::GetStartupInfoW_pos,
+                    kernel32::dll::GetStartupInfoW_pos,
                     "kernel32/dll",
                     "GetStartupInfoW",
                     &[("lpStartupInfo", &lpStartupInfo)],
@@ -2823,7 +2865,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetStartupInfoW(
+            let result = kernel32::dll::GetStartupInfoW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpStartupInfo,
             );
@@ -2840,7 +2882,7 @@ mod wrappers {
             let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/std") {
                 trace::Record::new(
-                    kernel32::GetStdHandle_pos,
+                    kernel32::file::std::GetStdHandle_pos,
                     "kernel32/file/std",
                     "GetStdHandle",
                     &[("nStdHandle", &nStdHandle)],
@@ -2849,7 +2891,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetStdHandle(sys, nStdHandle);
+            let result = kernel32::file::std::GetStdHandle(sys, nStdHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2867,7 +2909,7 @@ mod wrappers {
             let lpCharType = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetStringTypeA_pos,
+                    kernel32::nls::GetStringTypeA_pos,
                     "kernel32/nls",
                     "GetStringTypeA",
                     &[
@@ -2882,8 +2924,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::GetStringTypeA(sys, Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType);
+            let result = kernel32::nls::GetStringTypeA(
+                sys, Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2900,7 +2943,7 @@ mod wrappers {
             let lpCharType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetStringTypeW_pos,
+                    kernel32::nls::GetStringTypeW_pos,
                     "kernel32/nls",
                     "GetStringTypeW",
                     &[
@@ -2914,7 +2957,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetStringTypeW(sys, dwInfoType, lpSrcStr, cchSrc, lpCharType);
+            let result =
+                kernel32::nls::GetStringTypeW(sys, dwInfoType, lpSrcStr, cchSrc, lpCharType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2929,7 +2973,7 @@ mod wrappers {
             let uSize = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetSystemDirectoryA_pos,
+                    kernel32::misc::GetSystemDirectoryA_pos,
                     "kernel32/misc",
                     "GetSystemDirectoryA",
                     &[("lpBuffer", &lpBuffer), ("uSize", &uSize)],
@@ -2938,7 +2982,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetSystemDirectoryA(
+            let result = kernel32::misc::GetSystemDirectoryA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpBuffer,
                 uSize,
@@ -2956,7 +3000,7 @@ mod wrappers {
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::GetSystemTime_pos,
+                    kernel32::time::GetSystemTime_pos,
                     "kernel32/time",
                     "GetSystemTime",
                     &[("lpSystemTime", &lpSystemTime)],
@@ -2965,7 +3009,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetSystemTime(sys, lpSystemTime);
+            let result = kernel32::time::GetSystemTime(sys, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2980,7 +3024,7 @@ mod wrappers {
                 <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::GetSystemTimeAsFileTime_pos,
+                    kernel32::time::GetSystemTimeAsFileTime_pos,
                     "kernel32/time",
                     "GetSystemTimeAsFileTime",
                     &[("lpSystemTimeAsFileTime", &lpSystemTimeAsFileTime)],
@@ -2989,7 +3033,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetSystemTimeAsFileTime(sys, lpSystemTimeAsFileTime);
+            let result = kernel32::time::GetSystemTimeAsFileTime(sys, lpSystemTimeAsFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3002,7 +3046,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetThreadLocale_pos,
+                    kernel32::nls::GetThreadLocale_pos,
                     "kernel32/nls",
                     "GetThreadLocale",
                     &[],
@@ -3011,7 +3055,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetThreadLocale(sys);
+            let result = kernel32::nls::GetThreadLocale(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3025,7 +3069,7 @@ mod wrappers {
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::GetThreadPriority_pos,
+                    kernel32::thread::GetThreadPriority_pos,
                     "kernel32/thread",
                     "GetThreadPriority",
                     &[("hThread", &hThread)],
@@ -3034,7 +3078,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetThreadPriority(sys, hThread);
+            let result = kernel32::thread::GetThreadPriority(sys, hThread);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3047,7 +3091,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::GetTickCount_pos,
+                    kernel32::time::GetTickCount_pos,
                     "kernel32/time",
                     "GetTickCount",
                     &[],
@@ -3056,7 +3100,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetTickCount(sys);
+            let result = kernel32::time::GetTickCount(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3071,7 +3115,7 @@ mod wrappers {
                 <Option<&mut TIME_ZONE_INFORMATION>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::GetTimeZoneInformation_pos,
+                    kernel32::time::GetTimeZoneInformation_pos,
                     "kernel32/time",
                     "GetTimeZoneInformation",
                     &[("lpTimeZoneInformation", &lpTimeZoneInformation)],
@@ -3080,7 +3124,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetTimeZoneInformation(sys, lpTimeZoneInformation);
+            let result = kernel32::time::GetTimeZoneInformation(sys, lpTimeZoneInformation);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3093,7 +3137,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::GetUserDefaultLCID_pos,
+                    kernel32::nls::GetUserDefaultLCID_pos,
                     "kernel32/nls",
                     "GetUserDefaultLCID",
                     &[],
@@ -3102,7 +3146,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetUserDefaultLCID(sys);
+            let result = kernel32::nls::GetUserDefaultLCID(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3115,7 +3159,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetUserDefaultUILanguage_pos,
+                    kernel32::misc::GetUserDefaultUILanguage_pos,
                     "kernel32/misc",
                     "GetUserDefaultUILanguage",
                     &[],
@@ -3124,7 +3168,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetUserDefaultUILanguage(sys);
+            let result = kernel32::misc::GetUserDefaultUILanguage(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3136,12 +3180,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
-                trace::Record::new(kernel32::GetVersion_pos, "kernel32/misc", "GetVersion", &[])
-                    .enter()
+                trace::Record::new(
+                    kernel32::misc::GetVersion_pos,
+                    "kernel32/misc",
+                    "GetVersion",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = kernel32::GetVersion(sys);
+            let result = kernel32::misc::GetVersion(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3156,7 +3205,7 @@ mod wrappers {
                 <Option<&mut OSVERSIONINFO>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetVersionExA_pos,
+                    kernel32::misc::GetVersionExA_pos,
                     "kernel32/misc",
                     "GetVersionExA",
                     &[("lpVersionInformation", &lpVersionInformation)],
@@ -3165,7 +3214,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetVersionExA(sys, lpVersionInformation);
+            let result = kernel32::misc::GetVersionExA(sys, lpVersionInformation);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3180,7 +3229,7 @@ mod wrappers {
             let uSize = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GetWindowsDirectoryA_pos,
+                    kernel32::misc::GetWindowsDirectoryA_pos,
                     "kernel32/misc",
                     "GetWindowsDirectoryA",
                     &[("lpBuffer", &lpBuffer), ("uSize", &uSize)],
@@ -3189,7 +3238,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GetWindowsDirectoryA(
+            let result = kernel32::misc::GetWindowsDirectoryA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpBuffer,
                 uSize,
@@ -3207,7 +3256,7 @@ mod wrappers {
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::GlobalAddAtomA_pos,
+                    kernel32::misc::GlobalAddAtomA_pos,
                     "kernel32/misc",
                     "GlobalAddAtomA",
                     &[("lpString", &lpString)],
@@ -3216,7 +3265,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalAddAtomA(sys, lpString);
+            let result = kernel32::misc::GlobalAddAtomA(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3231,7 +3280,7 @@ mod wrappers {
             let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalAlloc_pos,
+                    kernel32::memory::GlobalAlloc_pos,
                     "kernel32/memory",
                     "GlobalAlloc",
                     &[("uFlags", &uFlags), ("dwBytes", &dwBytes)],
@@ -3240,7 +3289,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalAlloc(
+            let result = kernel32::memory::GlobalAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 uFlags,
                 dwBytes,
@@ -3258,7 +3307,7 @@ mod wrappers {
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalFlags_pos,
+                    kernel32::memory::GlobalFlags_pos,
                     "kernel32/memory",
                     "GlobalFlags",
                     &[("hMem", &hMem)],
@@ -3267,7 +3316,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalFlags(sys, hMem);
+            let result = kernel32::memory::GlobalFlags(sys, hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3281,7 +3330,7 @@ mod wrappers {
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalFree_pos,
+                    kernel32::memory::GlobalFree_pos,
                     "kernel32/memory",
                     "GlobalFree",
                     &[("hMem", &hMem)],
@@ -3290,7 +3339,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
+            let result =
+                kernel32::memory::GlobalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3304,7 +3354,7 @@ mod wrappers {
             let pMem = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalHandle_pos,
+                    kernel32::memory::GlobalHandle_pos,
                     "kernel32/memory",
                     "GlobalHandle",
                     &[("pMem", &pMem)],
@@ -3313,7 +3363,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalHandle(sys, pMem);
+            let result = kernel32::memory::GlobalHandle(sys, pMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3327,7 +3377,7 @@ mod wrappers {
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalLock_pos,
+                    kernel32::memory::GlobalLock_pos,
                     "kernel32/memory",
                     "GlobalLock",
                     &[("hMem", &hMem)],
@@ -3336,7 +3386,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalLock(sys, hMem);
+            let result = kernel32::memory::GlobalLock(sys, hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3352,7 +3402,7 @@ mod wrappers {
             let uFlags = <GMEM>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalReAlloc_pos,
+                    kernel32::memory::GlobalReAlloc_pos,
                     "kernel32/memory",
                     "GlobalReAlloc",
                     &[("hMem", &hMem), ("dwBytes", &dwBytes), ("uFlags", &uFlags)],
@@ -3361,7 +3411,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalReAlloc(
+            let result = kernel32::memory::GlobalReAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hMem,
                 dwBytes,
@@ -3380,7 +3430,7 @@ mod wrappers {
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::GlobalUnlock_pos,
+                    kernel32::memory::GlobalUnlock_pos,
                     "kernel32/memory",
                     "GlobalUnlock",
                     &[("hMem", &hMem)],
@@ -3389,7 +3439,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::GlobalUnlock(sys, hMem);
+            let result = kernel32::memory::GlobalUnlock(sys, hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3405,7 +3455,7 @@ mod wrappers {
             let dwBytes = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapAlloc_pos,
+                    kernel32::memory::HeapAlloc_pos,
                     "kernel32/memory",
                     "HeapAlloc",
                     &[
@@ -3418,7 +3468,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapAlloc(
+            let result = kernel32::memory::HeapAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hHeap,
                 dwFlags,
@@ -3438,7 +3488,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapCompact_pos,
+                    kernel32::memory::HeapCompact_pos,
                     "kernel32/memory",
                     "HeapCompact",
                     &[("hHeap", &hHeap), ("dwFlags", &dwFlags)],
@@ -3447,7 +3497,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapCompact(sys, hHeap, dwFlags);
+            let result = kernel32::memory::HeapCompact(sys, hHeap, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3463,7 +3513,7 @@ mod wrappers {
             let dwMaximumSize = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapCreate_pos,
+                    kernel32::memory::HeapCreate_pos,
                     "kernel32/memory",
                     "HeapCreate",
                     &[
@@ -3476,7 +3526,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapCreate(
+            let result = kernel32::memory::HeapCreate(
                 &mut *(sys.machine() as *mut crate::Machine),
                 flOptions,
                 dwInitialSize,
@@ -3495,7 +3545,7 @@ mod wrappers {
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapDestroy_pos,
+                    kernel32::memory::HeapDestroy_pos,
                     "kernel32/memory",
                     "HeapDestroy",
                     &[("hHeap", &hHeap)],
@@ -3504,7 +3554,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapDestroy(sys, hHeap);
+            let result = kernel32::memory::HeapDestroy(sys, hHeap);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3520,7 +3570,7 @@ mod wrappers {
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapFree_pos,
+                    kernel32::memory::HeapFree_pos,
                     "kernel32/memory",
                     "HeapFree",
                     &[("hHeap", &hHeap), ("dwFlags", &dwFlags), ("lpMem", &lpMem)],
@@ -3529,7 +3579,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapFree(
+            let result = kernel32::memory::HeapFree(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hHeap,
                 dwFlags,
@@ -3551,7 +3601,7 @@ mod wrappers {
             let dwBytes = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapReAlloc_pos,
+                    kernel32::memory::HeapReAlloc_pos,
                     "kernel32/memory",
                     "HeapReAlloc",
                     &[
@@ -3565,7 +3615,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapReAlloc(
+            let result = kernel32::memory::HeapReAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hHeap,
                 dwFlags,
@@ -3588,7 +3638,7 @@ mod wrappers {
             let HeapInformationLength = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapSetInformation_pos,
+                    kernel32::memory::HeapSetInformation_pos,
                     "kernel32/memory",
                     "HeapSetInformation",
                     &[
@@ -3602,7 +3652,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapSetInformation(
+            let result = kernel32::memory::HeapSetInformation(
                 sys,
                 HeapHandle,
                 HeapInformationClass,
@@ -3624,7 +3674,7 @@ mod wrappers {
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapSize_pos,
+                    kernel32::memory::HeapSize_pos,
                     "kernel32/memory",
                     "HeapSize",
                     &[("hHeap", &hHeap), ("dwFlags", &dwFlags), ("lpMem", &lpMem)],
@@ -3633,7 +3683,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapSize(
+            let result = kernel32::memory::HeapSize(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hHeap,
                 dwFlags,
@@ -3654,7 +3704,7 @@ mod wrappers {
             let lpMem = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapValidate_pos,
+                    kernel32::memory::HeapValidate_pos,
                     "kernel32/memory",
                     "HeapValidate",
                     &[("hHeap", &hHeap), ("dwFlags", &dwFlags), ("lpMem", &lpMem)],
@@ -3663,7 +3713,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapValidate(sys, hHeap, dwFlags, lpMem);
+            let result = kernel32::memory::HeapValidate(sys, hHeap, dwFlags, lpMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3678,7 +3728,7 @@ mod wrappers {
             let lpEntry = <Option<&mut PROCESS_HEAP_ENTRY>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::HeapWalk_pos,
+                    kernel32::memory::HeapWalk_pos,
                     "kernel32/memory",
                     "HeapWalk",
                     &[("hHeap", &hHeap), ("lpEntry", &lpEntry)],
@@ -3687,7 +3737,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::HeapWalk(sys, hHeap, lpEntry);
+            let result = kernel32::memory::HeapWalk(sys, hHeap, lpEntry);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3704,7 +3754,7 @@ mod wrappers {
             let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/sync/once") {
                 trace::Record::new(
-                    kernel32::InitOnceBeginInitialize_pos,
+                    kernel32::sync::once::InitOnceBeginInitialize_pos,
                     "kernel32/sync/once",
                     "InitOnceBeginInitialize",
                     &[
@@ -3718,8 +3768,9 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::InitOnceBeginInitialize(sys, lpInitOnce, dwFlags, fPending, lpContext);
+            let result = kernel32::sync::once::InitOnceBeginInitialize(
+                sys, lpInitOnce, dwFlags, fPending, lpContext,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3735,7 +3786,7 @@ mod wrappers {
             let lpContext = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/sync/once") {
                 trace::Record::new(
-                    kernel32::InitOnceComplete_pos,
+                    kernel32::sync::once::InitOnceComplete_pos,
                     "kernel32/sync/once",
                     "InitOnceComplete",
                     &[
@@ -3748,7 +3799,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InitOnceComplete(sys, lpInitOnce, dwFlags, lpContext);
+            let result =
+                kernel32::sync::once::InitOnceComplete(sys, lpInitOnce, dwFlags, lpContext);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3762,7 +3814,7 @@ mod wrappers {
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::InitializeCriticalSection_pos,
+                    kernel32::sync::critical_section::InitializeCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSection",
                     &[("lpCriticalSection", &lpCriticalSection)],
@@ -3771,7 +3823,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InitializeCriticalSection(sys, lpCriticalSection);
+            let result =
+                kernel32::sync::critical_section::InitializeCriticalSection(sys, lpCriticalSection);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3789,7 +3842,7 @@ mod wrappers {
             let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::InitializeCriticalSectionAndSpinCount_pos,
+                    kernel32::sync::critical_section::InitializeCriticalSectionAndSpinCount_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSectionAndSpinCount",
                     &[
@@ -3801,7 +3854,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InitializeCriticalSectionAndSpinCount(
+            let result = kernel32::sync::critical_section::InitializeCriticalSectionAndSpinCount(
                 sys,
                 lpCriticalSection,
                 dwSpinCount,
@@ -3821,7 +3874,7 @@ mod wrappers {
             let flags = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::InitializeCriticalSectionEx_pos,
+                    kernel32::sync::critical_section::InitializeCriticalSectionEx_pos,
                     "kernel32/sync/critical_section",
                     "InitializeCriticalSectionEx",
                     &[
@@ -3834,8 +3887,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::InitializeCriticalSectionEx(sys, lpCriticalSection, dwSpinCount, flags);
+            let result = kernel32::sync::critical_section::InitializeCriticalSectionEx(
+                sys,
+                lpCriticalSection,
+                dwSpinCount,
+                flags,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3849,7 +3906,7 @@ mod wrappers {
             let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::InitializeSListHead_pos,
+                    kernel32::misc::InitializeSListHead_pos,
                     "kernel32/misc",
                     "InitializeSListHead",
                     &[("ListHead", &ListHead)],
@@ -3858,7 +3915,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InitializeSListHead(sys, ListHead);
+            let result = kernel32::misc::InitializeSListHead(sys, ListHead);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3872,7 +3929,7 @@ mod wrappers {
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/interlocked") {
                 trace::Record::new(
-                    kernel32::InterlockedDecrement_pos,
+                    kernel32::sync::interlocked::InterlockedDecrement_pos,
                     "kernel32/sync/interlocked",
                     "InterlockedDecrement",
                     &[("addend", &addend)],
@@ -3881,7 +3938,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InterlockedDecrement(sys, addend);
+            let result = kernel32::sync::interlocked::InterlockedDecrement(sys, addend);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3895,7 +3952,7 @@ mod wrappers {
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/interlocked") {
                 trace::Record::new(
-                    kernel32::InterlockedIncrement_pos,
+                    kernel32::sync::interlocked::InterlockedIncrement_pos,
                     "kernel32/sync/interlocked",
                     "InterlockedIncrement",
                     &[("addend", &addend)],
@@ -3904,7 +3961,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::InterlockedIncrement(sys, addend);
+            let result = kernel32::sync::interlocked::InterlockedIncrement(sys, addend);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3918,7 +3975,7 @@ mod wrappers {
             let lpfn = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::IsBadCodePtr_pos,
+                    kernel32::memory::IsBadCodePtr_pos,
                     "kernel32/memory",
                     "IsBadCodePtr",
                     &[("lpfn", &lpfn)],
@@ -3927,7 +3984,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsBadCodePtr(sys, lpfn);
+            let result = kernel32::memory::IsBadCodePtr(sys, lpfn);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3942,7 +3999,7 @@ mod wrappers {
             let ucb = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::IsBadReadPtr_pos,
+                    kernel32::memory::IsBadReadPtr_pos,
                     "kernel32/memory",
                     "IsBadReadPtr",
                     &[("lp", &lp), ("ucb", &ucb)],
@@ -3951,7 +4008,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsBadReadPtr(sys, lp, ucb);
+            let result = kernel32::memory::IsBadReadPtr(sys, lp, ucb);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3966,7 +4023,7 @@ mod wrappers {
             let ucb = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::IsBadWritePtr_pos,
+                    kernel32::memory::IsBadWritePtr_pos,
                     "kernel32/memory",
                     "IsBadWritePtr",
                     &[("lp", &lp), ("ucb", &ucb)],
@@ -3975,7 +4032,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsBadWritePtr(sys, lp, ucb);
+            let result = kernel32::memory::IsBadWritePtr(sys, lp, ucb);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3989,7 +4046,7 @@ mod wrappers {
             let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::IsDBCSLeadByte_pos,
+                    kernel32::nls::IsDBCSLeadByte_pos,
                     "kernel32/nls",
                     "IsDBCSLeadByte",
                     &[("TestChar", &_TestChar)],
@@ -3998,7 +4055,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsDBCSLeadByte(sys, _TestChar);
+            let result = kernel32::nls::IsDBCSLeadByte(sys, _TestChar);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4013,7 +4070,7 @@ mod wrappers {
             let _CodePage = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::IsDBCSLeadByteEx_pos,
+                    kernel32::nls::IsDBCSLeadByteEx_pos,
                     "kernel32/nls",
                     "IsDBCSLeadByteEx",
                     &[("TestChar", &_TestChar), ("CodePage", &_CodePage)],
@@ -4022,7 +4079,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsDBCSLeadByteEx(sys, _TestChar, _CodePage);
+            let result = kernel32::nls::IsDBCSLeadByteEx(sys, _TestChar, _CodePage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4035,7 +4092,7 @@ mod wrappers {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::IsDebuggerPresent_pos,
+                    kernel32::misc::IsDebuggerPresent_pos,
                     "kernel32/misc",
                     "IsDebuggerPresent",
                     &[],
@@ -4044,7 +4101,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsDebuggerPresent(sys);
+            let result = kernel32::misc::IsDebuggerPresent(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4058,7 +4115,7 @@ mod wrappers {
             let feature = <Result<ProcessorFeature, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::IsProcessorFeaturePresent_pos,
+                    kernel32::misc::IsProcessorFeaturePresent_pos,
                     "kernel32/misc",
                     "IsProcessorFeaturePresent",
                     &[("feature", &feature)],
@@ -4067,7 +4124,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsProcessorFeaturePresent(sys, feature);
+            let result = kernel32::misc::IsProcessorFeaturePresent(sys, feature);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4081,7 +4138,7 @@ mod wrappers {
             let CodePage = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::IsValidCodePage_pos,
+                    kernel32::nls::IsValidCodePage_pos,
                     "kernel32/nls",
                     "IsValidCodePage",
                     &[("CodePage", &CodePage)],
@@ -4090,7 +4147,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsValidCodePage(sys, CodePage);
+            let result = kernel32::nls::IsValidCodePage(sys, CodePage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4105,7 +4162,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::IsValidLocale_pos,
+                    kernel32::nls::IsValidLocale_pos,
                     "kernel32/nls",
                     "IsValidLocale",
                     &[("Locale", &Locale), ("dwFlags", &dwFlags)],
@@ -4114,7 +4171,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::IsValidLocale(sys, Locale, dwFlags);
+            let result = kernel32::nls::IsValidLocale(sys, Locale, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4132,7 +4189,7 @@ mod wrappers {
             let lpDestStr = <ArrayOut<u8>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::LCMapStringA_pos,
+                    kernel32::nls::LCMapStringA_pos,
                     "kernel32/nls",
                     "LCMapStringA",
                     &[
@@ -4148,7 +4205,7 @@ mod wrappers {
                 None
             };
             let result =
-                kernel32::LCMapStringA(sys, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr);
+                kernel32::nls::LCMapStringA(sys, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4166,7 +4223,7 @@ mod wrappers {
             let lpDestStr = <ArrayOut<u16>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::LCMapStringW_pos,
+                    kernel32::nls::LCMapStringW_pos,
                     "kernel32/nls",
                     "LCMapStringW",
                     &[
@@ -4182,7 +4239,7 @@ mod wrappers {
                 None
             };
             let result =
-                kernel32::LCMapStringW(sys, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr);
+                kernel32::nls::LCMapStringW(sys, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4196,7 +4253,7 @@ mod wrappers {
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/critical_section") {
                 trace::Record::new(
-                    kernel32::LeaveCriticalSection_pos,
+                    kernel32::sync::critical_section::LeaveCriticalSection_pos,
                     "kernel32/sync/critical_section",
                     "LeaveCriticalSection",
                     &[("lpCriticalSection", &lpCriticalSection)],
@@ -4205,7 +4262,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LeaveCriticalSection(sys, lpCriticalSection);
+            let result =
+                kernel32::sync::critical_section::LeaveCriticalSection(sys, lpCriticalSection);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4222,7 +4280,7 @@ mod wrappers {
             let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::LoadLibraryA_pos,
+                    kernel32::dll::LoadLibraryA_pos,
                     "kernel32/dll",
                     "LoadLibraryA",
                     &[("filename", &filename)],
@@ -4234,9 +4292,11 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    kernel32::LoadLibraryA(&mut *(sys.machine() as *mut crate::Machine), filename)
-                        .await;
+                let result = kernel32::dll::LoadLibraryA(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    filename,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4256,7 +4316,7 @@ mod wrappers {
             let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::LoadLibraryExW_pos,
+                    kernel32::dll::LoadLibraryExW_pos,
                     "kernel32/dll",
                     "LoadLibraryExW",
                     &[
@@ -4272,7 +4332,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::LoadLibraryExW(
+                let result = kernel32::dll::LoadLibraryExW(
                     &mut *(sys.machine() as *mut crate::Machine),
                     lpLibFileName,
                     hFile,
@@ -4296,7 +4356,7 @@ mod wrappers {
             let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/dll") {
                 trace::Record::new(
-                    kernel32::LoadLibraryW_pos,
+                    kernel32::dll::LoadLibraryW_pos,
                     "kernel32/dll",
                     "LoadLibraryW",
                     &[("filename", &filename)],
@@ -4308,9 +4368,11 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result =
-                    kernel32::LoadLibraryW(&mut *(sys.machine() as *mut crate::Machine), filename)
-                        .await;
+                let result = kernel32::dll::LoadLibraryW(
+                    &mut *(sys.machine() as *mut crate::Machine),
+                    filename,
+                )
+                .await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4326,7 +4388,7 @@ mod wrappers {
             let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::LoadResource_pos,
+                    kernel32::resource::LoadResource_pos,
                     "kernel32/resource",
                     "LoadResource",
                     &[("hModule", &hModule), ("hResInfo", &hResInfo)],
@@ -4335,7 +4397,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LoadResource(sys, hModule, hResInfo);
+            let result = kernel32::resource::LoadResource(sys, hModule, hResInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4350,7 +4412,7 @@ mod wrappers {
             let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::LocalAlloc_pos,
+                    kernel32::memory::LocalAlloc_pos,
                     "kernel32/memory",
                     "LocalAlloc",
                     &[("uFlags", &uFlags), ("dwBytes", &dwBytes)],
@@ -4359,7 +4421,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LocalAlloc(
+            let result = kernel32::memory::LocalAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 uFlags,
                 dwBytes,
@@ -4378,7 +4440,7 @@ mod wrappers {
             let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::LocalFileTimeToFileTime_pos,
+                    kernel32::time::LocalFileTimeToFileTime_pos,
                     "kernel32/time",
                     "LocalFileTimeToFileTime",
                     &[
@@ -4390,7 +4452,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LocalFileTimeToFileTime(sys, lpLocalFileTime, lpFileTime);
+            let result = kernel32::time::LocalFileTimeToFileTime(sys, lpLocalFileTime, lpFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4404,7 +4466,7 @@ mod wrappers {
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::LocalFree_pos,
+                    kernel32::memory::LocalFree_pos,
                     "kernel32/memory",
                     "LocalFree",
                     &[("hMem", &hMem)],
@@ -4413,7 +4475,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LocalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
+            let result =
+                kernel32::memory::LocalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4431,7 +4494,7 @@ mod wrappers {
             let nNumberOfBytesToLockHigh = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::LockFile_pos,
+                    kernel32::file::file::LockFile_pos,
                     "kernel32/file/file",
                     "LockFile",
                     &[
@@ -4446,7 +4509,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LockFile(
+            let result = kernel32::file::file::LockFile(
                 sys,
                 hFile,
                 dwFileOffsetLow,
@@ -4467,7 +4530,7 @@ mod wrappers {
             let hResData = <HRSRC>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::LockResource_pos,
+                    kernel32::resource::LockResource_pos,
                     "kernel32/resource",
                     "LockResource",
                     &[("hResData", &hResData)],
@@ -4476,7 +4539,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::LockResource(sys, hResData);
+            let result = kernel32::resource::LockResource(sys, hResData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4491,7 +4554,7 @@ mod wrappers {
             let lpNewFileName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::MoveFileA_pos,
+                    kernel32::file::fs::MoveFileA_pos,
                     "kernel32/file/fs",
                     "MoveFileA",
                     &[
@@ -4503,7 +4566,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::MoveFileA(sys, lpExistingFileName, lpNewFileName);
+            let result = kernel32::file::fs::MoveFileA(sys, lpExistingFileName, lpNewFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4518,7 +4581,7 @@ mod wrappers {
             let lpNewFileName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::MoveFileW_pos,
+                    kernel32::file::fs::MoveFileW_pos,
                     "kernel32/file/fs",
                     "MoveFileW",
                     &[
@@ -4530,7 +4593,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::MoveFileW(sys, lpExistingFileName, lpNewFileName);
+            let result = kernel32::file::fs::MoveFileW(sys, lpExistingFileName, lpNewFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4546,7 +4609,7 @@ mod wrappers {
             let nDenominator = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::MulDiv_pos,
+                    kernel32::misc::MulDiv_pos,
                     "kernel32/misc",
                     "MulDiv",
                     &[
@@ -4559,7 +4622,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::MulDiv(sys, nNumber, nNumerator, nDenominator);
+            let result = kernel32::misc::MulDiv(sys, nNumber, nNumerator, nDenominator);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4577,7 +4640,7 @@ mod wrappers {
             let lpWideCharStr = <Option<ArrayOut<u16>>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::MultiByteToWideChar_pos,
+                    kernel32::nls::MultiByteToWideChar_pos,
                     "kernel32/nls",
                     "MultiByteToWideChar",
                     &[
@@ -4592,7 +4655,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::MultiByteToWideChar(
+            let result = kernel32::nls::MultiByteToWideChar(
                 sys,
                 CodePage,
                 dwFlags,
@@ -4615,7 +4678,7 @@ mod wrappers {
             let uStyle = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::OpenFile_pos,
+                    kernel32::file::file::OpenFile_pos,
                     "kernel32/file/file",
                     "OpenFile",
                     &[
@@ -4628,7 +4691,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::OpenFile(
+            let result = kernel32::file::file::OpenFile(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 lpReOpenBuff,
@@ -4649,7 +4712,7 @@ mod wrappers {
             let lpName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/sync/mutex") {
                 trace::Record::new(
-                    kernel32::OpenMutexA_pos,
+                    kernel32::sync::mutex::OpenMutexA_pos,
                     "kernel32/sync/mutex",
                     "OpenMutexA",
                     &[
@@ -4662,7 +4725,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::OpenMutexA(sys, dwDesiredAccess, bInheritHandle, lpName);
+            let result =
+                kernel32::sync::mutex::OpenMutexA(sys, dwDesiredAccess, bInheritHandle, lpName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4676,7 +4740,7 @@ mod wrappers {
             let msg = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::OutputDebugStringA_pos,
+                    kernel32::misc::OutputDebugStringA_pos,
                     "kernel32/misc",
                     "OutputDebugStringA",
                     &[("msg", &msg)],
@@ -4685,7 +4749,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::OutputDebugStringA(sys, msg);
+            let result = kernel32::misc::OutputDebugStringA(sys, msg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4702,7 +4766,7 @@ mod wrappers {
             let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::PeekConsoleInputA_pos,
+                    kernel32::console::PeekConsoleInputA_pos,
                     "kernel32/console",
                     "PeekConsoleInputA",
                     &[
@@ -4716,7 +4780,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::PeekConsoleInputA(
+            let result = kernel32::console::PeekConsoleInputA(
                 sys,
                 hConsoleInput,
                 lpBuffer,
@@ -4741,7 +4805,7 @@ mod wrappers {
             let lpBytesLeftThisMessage = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if trace::enabled("kernel32/pipe") {
                 trace::Record::new(
-                    kernel32::PeekNamedPipe_pos,
+                    kernel32::pipe::PeekNamedPipe_pos,
                     "kernel32/pipe",
                     "PeekNamedPipe",
                     &[
@@ -4757,7 +4821,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::PeekNamedPipe(
+            let result = kernel32::pipe::PeekNamedPipe(
                 sys,
                 hNamedPipe,
                 lpBuffer,
@@ -4779,7 +4843,7 @@ mod wrappers {
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/event") {
                 trace::Record::new(
-                    kernel32::PulseEvent_pos,
+                    kernel32::sync::event::PulseEvent_pos,
                     "kernel32/sync/event",
                     "PulseEvent",
                     &[("hEvent", &hEvent)],
@@ -4788,7 +4852,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::PulseEvent(sys, hEvent);
+            let result = kernel32::sync::event::PulseEvent(sys, hEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4803,7 +4867,7 @@ mod wrappers {
                 <Option<&mut LARGE_INTEGER>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::QueryPerformanceCounter_pos,
+                    kernel32::time::QueryPerformanceCounter_pos,
                     "kernel32/time",
                     "QueryPerformanceCounter",
                     &[("lpPerformanceCount", &lpPerformanceCount)],
@@ -4812,7 +4876,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::QueryPerformanceCounter(sys, lpPerformanceCount);
+            let result = kernel32::time::QueryPerformanceCounter(sys, lpPerformanceCount);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4826,7 +4890,7 @@ mod wrappers {
             let lpFrequency = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::QueryPerformanceFrequency_pos,
+                    kernel32::time::QueryPerformanceFrequency_pos,
                     "kernel32/time",
                     "QueryPerformanceFrequency",
                     &[("lpFrequency", &lpFrequency)],
@@ -4835,7 +4899,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::QueryPerformanceFrequency(sys, lpFrequency);
+            let result = kernel32::time::QueryPerformanceFrequency(sys, lpFrequency);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4852,7 +4916,7 @@ mod wrappers {
             let lpArguments = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::RaiseException_pos,
+                    kernel32::misc::RaiseException_pos,
                     "kernel32/misc",
                     "RaiseException",
                     &[
@@ -4866,7 +4930,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::RaiseException(
+            let result = kernel32::misc::RaiseException(
                 sys,
                 dwExceptionCode,
                 dwExceptionFlags,
@@ -4891,7 +4955,7 @@ mod wrappers {
                 <Option<&mut CONSOLE_READCONSOLE_CONTROL>>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::ReadConsoleA_pos,
+                    kernel32::console::ReadConsoleA_pos,
                     "kernel32/console",
                     "ReadConsoleA",
                     &[
@@ -4906,7 +4970,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ReadConsoleA(
+            let result = kernel32::console::ReadConsoleA(
                 sys,
                 hConsoleInput,
                 lpBuffer,
@@ -4930,7 +4994,7 @@ mod wrappers {
             let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::ReadConsoleInputA_pos,
+                    kernel32::console::ReadConsoleInputA_pos,
                     "kernel32/console",
                     "ReadConsoleInputA",
                     &[
@@ -4944,7 +5008,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ReadConsoleInputA(
+            let result = kernel32::console::ReadConsoleInputA(
                 sys,
                 hConsoleInput,
                 lpBuffer,
@@ -4967,7 +5031,7 @@ mod wrappers {
             let lpOverlapped = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::ReadFile_pos,
+                    kernel32::file::file::ReadFile_pos,
                     "kernel32/file/file",
                     "ReadFile",
                     &[
@@ -4981,7 +5045,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ReadFile(
+            let result = kernel32::file::file::ReadFile(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpBuffer,
@@ -5001,7 +5065,7 @@ mod wrappers {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
                 trace::Record::new(
-                    kernel32::ReleaseSRWLockExclusive_pos,
+                    kernel32::sync::srw_lock::ReleaseSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "ReleaseSRWLockExclusive",
                     &[("SRWLock", &SRWLock)],
@@ -5010,7 +5074,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ReleaseSRWLockExclusive(sys, SRWLock);
+            let result = kernel32::sync::srw_lock::ReleaseSRWLockExclusive(sys, SRWLock);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5024,7 +5088,7 @@ mod wrappers {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
                 trace::Record::new(
-                    kernel32::ReleaseSRWLockShared_pos,
+                    kernel32::sync::srw_lock::ReleaseSRWLockShared_pos,
                     "kernel32/sync/srw_lock",
                     "ReleaseSRWLockShared",
                     &[("SRWLock", &SRWLock)],
@@ -5033,7 +5097,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ReleaseSRWLockShared(sys, SRWLock);
+            let result = kernel32::sync::srw_lock::ReleaseSRWLockShared(sys, SRWLock);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5047,7 +5111,7 @@ mod wrappers {
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::RemoveDirectoryA_pos,
+                    kernel32::file::fs::RemoveDirectoryA_pos,
                     "kernel32/file/fs",
                     "RemoveDirectoryA",
                     &[("lpPathName", &lpPathName)],
@@ -5056,7 +5120,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::RemoveDirectoryA(
+            let result = kernel32::file::fs::RemoveDirectoryA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpPathName,
             );
@@ -5073,7 +5137,7 @@ mod wrappers {
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::RemoveDirectoryW_pos,
+                    kernel32::file::fs::RemoveDirectoryW_pos,
                     "kernel32/file/fs",
                     "RemoveDirectoryW",
                     &[("lpPathName", &lpPathName)],
@@ -5082,7 +5146,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::RemoveDirectoryW(sys, lpPathName);
+            let result = kernel32::file::fs::RemoveDirectoryW(sys, lpPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5096,7 +5160,7 @@ mod wrappers {
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/event") {
                 trace::Record::new(
-                    kernel32::ResetEvent_pos,
+                    kernel32::sync::event::ResetEvent_pos,
                     "kernel32/sync/event",
                     "ResetEvent",
                     &[("hEvent", &hEvent)],
@@ -5105,7 +5169,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ResetEvent(sys, hEvent);
+            let result = kernel32::sync::event::ResetEvent(sys, hEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5119,7 +5183,7 @@ mod wrappers {
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::ResumeThread_pos,
+                    kernel32::thread::ResumeThread_pos,
                     "kernel32/thread",
                     "ResumeThread",
                     &[("hThread", &hThread)],
@@ -5128,7 +5192,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::ResumeThread(sys, hThread);
+            let result = kernel32::thread::ResumeThread(sys, hThread);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5145,7 +5209,7 @@ mod wrappers {
             let ReturnValue = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::RtlUnwind_pos,
+                    kernel32::misc::RtlUnwind_pos,
                     "kernel32/misc",
                     "RtlUnwind",
                     &[
@@ -5160,7 +5224,7 @@ mod wrappers {
                 None
             };
             let result =
-                kernel32::RtlUnwind(sys, TargetFrame, TargetIp, ExceptionRecord, ReturnValue);
+                kernel32::misc::RtlUnwind(sys, TargetFrame, TargetIp, ExceptionRecord, ReturnValue);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5175,7 +5239,7 @@ mod wrappers {
             let _add = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::SetConsoleCtrlHandler_pos,
+                    kernel32::console::SetConsoleCtrlHandler_pos,
                     "kernel32/console",
                     "SetConsoleCtrlHandler",
                     &[("handlerRoutine", &_handlerRoutine), ("add", &_add)],
@@ -5184,7 +5248,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetConsoleCtrlHandler(sys, _handlerRoutine, _add);
+            let result = kernel32::console::SetConsoleCtrlHandler(sys, _handlerRoutine, _add);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5199,7 +5263,7 @@ mod wrappers {
             let dwMode = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::SetConsoleMode_pos,
+                    kernel32::console::SetConsoleMode_pos,
                     "kernel32/console",
                     "SetConsoleMode",
                     &[("hConsoleHandle", &hConsoleHandle), ("dwMode", &dwMode)],
@@ -5208,7 +5272,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetConsoleMode(sys, hConsoleHandle, dwMode);
+            let result = kernel32::console::SetConsoleMode(sys, hConsoleHandle, dwMode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5222,7 +5286,7 @@ mod wrappers {
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::SetCurrentDirectoryA_pos,
+                    kernel32::file::fs::SetCurrentDirectoryA_pos,
                     "kernel32/file/fs",
                     "SetCurrentDirectoryA",
                     &[("lpPathName", &lpPathName)],
@@ -5231,7 +5295,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetCurrentDirectoryA(sys, lpPathName);
+            let result = kernel32::file::fs::SetCurrentDirectoryA(sys, lpPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5245,7 +5309,7 @@ mod wrappers {
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/fs") {
                 trace::Record::new(
-                    kernel32::SetCurrentDirectoryW_pos,
+                    kernel32::file::fs::SetCurrentDirectoryW_pos,
                     "kernel32/file/fs",
                     "SetCurrentDirectoryW",
                     &[("lpPathName", &lpPathName)],
@@ -5254,7 +5318,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetCurrentDirectoryW(sys, lpPathName);
+            let result = kernel32::file::fs::SetCurrentDirectoryW(sys, lpPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5268,7 +5332,7 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::SetEndOfFile_pos,
+                    kernel32::file::file::SetEndOfFile_pos,
                     "kernel32/file/file",
                     "SetEndOfFile",
                     &[("hFile", &hFile)],
@@ -5277,8 +5341,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::SetEndOfFile(&mut *(sys.machine() as *mut crate::Machine), hFile);
+            let result = kernel32::file::file::SetEndOfFile(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5293,7 +5359,7 @@ mod wrappers {
             let value = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::SetEnvironmentVariableA_pos,
+                    kernel32::env::SetEnvironmentVariableA_pos,
                     "kernel32/env",
                     "SetEnvironmentVariableA",
                     &[("name", &name), ("value", &value)],
@@ -5302,7 +5368,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetEnvironmentVariableA(sys, name, value);
+            let result = kernel32::env::SetEnvironmentVariableA(sys, name, value);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5317,7 +5383,7 @@ mod wrappers {
             let lpValue = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/env") {
                 trace::Record::new(
-                    kernel32::SetEnvironmentVariableW_pos,
+                    kernel32::env::SetEnvironmentVariableW_pos,
                     "kernel32/env",
                     "SetEnvironmentVariableW",
                     &[("lpName", &lpName), ("lpValue", &lpValue)],
@@ -5326,7 +5392,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetEnvironmentVariableW(sys, lpName, lpValue);
+            let result = kernel32::env::SetEnvironmentVariableW(sys, lpName, lpValue);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5340,7 +5406,7 @@ mod wrappers {
             let uMode = <SEM>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::SetErrorMode_pos,
+                    kernel32::misc::SetErrorMode_pos,
                     "kernel32/misc",
                     "SetErrorMode",
                     &[("uMode", &uMode)],
@@ -5349,7 +5415,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetErrorMode(sys, uMode);
+            let result = kernel32::misc::SetErrorMode(sys, uMode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5363,7 +5429,7 @@ mod wrappers {
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/event") {
                 trace::Record::new(
-                    kernel32::SetEvent_pos,
+                    kernel32::sync::event::SetEvent_pos,
                     "kernel32/sync/event",
                     "SetEvent",
                     &[("hEvent", &hEvent)],
@@ -5372,7 +5438,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetEvent(&mut *(sys.machine() as *mut crate::Machine), hEvent);
+            let result = kernel32::sync::event::SetEvent(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hEvent,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5387,7 +5456,7 @@ mod wrappers {
             let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::SetFileAttributesA_pos,
+                    kernel32::file::metadata::SetFileAttributesA_pos,
                     "kernel32/file/metadata",
                     "SetFileAttributesA",
                     &[
@@ -5399,7 +5468,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetFileAttributesA(
+            let result = kernel32::file::metadata::SetFileAttributesA(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpFileName,
                 dwFileAttributes,
@@ -5418,7 +5487,7 @@ mod wrappers {
             let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::SetFileAttributesW_pos,
+                    kernel32::file::metadata::SetFileAttributesW_pos,
                     "kernel32/file/metadata",
                     "SetFileAttributesW",
                     &[
@@ -5430,7 +5499,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetFileAttributesW(sys, lpFileName, dwFileAttributes);
+            let result =
+                kernel32::file::metadata::SetFileAttributesW(sys, lpFileName, dwFileAttributes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5447,7 +5517,7 @@ mod wrappers {
             let dwMoveMethod = <Result<FILE, u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::SetFilePointer_pos,
+                    kernel32::file::metadata::SetFilePointer_pos,
                     "kernel32/file/metadata",
                     "SetFilePointer",
                     &[
@@ -5461,7 +5531,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetFilePointer(
+            let result = kernel32::file::metadata::SetFilePointer(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lDistanceToMove,
@@ -5484,7 +5554,7 @@ mod wrappers {
             let lpLastWriteTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/file/metadata") {
                 trace::Record::new(
-                    kernel32::SetFileTime_pos,
+                    kernel32::file::metadata::SetFileTime_pos,
                     "kernel32/file/metadata",
                     "SetFileTime",
                     &[
@@ -5498,7 +5568,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetFileTime(
+            let result = kernel32::file::metadata::SetFileTime(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpCreationTime,
@@ -5518,7 +5588,7 @@ mod wrappers {
             let uNumber = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::SetHandleCount_pos,
+                    kernel32::misc::SetHandleCount_pos,
                     "kernel32/misc",
                     "SetHandleCount",
                     &[("uNumber", &uNumber)],
@@ -5527,7 +5597,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetHandleCount(sys, uNumber);
+            let result = kernel32::misc::SetHandleCount(sys, uNumber);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5541,7 +5611,7 @@ mod wrappers {
             let dwErrCode = <Result<ERROR, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::SetLastError_pos,
+                    kernel32::misc::SetLastError_pos,
                     "kernel32/misc",
                     "SetLastError",
                     &[("dwErrCode", &dwErrCode)],
@@ -5550,8 +5620,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::SetLastError(&mut *(sys.machine() as *mut crate::Machine), dwErrCode);
+            let result = kernel32::misc::SetLastError(
+                &mut *(sys.machine() as *mut crate::Machine),
+                dwErrCode,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5565,7 +5637,7 @@ mod wrappers {
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::SetLocalTime_pos,
+                    kernel32::time::SetLocalTime_pos,
                     "kernel32/time",
                     "SetLocalTime",
                     &[("lpSystemTime", &lpSystemTime)],
@@ -5574,7 +5646,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetLocalTime(sys, lpSystemTime);
+            let result = kernel32::time::SetLocalTime(sys, lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5589,7 +5661,7 @@ mod wrappers {
             let dwPriorityClass = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::SetPriorityClass_pos,
+                    kernel32::misc::SetPriorityClass_pos,
                     "kernel32/misc",
                     "SetPriorityClass",
                     &[
@@ -5601,7 +5673,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetPriorityClass(sys, hProcess, dwPriorityClass);
+            let result = kernel32::misc::SetPriorityClass(sys, hProcess, dwPriorityClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5616,7 +5688,7 @@ mod wrappers {
             let hHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/std") {
                 trace::Record::new(
-                    kernel32::SetStdHandle_pos,
+                    kernel32::file::std::SetStdHandle_pos,
                     "kernel32/file/std",
                     "SetStdHandle",
                     &[("nStdHandle", &nStdHandle), ("hHandle", &hHandle)],
@@ -5625,7 +5697,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetStdHandle(sys, nStdHandle, hHandle);
+            let result = kernel32::file::std::SetStdHandle(sys, nStdHandle, hHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5640,7 +5712,7 @@ mod wrappers {
             let lpThreadDescription = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::SetThreadDescription_pos,
+                    kernel32::thread::SetThreadDescription_pos,
                     "kernel32/thread",
                     "SetThreadDescription",
                     &[
@@ -5652,7 +5724,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetThreadDescription(sys, hThread, lpThreadDescription);
+            let result = kernel32::thread::SetThreadDescription(sys, hThread, lpThreadDescription);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5667,7 +5739,7 @@ mod wrappers {
             let nPriority = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::SetThreadPriority_pos,
+                    kernel32::thread::SetThreadPriority_pos,
                     "kernel32/thread",
                     "SetThreadPriority",
                     &[("hThread", &hThread), ("nPriority", &nPriority)],
@@ -5676,7 +5748,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetThreadPriority(sys, hThread, nPriority);
+            let result = kernel32::thread::SetThreadPriority(sys, hThread, nPriority);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5690,7 +5762,7 @@ mod wrappers {
             let StackSizeInBytes = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::SetThreadStackGuarantee_pos,
+                    kernel32::thread::SetThreadStackGuarantee_pos,
                     "kernel32/thread",
                     "SetThreadStackGuarantee",
                     &[("StackSizeInBytes", &StackSizeInBytes)],
@@ -5699,7 +5771,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetThreadStackGuarantee(sys, StackSizeInBytes);
+            let result = kernel32::thread::SetThreadStackGuarantee(sys, StackSizeInBytes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5713,7 +5785,7 @@ mod wrappers {
             let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::SetUnhandledExceptionFilter_pos,
+                    kernel32::misc::SetUnhandledExceptionFilter_pos,
                     "kernel32/misc",
                     "SetUnhandledExceptionFilter",
                     &[("lpTopLevelExceptionFilter", &_lpTopLevelExceptionFilter)],
@@ -5722,7 +5794,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SetUnhandledExceptionFilter(sys, _lpTopLevelExceptionFilter);
+            let result =
+                kernel32::misc::SetUnhandledExceptionFilter(sys, _lpTopLevelExceptionFilter);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5737,7 +5810,7 @@ mod wrappers {
             let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/resource") {
                 trace::Record::new(
-                    kernel32::SizeofResource_pos,
+                    kernel32::resource::SizeofResource_pos,
                     "kernel32/resource",
                     "SizeofResource",
                     &[("hModule", &hModule), ("hResInfo", &hResInfo)],
@@ -5746,7 +5819,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SizeofResource(sys, hModule, hResInfo);
+            let result = kernel32::resource::SizeofResource(sys, hModule, hResInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5763,7 +5836,7 @@ mod wrappers {
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::Sleep_pos,
+                    kernel32::time::Sleep_pos,
                     "kernel32/time",
                     "Sleep",
                     &[("dwMilliseconds", &dwMilliseconds)],
@@ -5775,7 +5848,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::Sleep(sys, dwMilliseconds).await;
+                let result = kernel32::time::Sleep(sys, dwMilliseconds).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5794,7 +5867,7 @@ mod wrappers {
             let bAlertable = <bool>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::SleepEx_pos,
+                    kernel32::time::SleepEx_pos,
                     "kernel32/time",
                     "SleepEx",
                     &[
@@ -5809,7 +5882,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::SleepEx(sys, dwMilliseconds, bAlertable).await;
+                let result = kernel32::time::SleepEx(sys, dwMilliseconds, bAlertable).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -5825,7 +5898,7 @@ mod wrappers {
             let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/time") {
                 trace::Record::new(
-                    kernel32::SystemTimeToFileTime_pos,
+                    kernel32::time::SystemTimeToFileTime_pos,
                     "kernel32/time",
                     "SystemTimeToFileTime",
                     &[("lpSystemTime", &lpSystemTime), ("lpFileTime", &lpFileTime)],
@@ -5834,7 +5907,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::SystemTimeToFileTime(sys, lpSystemTime, lpFileTime);
+            let result = kernel32::time::SystemTimeToFileTime(sys, lpSystemTime, lpFileTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5849,7 +5922,7 @@ mod wrappers {
             let uExitCode = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::TerminateProcess_pos,
+                    kernel32::misc::TerminateProcess_pos,
                     "kernel32/misc",
                     "TerminateProcess",
                     &[("hProcess", &hProcess), ("uExitCode", &uExitCode)],
@@ -5858,7 +5931,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::TerminateProcess(sys, hProcess, uExitCode);
+            let result = kernel32::misc::TerminateProcess(sys, hProcess, uExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5873,7 +5946,7 @@ mod wrappers {
             let dwExitCode = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::TerminateThread_pos,
+                    kernel32::thread::TerminateThread_pos,
                     "kernel32/thread",
                     "TerminateThread",
                     &[("hThread", &hThread), ("dwExitCode", &dwExitCode)],
@@ -5882,7 +5955,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::TerminateThread(sys, hThread, dwExitCode);
+            let result = kernel32::thread::TerminateThread(sys, hThread, dwExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5894,12 +5967,17 @@ mod wrappers {
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
-                trace::Record::new(kernel32::TlsAlloc_pos, "kernel32/thread", "TlsAlloc", &[])
-                    .enter()
+                trace::Record::new(
+                    kernel32::thread::TlsAlloc_pos,
+                    "kernel32/thread",
+                    "TlsAlloc",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = kernel32::TlsAlloc(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::thread::TlsAlloc(&mut *(sys.machine() as *mut crate::Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5913,7 +5991,7 @@ mod wrappers {
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::TlsFree_pos,
+                    kernel32::thread::TlsFree_pos,
                     "kernel32/thread",
                     "TlsFree",
                     &[("dwTlsIndex", &dwTlsIndex)],
@@ -5923,7 +6001,7 @@ mod wrappers {
                 None
             };
             let result =
-                kernel32::TlsFree(&mut *(sys.machine() as *mut crate::Machine), dwTlsIndex);
+                kernel32::thread::TlsFree(&mut *(sys.machine() as *mut crate::Machine), dwTlsIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5937,7 +6015,7 @@ mod wrappers {
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::TlsGetValue_pos,
+                    kernel32::thread::TlsGetValue_pos,
                     "kernel32/thread",
                     "TlsGetValue",
                     &[("dwTlsIndex", &dwTlsIndex)],
@@ -5946,8 +6024,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::TlsGetValue(&mut *(sys.machine() as *mut crate::Machine), dwTlsIndex);
+            let result = kernel32::thread::TlsGetValue(
+                &mut *(sys.machine() as *mut crate::Machine),
+                dwTlsIndex,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5962,7 +6042,7 @@ mod wrappers {
             let lpTlsValue = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/thread") {
                 trace::Record::new(
-                    kernel32::TlsSetValue_pos,
+                    kernel32::thread::TlsSetValue_pos,
                     "kernel32/thread",
                     "TlsSetValue",
                     &[("dwTlsIndex", &dwTlsIndex), ("lpTlsValue", &lpTlsValue)],
@@ -5971,7 +6051,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::TlsSetValue(
+            let result = kernel32::thread::TlsSetValue(
                 &mut *(sys.machine() as *mut crate::Machine),
                 dwTlsIndex,
                 lpTlsValue,
@@ -5989,7 +6069,7 @@ mod wrappers {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/sync/srw_lock") {
                 trace::Record::new(
-                    kernel32::TryAcquireSRWLockExclusive_pos,
+                    kernel32::sync::srw_lock::TryAcquireSRWLockExclusive_pos,
                     "kernel32/sync/srw_lock",
                     "TryAcquireSRWLockExclusive",
                     &[("SRWLock", &SRWLock)],
@@ -5998,7 +6078,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::TryAcquireSRWLockExclusive(sys, SRWLock);
+            let result = kernel32::sync::srw_lock::TryAcquireSRWLockExclusive(sys, SRWLock);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6012,7 +6092,7 @@ mod wrappers {
             let _exceptionInfo = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/misc") {
                 trace::Record::new(
-                    kernel32::UnhandledExceptionFilter_pos,
+                    kernel32::misc::UnhandledExceptionFilter_pos,
                     "kernel32/misc",
                     "UnhandledExceptionFilter",
                     &[("exceptionInfo", &_exceptionInfo)],
@@ -6021,7 +6101,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::UnhandledExceptionFilter(sys, _exceptionInfo);
+            let result = kernel32::misc::UnhandledExceptionFilter(sys, _exceptionInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6039,7 +6119,7 @@ mod wrappers {
             let nNumberOfBytesToUnlockHigh = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::UnlockFile_pos,
+                    kernel32::file::file::UnlockFile_pos,
                     "kernel32/file/file",
                     "UnlockFile",
                     &[
@@ -6054,7 +6134,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::UnlockFile(
+            let result = kernel32::file::file::UnlockFile(
                 sys,
                 hFile,
                 dwFileOffsetLow,
@@ -6078,7 +6158,7 @@ mod wrappers {
             let flProtec = <Result<PAGE, u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::VirtualAlloc_pos,
+                    kernel32::memory::VirtualAlloc_pos,
                     "kernel32/memory",
                     "VirtualAlloc",
                     &[
@@ -6092,7 +6172,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::VirtualAlloc(
+            let result = kernel32::memory::VirtualAlloc(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpAddress,
                 dwSize,
@@ -6114,7 +6194,7 @@ mod wrappers {
             let dwFreeType = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::VirtualFree_pos,
+                    kernel32::memory::VirtualFree_pos,
                     "kernel32/memory",
                     "VirtualFree",
                     &[
@@ -6127,7 +6207,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::VirtualFree(sys, lpAddress, dwSize, dwFreeType);
+            let result = kernel32::memory::VirtualFree(sys, lpAddress, dwSize, dwFreeType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6144,7 +6224,7 @@ mod wrappers {
             let lpflOldProtect = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::VirtualProtect_pos,
+                    kernel32::memory::VirtualProtect_pos,
                     "kernel32/memory",
                     "VirtualProtect",
                     &[
@@ -6158,8 +6238,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::VirtualProtect(sys, lpAddress, dwSize, flNewProtect, lpflOldProtect);
+            let result = kernel32::memory::VirtualProtect(
+                sys,
+                lpAddress,
+                dwSize,
+                flNewProtect,
+                lpflOldProtect,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6176,7 +6261,7 @@ mod wrappers {
             let dwLength = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/memory") {
                 trace::Record::new(
-                    kernel32::VirtualQuery_pos,
+                    kernel32::memory::VirtualQuery_pos,
                     "kernel32/memory",
                     "VirtualQuery",
                     &[
@@ -6189,7 +6274,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::VirtualQuery(sys, lpAddress, lpBuffer, dwLength);
+            let result = kernel32::memory::VirtualQuery(sys, lpAddress, lpBuffer, dwLength);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6209,7 +6294,7 @@ mod wrappers {
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/sync/wait") {
                 trace::Record::new(
-                    kernel32::WaitForMultipleObjects_pos,
+                    kernel32::sync::wait::WaitForMultipleObjects_pos,
                     "kernel32/sync/wait",
                     "WaitForMultipleObjects",
                     &[
@@ -6226,7 +6311,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::WaitForMultipleObjects(
+                let result = kernel32::sync::wait::WaitForMultipleObjects(
                     &mut *(sys.machine() as *mut crate::Machine),
                     nCount,
                     lpHandles,
@@ -6252,7 +6337,7 @@ mod wrappers {
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/sync/wait") {
                 trace::Record::new(
-                    kernel32::WaitForSingleObject_pos,
+                    kernel32::sync::wait::WaitForSingleObject_pos,
                     "kernel32/sync/wait",
                     "WaitForSingleObject",
                     &[("handle", &handle), ("dwMilliseconds", &dwMilliseconds)],
@@ -6264,7 +6349,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::WaitForSingleObject(
+                let result = kernel32::sync::wait::WaitForSingleObject(
                     &mut *(sys.machine() as *mut crate::Machine),
                     handle,
                     dwMilliseconds,
@@ -6291,7 +6376,7 @@ mod wrappers {
             let lpUsedDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
             let __trace_record = if trace::enabled("kernel32/nls") {
                 trace::Record::new(
-                    kernel32::WideCharToMultiByte_pos,
+                    kernel32::nls::WideCharToMultiByte_pos,
                     "kernel32/nls",
                     "WideCharToMultiByte",
                     &[
@@ -6309,7 +6394,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WideCharToMultiByte(
+            let result = kernel32::nls::WideCharToMultiByte(
                 sys,
                 CodePage,
                 dwFlags,
@@ -6336,7 +6421,7 @@ mod wrappers {
             let lpReserved = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::WriteConsoleA_pos,
+                    kernel32::console::WriteConsoleA_pos,
                     "kernel32/console",
                     "WriteConsoleA",
                     &[
@@ -6350,7 +6435,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WriteConsoleA(
+            let result = kernel32::console::WriteConsoleA(
                 sys,
                 hConsoleOutput,
                 lpBuffer,
@@ -6373,7 +6458,7 @@ mod wrappers {
             let _lpReserved = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/console") {
                 trace::Record::new(
-                    kernel32::WriteConsoleW_pos,
+                    kernel32::console::WriteConsoleW_pos,
                     "kernel32/console",
                     "WriteConsoleW",
                     &[
@@ -6387,7 +6472,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WriteConsoleW(
+            let result = kernel32::console::WriteConsoleW(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hConsoleOutput,
                 lpBuffer,
@@ -6410,7 +6495,7 @@ mod wrappers {
             let lpOverlapped = <u32>::from_stack(mem, stack_args + 16u32);
             let __trace_record = if trace::enabled("kernel32/file/file") {
                 trace::Record::new(
-                    kernel32::WriteFile_pos,
+                    kernel32::file::file::WriteFile_pos,
                     "kernel32/file/file",
                     "WriteFile",
                     &[
@@ -6424,7 +6509,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WriteFile(
+            let result = kernel32::file::file::WriteFile(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpBuffer,
@@ -6447,7 +6532,7 @@ mod wrappers {
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::WritePrivateProfileStringA_pos,
+                    kernel32::ini::WritePrivateProfileStringA_pos,
                     "kernel32/ini",
                     "WritePrivateProfileStringA",
                     &[
@@ -6461,7 +6546,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WritePrivateProfileStringA(
+            let result = kernel32::ini::WritePrivateProfileStringA(
                 sys, lpAppName, lpKeyName, lpString, lpFileName,
             );
             if let Some(mut __trace_record) = __trace_record {
@@ -6479,7 +6564,7 @@ mod wrappers {
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/ini") {
                 trace::Record::new(
-                    kernel32::WriteProfileStringW_pos,
+                    kernel32::ini::WriteProfileStringW_pos,
                     "kernel32/ini",
                     "WriteProfileStringW",
                     &[
@@ -6492,7 +6577,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::WriteProfileStringW(sys, lpAppName, lpKeyName, lpString);
+            let result = kernel32::ini::WriteProfileStringW(sys, lpAppName, lpKeyName, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6507,7 +6592,7 @@ mod wrappers {
             let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/file16") {
                 trace::Record::new(
-                    kernel32::_hread_pos,
+                    kernel32::file::file16::_hread_pos,
                     "kernel32/file/file16",
                     "_hread",
                     &[("hFile", &hFile), ("lpBuffer", &lpBuffer)],
@@ -6516,7 +6601,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_hread(
+            let result = kernel32::file::file16::_hread(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpBuffer,
@@ -6534,7 +6619,7 @@ mod wrappers {
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/file/file16") {
                 trace::Record::new(
-                    kernel32::_lclose_pos,
+                    kernel32::file::file16::_lclose_pos,
                     "kernel32/file/file16",
                     "_lclose",
                     &[("hFile", &hFile)],
@@ -6543,7 +6628,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lclose(&mut *(sys.machine() as *mut crate::Machine), hFile);
+            let result = kernel32::file::file16::_lclose(
+                &mut *(sys.machine() as *mut crate::Machine),
+                hFile,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6559,7 +6647,7 @@ mod wrappers {
             let iOrigin = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/file/file16") {
                 trace::Record::new(
-                    kernel32::_llseek_pos,
+                    kernel32::file::file16::_llseek_pos,
                     "kernel32/file/file16",
                     "_llseek",
                     &[
@@ -6572,7 +6660,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_llseek(
+            let result = kernel32::file::file16::_llseek(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lOffset,
@@ -6592,7 +6680,7 @@ mod wrappers {
             let iReadWrite = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/file16") {
                 trace::Record::new(
-                    kernel32::_lopen_pos,
+                    kernel32::file::file16::_lopen_pos,
                     "kernel32/file/file16",
                     "_lopen",
                     &[("lpPathName", &lpPathName), ("iReadWrite", &iReadWrite)],
@@ -6601,7 +6689,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lopen(
+            let result = kernel32::file::file16::_lopen(
                 &mut *(sys.machine() as *mut crate::Machine),
                 lpPathName,
                 iReadWrite,
@@ -6620,7 +6708,7 @@ mod wrappers {
             let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/file/file16") {
                 trace::Record::new(
-                    kernel32::_lread_pos,
+                    kernel32::file::file16::_lread_pos,
                     "kernel32/file/file16",
                     "_lread",
                     &[("hFile", &hFile), ("lpBuffer", &lpBuffer)],
@@ -6629,7 +6717,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::_lread(
+            let result = kernel32::file::file16::_lread(
                 &mut *(sys.machine() as *mut crate::Machine),
                 hFile,
                 lpBuffer,
@@ -6648,7 +6736,7 @@ mod wrappers {
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcatA_pos,
+                    kernel32::libc::lstrcatA_pos,
                     "kernel32/libc",
                     "lstrcatA",
                     &[("lpString1", &lpString1), ("lpString2", &lpString2)],
@@ -6657,7 +6745,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcatA(sys, lpString1, lpString2);
+            let result = kernel32::libc::lstrcatA(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6672,7 +6760,7 @@ mod wrappers {
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcmpA_pos,
+                    kernel32::libc::lstrcmpA_pos,
                     "kernel32/libc",
                     "lstrcmpA",
                     &[("lpString1", &lpString1), ("lpString2", &lpString2)],
@@ -6681,7 +6769,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcmpA(sys, lpString1, lpString2);
+            let result = kernel32::libc::lstrcmpA(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6696,7 +6784,7 @@ mod wrappers {
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcmpiA_pos,
+                    kernel32::libc::lstrcmpiA_pos,
                     "kernel32/libc",
                     "lstrcmpiA",
                     &[("lpString1", &lpString1), ("lpString2", &lpString2)],
@@ -6705,7 +6793,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcmpiA(sys, lpString1, lpString2);
+            let result = kernel32::libc::lstrcmpiA(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6720,7 +6808,7 @@ mod wrappers {
             let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcpyA_pos,
+                    kernel32::libc::lstrcpyA_pos,
                     "kernel32/libc",
                     "lstrcpyA",
                     &[("lpString1", &lpString1), ("lpString2", &lpString2)],
@@ -6729,7 +6817,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcpyA(sys, lpString1, lpString2);
+            let result = kernel32::libc::lstrcpyA(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6744,7 +6832,7 @@ mod wrappers {
             let lpString2 = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcpyW_pos,
+                    kernel32::libc::lstrcpyW_pos,
                     "kernel32/libc",
                     "lstrcpyW",
                     &[("lpString1", &lpString1), ("lpString2", &lpString2)],
@@ -6753,7 +6841,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcpyW(sys, lpString1, lpString2);
+            let result = kernel32::libc::lstrcpyW(sys, lpString1, lpString2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6769,7 +6857,7 @@ mod wrappers {
             let iMaxLength = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrcpynA_pos,
+                    kernel32::libc::lstrcpynA_pos,
                     "kernel32/libc",
                     "lstrcpynA",
                     &[
@@ -6782,7 +6870,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrcpynA(sys, lpString1, lpString2, iMaxLength);
+            let result = kernel32::libc::lstrcpynA(sys, lpString1, lpString2, iMaxLength);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6796,7 +6884,7 @@ mod wrappers {
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrlenA_pos,
+                    kernel32::libc::lstrlenA_pos,
                     "kernel32/libc",
                     "lstrlenA",
                     &[("lpString", &lpString)],
@@ -6805,7 +6893,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrlenA(sys, lpString);
+            let result = kernel32::libc::lstrlenA(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6819,7 +6907,7 @@ mod wrappers {
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/libc") {
                 trace::Record::new(
-                    kernel32::lstrlenW_pos,
+                    kernel32::libc::lstrlenW_pos,
                     "kernel32/libc",
                     "lstrlenW",
                     &[("lpString", &lpString)],
@@ -6828,7 +6916,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::lstrlenW(sys, lpString);
+            let result = kernel32::libc::lstrlenW(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6845,7 +6933,7 @@ mod wrappers {
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if trace::enabled("kernel32/init") {
                 trace::Record::new(
-                    kernel32::retrowin32_main_pos,
+                    kernel32::init::retrowin32_main_pos,
                     "kernel32/init",
                     "retrowin32_main",
                     &[("entry_point", &entry_point)],
@@ -6857,7 +6945,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::retrowin32_main(
+                let result = kernel32::init::retrowin32_main(
                     &mut *(sys.machine() as *mut crate::Machine),
                     entry_point,
                 )
@@ -6880,7 +6968,7 @@ mod wrappers {
             let param = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if trace::enabled("kernel32/init") {
                 trace::Record::new(
-                    kernel32::retrowin32_thread_main_pos,
+                    kernel32::init::retrowin32_thread_main_pos,
                     "kernel32/init",
                     "retrowin32_thread_main",
                     &[("entry_point", &entry_point), ("param", &param)],
@@ -6892,7 +6980,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::retrowin32_thread_main(
+                let result = kernel32::init::retrowin32_thread_main(
                     &mut *(sys.machine() as *mut crate::Machine),
                     entry_point,
                     param,
