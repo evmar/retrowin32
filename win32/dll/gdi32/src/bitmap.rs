@@ -1,6 +1,6 @@
 //! The bitmap file/memory format and pixel buffers.
 
-use super::COLORREF;
+use crate::draw::COLORREF;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::ops::Range;
 use win32_winapi::RECT;

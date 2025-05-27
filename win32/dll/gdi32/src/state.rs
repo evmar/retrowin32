@@ -1,5 +1,7 @@
-use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object, ScreenDCTarget, bitmap::Bitmap};
+use crate::dc::{DC, DCTarget, HDC, ScreenDCTarget};
+use crate::{HGDIOBJ, LOWEST_HGDIOBJ, Object, bitmap::Bitmap};
 use std::{cell::RefCell, rc::Rc};
+use win32_system::System;
 use win32_winapi::Handles;
 
 pub struct State {
@@ -56,4 +58,12 @@ impl State {
         }
         self.screen_dc
     }
+}
+
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    type SysState = std::cell::RefCell<State>;
+    sys.state(&std::any::TypeId::of::<SysState>())
+        .downcast_ref::<SysState>()
+        .unwrap()
+        .borrow_mut()
 }

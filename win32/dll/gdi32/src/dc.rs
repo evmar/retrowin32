@@ -1,7 +1,8 @@
-use super::{
-    DCHandles, GDIHandles, HGDIOBJ, R2,
+use crate::{
+    HGDIOBJ,
     bitmap::{self, Bitmap, PixelData},
-    get_state,
+    draw::R2,
+    state::{DCHandles, GDIHandles, get_state},
 };
 use std::{cell::RefCell, rc::Rc};
 use win32_system::System;

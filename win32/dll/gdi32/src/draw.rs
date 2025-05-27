@@ -1,6 +1,6 @@
 //! Pens, brushes, color.
 
-use super::{HDC, HGDIOBJ, Object, get_state};
+use crate::{HDC, HGDIOBJ, Object, state::get_state};
 use win32_system::System;
 use win32_winapi::{
     POINT, RECT,

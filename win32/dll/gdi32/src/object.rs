@@ -1,4 +1,10 @@
-use super::{BITMAP, Brush, COLORREF, HDC, Pen, bitmap::Bitmap, get_state};
+use crate::{
+    HDC,
+    bitmap::Bitmap,
+    bitmap_api::BITMAP,
+    draw::{Brush, COLORREF, Pen},
+    state::get_state,
+};
 use memory::ExtensionsMut;
 use std::{cell::RefCell, rc::Rc};
 use win32_system::System;

@@ -1,6 +1,6 @@
 use super::{DCTarget, HBRUSH, HDC, WindowType, get_state};
 use builtin_gdi32 as gdi32;
-use builtin_gdi32::{COLORREF, HGDIOBJ};
+use gdi32::{COLORREF, HGDIOBJ};
 use win32_system::System;
 use win32_winapi::calling_convention::FromArg;
 use win32_winapi::{HWND, RECT, Str16};

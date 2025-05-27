@@ -1,4 +1,4 @@
-use super::{HDC, HGDIOBJ};
+use crate::{HDC, HGDIOBJ};
 use win32_system::System;
 use win32_winapi::HANDLE;
 
