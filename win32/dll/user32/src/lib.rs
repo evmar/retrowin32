@@ -23,7 +23,6 @@ use win32_system::System;
 use win32_winapi::{HWND, Handles};
 
 pub use dialog::*;
-pub use gdi32::HDC;
 pub use keyboard::*;
 pub use menu::*;
 pub use message::*;
@@ -32,9 +31,11 @@ pub use paint::*;
 pub use rect::*;
 pub use resource::*;
 pub use timer::*;
-pub use win32_system::resource::ResourceKey;
 pub use window::*;
 pub use wndclass::*;
+
+pub use gdi32::HDC;
+pub use win32_system::resource::ResourceKey;
 
 pub struct State {
     wndclasses: WndClasses,

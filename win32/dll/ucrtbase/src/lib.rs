@@ -11,10 +11,4 @@ mod misc;
 mod rand;
 mod time;
 
-pub use builtin::*;
-pub use init::*;
-pub use math::*;
-pub use memory::*;
-pub use misc::*;
-pub use rand::*;
-pub use time::*;
+pub use builtin::DLL;

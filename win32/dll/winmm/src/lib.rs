@@ -12,16 +12,9 @@ mod time;
 mod wave;
 
 pub use builtin::DLL;
-
-pub use joy::*;
-pub use mci::*;
-pub use midi::*;
-pub use misc::*;
-pub use mixer::*;
-pub use time::*;
-pub use wave::*;
-
 use std::cell::{RefCell, RefMut};
+use time::TimeThread;
+use wave::WaveState;
 use win32_system::System;
 use win32_winapi::calling_convention::ABIReturn;
 

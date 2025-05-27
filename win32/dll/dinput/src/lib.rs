@@ -6,4 +6,3 @@ mod builtin;
 mod dinput;
 
 pub use builtin::DLL;
-pub use dinput::*;
