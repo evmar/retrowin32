@@ -1,3 +1,4 @@
+mod command_line;
 pub mod loader;
 mod machine;
 mod segments;

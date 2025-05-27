@@ -55,7 +55,7 @@ fn get_module_file_name(
     filename: &mut dyn Encoder,
 ) -> u32 {
     if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
-        let exe = machine.state.kernel32.cmdline.exe_name();
+        let exe = machine.cmdline.exe_name();
         filename.write_nul(&exe);
         match filename.status() {
             Ok(n) => n - 1,

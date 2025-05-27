@@ -3,7 +3,7 @@
 use super::{
     HEVENT, Thread,
     arena::Arena,
-    command_line::CommandLine,
+    command_line::CommandLineState,
     file::{FindHandle, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE},
 };
 use crate::Machine;
@@ -112,7 +112,9 @@ pub struct State {
 
     pub find_handles: Handles<HFIND, FindHandle>,
 
-    pub cmdline: CommandLine,
+    /// State for command line APIs.
+    /// The actual process command line is held in Machine, this is just to stash some pointers.
+    pub(crate) cmdline: CommandLineState,
 
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,
@@ -132,14 +134,12 @@ impl State {
             objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
-            cmdline: CommandLine::default(),
+            cmdline: CommandLineState::default(),
             break_on_startup: false,
         }
     }
 
-    pub fn init_process(&mut self, mem: Mem, cmdline: CommandLine) {
-        self.cmdline = cmdline;
-
+    pub fn init_process(&mut self, mem: Mem, cmdline: &str) {
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.alloc(std::cmp::max(
             std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
@@ -152,7 +152,9 @@ impl State {
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
         params.ImagePathName.clear();
-        params.CommandLine = self.cmdline.as_unicode_string(&mut self.arena, mem);
+        params.CommandLine = self
+            .cmdline
+            .as_unicode_string(&cmdline, &mut self.arena, mem);
 
         self.peb = self
             .arena

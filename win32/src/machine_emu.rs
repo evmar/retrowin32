@@ -1,13 +1,11 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
+    command_line::CommandLine,
     loader,
     machine::{MachineX, Status},
     shims::{Shims, retrowin32_dll_module},
-    winapi::{
-        self,
-        kernel32::{self, CommandLine},
-    },
+    winapi,
 };
 use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::collections::HashMap;
@@ -49,6 +47,7 @@ impl MachineX<Emulator> {
             state,
             state2: Default::default(),
             external_dlls: Default::default(),
+            cmdline: Default::default(),
             modules,
         }
     }
@@ -60,7 +59,8 @@ impl MachineX<Emulator> {
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
         self.state
             .kernel32
-            .init_process(self.memory.mem(), CommandLine::new(cmdline));
+            .init_process(self.memory.mem(), &cmdline);
+        self.cmdline = CommandLine::new(cmdline);
 
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();
@@ -259,7 +259,7 @@ impl MachineX<Emulator> {
         start_addr: u32,
         args: &[u32],
     ) -> u32 {
-        let thread = kernel32::create_thread(self, stack_size);
+        let thread = winapi::kernel32::create_thread(self, stack_size);
         let cpu = if new_cpu {
             self.emu.x86.new_cpu()
         } else {

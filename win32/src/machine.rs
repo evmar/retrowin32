@@ -1,5 +1,5 @@
 use crate::winapi::kernel32;
-use crate::{loader, winapi};
+use crate::{command_line::CommandLine, loader, winapi};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
@@ -23,6 +23,10 @@ pub struct MachineX<Emu> {
     pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
 
+    // TODO: fields below here maybe belong in some Process struct.
+    //
+    /// Process command line.
+    pub cmdline: CommandLine,
     /// Loaded PE modules: the exe and all DLLs.
     pub modules: HashMap<HMODULE, loader::Module>,
 }
