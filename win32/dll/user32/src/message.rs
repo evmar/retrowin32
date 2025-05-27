@@ -1,9 +1,8 @@
-use super::{Timers, Window, get_state};
-use crate::System;
+use crate::{get_state, timer::Timers, window::Window};
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
-use win32_system::{Wait, host};
+use win32_system::{System, Wait, host};
 use win32_winapi::*;
 
 #[repr(C)]

@@ -1,10 +1,9 @@
-use crate::{HINSTANCE, HMENU, HRGN, MSG, WM, WndClass, dispatch_message, get_state};
+pub use crate::paint::HRGN;
+use crate::{HINSTANCE, HMENU, MSG, WM, get_state, message::dispatch_message, wndclass::WndClass};
 use bitflags::bitflags;
 use builtin_gdi32 as gdi32;
-use gdi32::{
-    HDC,
-    bitmap::{Bitmap, PixelData, PixelFormat},
-};
+pub use gdi32::HDC;
+use gdi32::bitmap::{Bitmap, PixelData, PixelFormat};
 use memory::{Extensions, Mem};
 use std::{cell::RefCell, rc::Rc};
 use win32_system::{System, host};
