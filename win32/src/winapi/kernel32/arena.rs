@@ -17,8 +17,8 @@ impl Arena {
         }
     }
 
-    pub fn alloc(&mut self, size: u32, align: usize) -> u32 {
-        let next = align_to(self.next, align);
+    pub fn alloc(&mut self, size: u32) -> u32 {
+        let next = align_to(self.next, 4);
         if next + size > self.size {
             log::error!(
                 "Arena::alloc cannot allocate {:x}, using {:x}/{:x}",

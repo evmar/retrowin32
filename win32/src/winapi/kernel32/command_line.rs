@@ -32,7 +32,7 @@ impl CommandLine {
             let mut cmdline = self.string.clone();
             cmdline.push(0 as char); // nul terminator
 
-            let ptr = arena.alloc(cmdline.len() as u32, 1);
+            let ptr = arena.alloc(cmdline.len() as u32);
             mem.sub32_mut(ptr, cmdline.len() as u32)
                 .copy_from_slice(cmdline.as_bytes());
             self.cmdline8 = ptr;
@@ -45,7 +45,7 @@ impl CommandLine {
             let mut cmdline16 = String16::from(&self.string);
             cmdline16.0.push(0); // nul terminator
 
-            let ptr = arena.alloc(cmdline16.byte_size() as u32, 2);
+            let ptr = arena.alloc(cmdline16.byte_size() as u32);
             mem.sub32_mut(ptr, cmdline16.byte_size() as u32)
                 .copy_from_slice(unsafe {
                     std::slice::from_raw_parts::<u8>(

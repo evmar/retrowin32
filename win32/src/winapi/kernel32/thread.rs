@@ -67,16 +67,13 @@ pub struct Thread {
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
 fn init_teb(peb_addr: u32, thread_id: u32, arena: &mut Arena, mem: Mem) -> u32 {
     // SEH chain
-    let seh_addr = arena.alloc(
-        std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
-        4,
-    );
+    let seh_addr = arena.alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
     let seh = mem.get_aligned_ref_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
     seh.Prev = 0xFFFF_FFFF;
     seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
 
     // TEB
-    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
+    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
     let teb = mem.get_aligned_ref_mut::<TEB>(teb_addr);
     teb.Tib.ExceptionList = seh_addr;
     teb.Tib._Self = teb_addr; // Confusing: it points to itself.

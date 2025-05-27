@@ -141,13 +141,10 @@ impl State {
         self.cmdline = cmdline;
 
         // RTL_USER_PROCESS_PARAMETERS
-        let params_addr = self.arena.alloc(
-            std::cmp::max(
-                std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-                0x100,
-            ),
-            4,
-        );
+        let params_addr = self.arena.alloc(std::cmp::max(
+            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+            0x100,
+        ));
         let params = mem.get_aligned_ref_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
         // x86.put::<u32>(params_addr + 0x10, console_handle);
         // x86.put::<u32>(params_addr + 0x14, console_flags);
@@ -159,7 +156,7 @@ impl State {
 
         self.peb = self
             .arena
-            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
+            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.get_aligned_ref_mut::<PEB>(self.peb);
         peb.ProcessParameters = params_addr;
         peb.ProcessHeap = 0; // TODO: use state.process_heap_addr instead
