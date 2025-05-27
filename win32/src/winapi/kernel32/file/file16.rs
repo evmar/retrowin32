@@ -1,6 +1,6 @@
 //! File API for 16-bit Windows backward compat.
 
-use super::{HFILE, OpenFile};
+use super::HFILE;
 use crate::Machine;
 use std::io::SeekFrom;
 use win32_system::System;
@@ -11,7 +11,7 @@ pub fn _lopen(machine: &mut Machine, lpPathName: Option<&str>, iReadWrite: i32) 
     if iReadWrite != 0 {
         todo!();
     }
-    OpenFile(machine, lpPathName, None, 0)
+    super::file::OpenFile(machine, lpPathName, None, 0)
 }
 
 #[win32_derive::dllexport]

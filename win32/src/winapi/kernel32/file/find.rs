@@ -3,7 +3,8 @@ use crate::winapi::kernel32::{FILETIME, file::FileAttribute};
 use win32_system::{System, host};
 use win32_winapi::{DWORD, ERROR, HANDLE, Str16, WindowsPath};
 
-use super::{HFILE, MAX_PATH, normalize_dos_path};
+use super::HFILE;
+use super::path::{MAX_PATH, normalize_dos_path};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFINDT;

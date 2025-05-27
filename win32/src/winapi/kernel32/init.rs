@@ -4,7 +4,10 @@ use super::{
     HEVENT, Thread,
     arena::Arena,
     command_line::CommandLineState,
-    file::{FindHandle, HFILE, HFIND, STDERR_HFILE, STDOUT_HFILE},
+    file::{
+        HFILE, STDERR_HFILE, STDOUT_HFILE,
+        find::{FindHandle, HFIND},
+    },
 };
 use crate::Machine;
 use ::memory::Mem;
