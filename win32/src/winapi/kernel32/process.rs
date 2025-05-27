@@ -1,4 +1,5 @@
-use super::{SECURITY_ATTRIBUTES, STARTUPINFOA};
+use super::SECURITY_ATTRIBUTES;
+pub use super::dll::STARTUPINFOA;
 use win32_system::System;
 use win32_winapi::{HANDLE, Str16};
 

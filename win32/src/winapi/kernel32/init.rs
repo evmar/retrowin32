@@ -56,6 +56,7 @@ struct RTL_USER_PROCESS_PARAMETERS {
 unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
+#[cfg(feature = "x86-unicorn")]
 pub struct GDTEntries {
     /// Address of GDT itself.
     pub addr: u32,
@@ -91,12 +92,6 @@ impl KernelObjectsMethods for KernelObjects {
             _ => None,
         }
     }
-}
-
-pub struct ImportedSymbol {
-    pub module: String,
-    pub name: Box<[u8]>,
-    pub addr: u32,
 }
 
 pub struct State {

@@ -230,6 +230,7 @@ pub fn VirtualAlloc(
     mapping.addr
 }
 
+#[repr(C)]
 #[derive(Debug)]
 pub struct MEMORY_BASIC_INFORMATION {
     pub BaseAddress: u32,

@@ -1,6 +1,6 @@
 //! Process command line, as exposed in GetCommandLine() and also TEB.
 
-use super::{UNICODE_STRING, arena::Arena};
+use super::{arena::Arena, init::UNICODE_STRING};
 use crate::Machine;
 use memory::{ExtensionsMut, Mem};
 use win32_winapi::String16;
