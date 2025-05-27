@@ -43,10 +43,6 @@ fn parse_files(module_name: &str, root: &Path) -> anyhow::Result<Vec<(String, sy
         if trace_name_path.ends_with("mod") || trace_name_path.ends_with("lib") {
             trace_name_path.pop();
         }
-        if trace_name_path.ends_with(module_name) {
-            // avoid e.g. "dinput/dinput"
-            trace_name_path.pop();
-        }
         let mut trace_name = format!("{}", Path::new(module_name).join(trace_name_path).display());
         if trace_name.ends_with("/") {
             trace_name.pop();
