@@ -8,6 +8,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn NtCurrentTeb(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ntdll::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ntdll") {
@@ -23,6 +24,7 @@ mod wrappers {
         }
     }
     pub unsafe fn NtReadFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ntdll::*;
         unsafe {
             let mem = sys.mem().detach();
             let FileHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -71,6 +73,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RtlExitUserProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ntdll::*;
         unsafe {
             let mem = sys.mem().detach();
             let exit_code = <u32>::from_stack(mem, stack_args + 0u32);

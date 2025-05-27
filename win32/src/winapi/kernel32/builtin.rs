@@ -8,6 +8,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn AcquireSRWLockExclusive(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::srw_lock::*;
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
@@ -30,6 +31,7 @@ mod wrappers {
         }
     }
     pub unsafe fn AcquireSRWLockShared(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::srw_lock::*;
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
@@ -52,6 +54,7 @@ mod wrappers {
         }
     }
     pub unsafe fn AddVectoredExceptionHandler(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let first = <u32>::from_stack(mem, stack_args + 0u32);
@@ -75,6 +78,7 @@ mod wrappers {
         }
     }
     pub unsafe fn Beep(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwFreq = <u32>::from_stack(mem, stack_args + 0u32);
@@ -98,6 +102,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CloseHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hObject = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -121,6 +126,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CompareStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
@@ -157,6 +163,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CompareStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
@@ -193,6 +200,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -223,6 +231,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateDirectoryW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -250,6 +259,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateEventA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::event::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpEventAttributes = <u32>::from_stack(mem, stack_args + 0u32);
@@ -286,6 +296,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateFileA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -333,6 +344,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateFileMappingA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::mapping::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -376,6 +388,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateFileW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -423,6 +436,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateMutexA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::mutex::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMutexAttributes =
@@ -452,6 +466,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreatePipe(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::pipe::*;
         unsafe {
             let mem = sys.mem().detach();
             let hReadPipe = <Option<&mut HFILE>>::from_stack(mem, stack_args + 0u32);
@@ -483,6 +498,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateProcessA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::process::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpApplicationName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -540,6 +556,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateProcessW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::process::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpApplicationName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -599,7 +616,8 @@ mod wrappers {
     pub unsafe fn CreateThread(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpThreadAttributes = <u32>::from_stack(mem, stack_args + 0u32);
@@ -647,6 +665,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DebugBreak(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -663,6 +682,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DecodePointer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
@@ -685,6 +705,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteCriticalSection(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -707,6 +728,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteFileA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -730,6 +752,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteFileW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -752,6 +775,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DisableThreadLibraryCalls(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -774,6 +798,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DuplicateHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hSourceProcessHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -819,6 +844,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EncodePointer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
@@ -841,6 +867,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EnterCriticalSection(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -863,6 +890,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EnumSystemLocalesA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpLocaleEnumProc = <u32>::from_stack(mem, stack_args + 0u32);
@@ -889,6 +917,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ExitProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let uExitCode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -912,6 +941,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ExitThread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwExitCode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -935,6 +965,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FileTimeToDosDateTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
@@ -963,6 +994,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FileTimeToLocalFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
@@ -989,6 +1021,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FileTimeToSystemTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
@@ -1012,6 +1045,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindClose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::find::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
@@ -1035,6 +1069,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindFirstFileA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::find::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1066,6 +1101,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindFirstFileW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::find::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -1093,6 +1129,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindNextFileA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::find::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
@@ -1124,6 +1161,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindNextFileW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::find::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFindFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -1151,6 +1189,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindResourceA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -1179,6 +1218,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindResourceW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -1207,6 +1247,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FlushFileBuffers(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -1230,6 +1271,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FormatMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1275,6 +1317,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FormatMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwFlags = <Result<FormatMessageFlags, u32>>::from_stack(mem, stack_args + 0u32);
@@ -1320,6 +1363,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FreeEnvironmentStringsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1342,6 +1386,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FreeEnvironmentStringsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let penv = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1364,6 +1409,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FreeLibrary(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -1386,6 +1432,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FreeResource(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hResData = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1408,6 +1455,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetACP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
@@ -1423,6 +1471,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCPInfo(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let _CodePage = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1446,6 +1495,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCommandLineA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::command_line::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/command_line") {
@@ -1467,6 +1517,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCommandLineW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::command_line::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/command_line") {
@@ -1488,6 +1539,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetConsoleMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -1511,6 +1563,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetConsoleOutputCP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
@@ -1532,6 +1585,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetConsoleScreenBufferInfo(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -1563,6 +1617,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1590,6 +1645,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentDirectoryW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1617,6 +1673,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::process::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/process") {
@@ -1638,6 +1695,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentProcessId(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -1659,6 +1717,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentThread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
@@ -1680,6 +1739,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCurrentThreadId(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
@@ -1701,6 +1761,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDiskFreeSpaceA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1740,6 +1801,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDriveTypeA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1762,6 +1824,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDriveTypeW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpRootPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -1784,6 +1847,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetEnvironmentStrings(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/env") {
@@ -1805,6 +1869,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetEnvironmentStringsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/env") {
@@ -1826,6 +1891,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetEnvironmentVariableA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1849,6 +1915,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetEnvironmentVariableW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let name = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -1872,6 +1939,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetExitCodeProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::process::*;
         unsafe {
             let mem = sys.mem().detach();
             let hProcess = <HPROCESS>::from_stack(mem, stack_args + 0u32);
@@ -1895,6 +1963,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileAttributesA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1920,6 +1989,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileAttributesW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -1942,6 +2012,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileInformationByHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -1970,6 +2041,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileSize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -1997,6 +2069,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -2033,6 +2106,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileType(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -2055,6 +2129,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFullPathNameA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::path::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -2091,6 +2166,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFullPathNameW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::path::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2127,6 +2203,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLastError(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -2148,6 +2225,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLocalTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
@@ -2170,6 +2248,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLocaleInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2200,6 +2279,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLocaleInfoW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2230,6 +2310,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLogicalDrives(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/file/misc") {
@@ -2251,6 +2332,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetModuleFileNameA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -2278,6 +2360,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetModuleFileNameW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -2311,6 +2394,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetModuleHandleA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpModuleName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -2336,6 +2420,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetModuleHandleExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2369,6 +2454,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetModuleHandleW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2397,6 +2483,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -2424,6 +2511,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetOEMCP(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
@@ -2439,6 +2527,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPrivateProfileIntA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -2470,6 +2559,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPrivateProfileIntW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2501,6 +2591,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPrivateProfileStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -2543,6 +2634,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPrivateProfileStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2582,6 +2674,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetProcAddress(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -2609,6 +2702,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetProcessHeap(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/memory") {
@@ -2630,6 +2724,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetProfileIntW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2658,6 +2753,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetProfileStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -2689,6 +2785,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStartupInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
@@ -2711,6 +2808,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStartupInfoW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
@@ -2736,6 +2834,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::std::*;
         unsafe {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
@@ -2758,6 +2857,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStringTypeA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <LCID>::from_stack(mem, stack_args + 0u32);
@@ -2791,6 +2891,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStringTypeW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwInfoType = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2821,6 +2922,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2848,6 +2950,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
@@ -2870,6 +2973,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemTimeAsFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTimeAsFileTime =
@@ -2893,6 +2997,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetThreadLocale(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
@@ -2914,6 +3019,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetThreadPriority(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -2936,6 +3042,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTickCount(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/time") {
@@ -2957,6 +3064,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTimeZoneInformation(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpTimeZoneInformation =
@@ -2980,6 +3088,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetUserDefaultLCID(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/nls") {
@@ -3001,6 +3110,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetUserDefaultUILanguage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -3022,6 +3132,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetVersion(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -3038,6 +3149,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetVersionExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpVersionInformation =
@@ -3061,6 +3173,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetWindowsDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3088,6 +3201,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalAddAtomA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -3110,6 +3224,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
@@ -3137,6 +3252,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalFlags(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3159,6 +3275,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalFree(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3181,6 +3298,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let pMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3203,6 +3321,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalLock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
@@ -3225,6 +3344,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalReAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3254,6 +3374,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GlobalUnlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
@@ -3276,6 +3397,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3309,6 +3431,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapCompact(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3332,6 +3455,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapCreate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(mem, stack_args + 0u32);
@@ -3365,6 +3489,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapDestroy(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3387,6 +3512,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapFree(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3416,6 +3542,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapReAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3452,6 +3579,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapSetInformation(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let HeapHandle = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3488,6 +3616,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapSize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3517,6 +3646,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapValidate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3541,6 +3671,7 @@ mod wrappers {
         }
     }
     pub unsafe fn HeapWalk(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3564,6 +3695,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InitOnceBeginInitialize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::once::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
@@ -3595,6 +3727,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InitOnceComplete(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::once::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
@@ -3623,6 +3756,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InitializeCriticalSection(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3648,6 +3782,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3678,6 +3813,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InitializeCriticalSectionEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3707,6 +3843,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InitializeSListHead(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, stack_args + 0u32);
@@ -3729,6 +3866,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InterlockedDecrement(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::interlocked::*;
         unsafe {
             let mem = sys.mem().detach();
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -3751,6 +3889,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InterlockedIncrement(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::interlocked::*;
         unsafe {
             let mem = sys.mem().detach();
             let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -3773,6 +3912,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsBadCodePtr(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpfn = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3795,6 +3935,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsBadReadPtr(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lp = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3818,6 +3959,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsBadWritePtr(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lp = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3841,6 +3983,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsDBCSLeadByte(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
@@ -3863,6 +4006,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsDBCSLeadByteEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
@@ -3886,6 +4030,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsDebuggerPresent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/misc") {
@@ -3907,6 +4052,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsProcessorFeaturePresent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let feature = <Result<ProcessorFeature, u32>>::from_stack(mem, stack_args + 0u32);
@@ -3929,6 +4075,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsValidCodePage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let CodePage = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3951,6 +4098,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsValidLocale(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let Locale = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3974,6 +4122,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LCMapStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let locale = <LCID>::from_stack(mem, stack_args + 0u32);
@@ -4007,6 +4156,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LCMapStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let locale = <LCID>::from_stack(mem, stack_args + 0u32);
@@ -4040,6 +4190,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LeaveCriticalSection(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::critical_section::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4064,7 +4215,8 @@ mod wrappers {
     pub unsafe fn LoadLibraryA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4095,7 +4247,8 @@ mod wrappers {
     pub unsafe fn LoadLibraryExW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpLibFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4136,7 +4289,8 @@ mod wrappers {
     pub unsafe fn LoadLibraryW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::dll::*;
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4165,6 +4319,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadResource(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -4188,6 +4343,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LocalAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
@@ -4215,6 +4371,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LocalFileTimeToFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
@@ -4241,6 +4398,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LocalFree(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4263,6 +4421,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LockFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -4302,6 +4461,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LockResource(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hResData = <HRSRC>::from_stack(mem, stack_args + 0u32);
@@ -4324,6 +4484,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MoveFileA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpExistingFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4350,6 +4511,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MoveFileW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpExistingFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4376,6 +4538,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MulDiv(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let nNumber = <i32>::from_stack(mem, stack_args + 0u32);
@@ -4404,6 +4567,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MultiByteToWideChar(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
@@ -4443,6 +4607,7 @@ mod wrappers {
         }
     }
     pub unsafe fn OpenFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4476,6 +4641,7 @@ mod wrappers {
         }
     }
     pub unsafe fn OpenMutexA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::mutex::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4504,6 +4670,7 @@ mod wrappers {
         }
     }
     pub unsafe fn OutputDebugStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let msg = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4526,6 +4693,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PeekConsoleInputA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -4562,6 +4730,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PeekNamedPipe(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::pipe::*;
         unsafe {
             let mem = sys.mem().detach();
             let hNamedPipe = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -4604,6 +4773,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PulseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::event::*;
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -4626,6 +4796,7 @@ mod wrappers {
         }
     }
     pub unsafe fn QueryPerformanceCounter(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPerformanceCount =
@@ -4649,6 +4820,7 @@ mod wrappers {
         }
     }
     pub unsafe fn QueryPerformanceFrequency(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFrequency = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4671,6 +4843,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RaiseException(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwExceptionCode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4707,6 +4880,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReadConsoleA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -4747,6 +4921,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReadConsoleInputA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -4783,6 +4958,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReadFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -4819,6 +4995,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReleaseSRWLockExclusive(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::srw_lock::*;
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
@@ -4841,6 +5018,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReleaseSRWLockShared(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::srw_lock::*;
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
@@ -4863,6 +5041,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RemoveDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4888,6 +5067,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RemoveDirectoryW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -4910,6 +5090,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ResetEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::event::*;
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -4932,6 +5113,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ResumeThread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -4954,6 +5136,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RtlUnwind(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let TargetFrame = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4985,6 +5168,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetConsoleCtrlHandler(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let _handlerRoutine = <DWORD>::from_stack(mem, stack_args + 0u32);
@@ -5008,6 +5192,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetConsoleMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -5031,6 +5216,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetCurrentDirectoryA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -5053,6 +5239,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetCurrentDirectoryW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::fs::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -5075,6 +5262,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetEndOfFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -5098,6 +5286,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetEnvironmentVariableA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -5121,6 +5310,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetEnvironmentVariableW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::env::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -5144,6 +5334,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetErrorMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let uMode = <SEM>::from_stack(mem, stack_args + 0u32);
@@ -5166,6 +5357,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::event::*;
         unsafe {
             let mem = sys.mem().detach();
             let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -5188,6 +5380,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetFileAttributesA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -5218,6 +5411,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetFileAttributesW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -5244,6 +5438,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetFilePointer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -5280,6 +5475,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::metadata::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -5316,6 +5512,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetHandleCount(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let uNumber = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5338,6 +5535,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetLastError(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwErrCode = <Result<ERROR, u32>>::from_stack(mem, stack_args + 0u32);
@@ -5361,6 +5559,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetLocalTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
@@ -5383,6 +5582,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetPriorityClass(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hProcess = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -5409,6 +5609,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::std::*;
         unsafe {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
@@ -5432,6 +5633,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetThreadDescription(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -5458,6 +5660,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetThreadPriority(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -5481,6 +5684,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetThreadStackGuarantee(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let StackSizeInBytes = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -5503,6 +5707,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetUnhandledExceptionFilter(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5525,6 +5730,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SizeofResource(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -5550,7 +5756,8 @@ mod wrappers {
     pub unsafe fn Sleep(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5579,7 +5786,8 @@ mod wrappers {
     pub unsafe fn SleepEx(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5610,6 +5818,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SystemTimeToFileTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
@@ -5633,6 +5842,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TerminateProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hProcess = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5656,6 +5866,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TerminateThread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -5679,6 +5890,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TlsAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("kernel32/thread") {
@@ -5695,6 +5907,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TlsFree(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5718,6 +5931,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TlsGetValue(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5741,6 +5955,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TlsSetValue(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::thread::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5768,6 +5983,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TryAcquireSRWLockExclusive(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::sync::srw_lock::*;
         unsafe {
             let mem = sys.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
@@ -5790,6 +6006,7 @@ mod wrappers {
         }
     }
     pub unsafe fn UnhandledExceptionFilter(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let _exceptionInfo = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5812,6 +6029,7 @@ mod wrappers {
         }
     }
     pub unsafe fn UnlockFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -5851,6 +6069,7 @@ mod wrappers {
         }
     }
     pub unsafe fn VirtualAlloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5887,6 +6106,7 @@ mod wrappers {
         }
     }
     pub unsafe fn VirtualFree(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5915,6 +6135,7 @@ mod wrappers {
         }
     }
     pub unsafe fn VirtualProtect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5946,6 +6167,7 @@ mod wrappers {
         }
     }
     pub unsafe fn VirtualQuery(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5977,7 +6199,8 @@ mod wrappers {
     pub unsafe fn WaitForMultipleObjects(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::sync::wait::*;
         unsafe {
             let mem = sys.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6021,7 +6244,8 @@ mod wrappers {
     pub unsafe fn WaitForSingleObject(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::sync::wait::*;
         unsafe {
             let mem = sys.mem().detach();
             let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -6054,6 +6278,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WideCharToMultiByte(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::nls::*;
         unsafe {
             let mem = sys.mem().detach();
             let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
@@ -6102,6 +6327,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WriteConsoleA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -6138,6 +6364,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WriteConsoleW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::console::*;
         unsafe {
             let mem = sys.mem().detach();
             let hConsoleOutput = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6174,6 +6401,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WriteFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6210,6 +6438,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WritePrivateProfileStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -6242,6 +6471,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WriteProfileStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::ini::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -6270,6 +6500,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _hread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file16::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6297,6 +6528,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _lclose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file16::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6319,6 +6551,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _llseek(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file16::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6352,6 +6585,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _lopen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file16::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -6379,6 +6613,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _lread(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::file::file16::*;
         unsafe {
             let mem = sys.mem().detach();
             let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -6406,6 +6641,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcatA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6429,6 +6665,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcmpA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -6452,6 +6689,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcmpiA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -6475,6 +6713,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcpyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6498,6 +6737,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcpyW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6521,6 +6761,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrcpynA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6549,6 +6790,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrlenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -6571,6 +6813,7 @@ mod wrappers {
         }
     }
     pub unsafe fn lstrlenW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::libc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -6595,7 +6838,8 @@ mod wrappers {
     pub unsafe fn retrowin32_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
@@ -6628,7 +6872,8 @@ mod wrappers {
     pub unsafe fn retrowin32_thread_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use kernel32::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let entry_point = <u32>::from_stack(mem, stack_args + 0u32);

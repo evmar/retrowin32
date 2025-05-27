@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn DirectSoundCreate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
@@ -37,6 +38,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DirectSoundEnumerateA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpDSEnumCallback = <u32>::from_stack(mem, stack_args + 0u32);
@@ -66,6 +68,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -99,6 +102,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_GetStatus(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -122,6 +126,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_Lock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -170,6 +175,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_Play(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -201,6 +207,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -223,6 +230,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_SetFormat(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -246,6 +254,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSoundBuffer_Unlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -288,6 +297,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -324,6 +334,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectSound_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -349,6 +360,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dsound::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);

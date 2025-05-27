@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn PlaySoundW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let pszSound = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -37,6 +38,7 @@ mod wrappers {
         }
     }
     pub unsafe fn joyGetDevCapsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::joy::*;
         unsafe {
             let mem = sys.mem().detach();
             let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
@@ -61,6 +63,7 @@ mod wrappers {
         }
     }
     pub unsafe fn joyGetNumDevs(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::joy::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/joy") {
@@ -77,6 +80,7 @@ mod wrappers {
         }
     }
     pub unsafe fn joyGetPosEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::joy::*;
         unsafe {
             let mem = sys.mem().detach();
             let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
@@ -100,6 +104,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mciGetErrorStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mci::*;
         unsafe {
             let mem = sys.mem().detach();
             let mcierr = <u32>::from_stack(mem, stack_args + 0u32);
@@ -128,6 +133,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mciSendCommandA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mci::*;
         unsafe {
             let mem = sys.mem().detach();
             let mciId = <u32>::from_stack(mem, stack_args + 0u32);
@@ -158,6 +164,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mciSendStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mci::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpstrCommand = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -186,6 +193,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiInGetNumDevs(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/midi") {
@@ -207,6 +215,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutClose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
@@ -229,6 +238,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutGetDevCapsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let uDeviceID = <u32>::from_stack(mem, stack_args + 0u32);
@@ -257,6 +267,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutGetNumDevs(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/midi") {
@@ -278,6 +289,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutOpen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let phmo = <Option<&mut HMIDIOUT>>::from_stack(mem, stack_args + 0u32);
@@ -310,6 +322,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutReset(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
@@ -332,6 +345,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutSetVolume(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
@@ -355,6 +369,7 @@ mod wrappers {
         }
     }
     pub unsafe fn midiOutShortMsg(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::midi::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
@@ -378,6 +393,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerClose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmx = <u32>::from_stack(mem, stack_args + 0u32);
@@ -400,6 +416,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerGetControlDetailsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/mixer") {
@@ -421,6 +438,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerGetLineControlsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmxobj = <u32>::from_stack(mem, stack_args + 0u32);
@@ -449,6 +467,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerGetLineInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmxobj = <HMIXEROBJ>::from_stack(mem, stack_args + 0u32);
@@ -473,6 +492,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerOpen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let phmx = <u32>::from_stack(mem, stack_args + 0u32);
@@ -505,6 +525,7 @@ mod wrappers {
         }
     }
     pub unsafe fn mixerSetControlDetails(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::mixer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hmxobj = <u32>::from_stack(mem, stack_args + 0u32);
@@ -535,7 +556,8 @@ mod wrappers {
     pub unsafe fn retrowin32_time_thread_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/time") {
@@ -563,7 +585,8 @@ mod wrappers {
     pub unsafe fn retrowin32_wave_thread_main(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -590,6 +613,7 @@ mod wrappers {
         }
     }
     pub unsafe fn sndPlaySoundA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let pszSound = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -613,6 +637,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeBeginPeriod(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
@@ -635,6 +660,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeEndPeriod(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
@@ -657,6 +683,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeGetDevCaps(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let ptc = <Option<&mut TIMECAPS>>::from_stack(mem, stack_args + 0u32);
@@ -680,6 +707,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeGetTime(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/time") {
@@ -695,6 +723,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeKillEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let uTimerID = <u32>::from_stack(mem, stack_args + 0u32);
@@ -717,6 +746,7 @@ mod wrappers {
         }
     }
     pub unsafe fn timeSetEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let uDelay = <u32>::from_stack(mem, stack_args + 0u32);
@@ -749,6 +779,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutClose(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -771,6 +802,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutGetDevCapsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let uDeviceID = <u32>::from_stack(mem, stack_args + 0u32);
@@ -799,6 +831,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutGetNumDevs(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("winmm/wave") {
@@ -820,6 +853,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutGetPosition(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -844,6 +878,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutGetVolume(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -867,6 +902,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutOpen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let phwo = <Option<&mut HWAVEOUT>>::from_stack(mem, stack_args + 0u32);
@@ -902,6 +938,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutPause(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -924,6 +961,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutPrepareHeader(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -948,6 +986,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutReset(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -970,6 +1009,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutRestart(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -992,6 +1032,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutSetVolume(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -1015,6 +1056,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutUnprepareHeader(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -1039,6 +1081,7 @@ mod wrappers {
         }
     }
     pub unsafe fn waveOutWrite(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use winmm::wave::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);

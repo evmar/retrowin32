@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn GetFileVersionInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use version::*;
         unsafe {
             let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -39,6 +40,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFileVersionInfoSizeA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use version::*;
         unsafe {
             let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -65,6 +67,7 @@ mod wrappers {
         }
     }
     pub unsafe fn VerQueryValueA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use version::*;
         unsafe {
             let mem = sys.mem().detach();
             let pBlock = <u32>::from_stack(mem, stack_args + 0u32);

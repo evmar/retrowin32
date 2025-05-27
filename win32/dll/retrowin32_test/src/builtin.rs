@@ -11,7 +11,8 @@ mod wrappers {
     pub unsafe fn retrowin32_test_callback1(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use retrowin32_test::*;
         unsafe {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);

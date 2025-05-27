@@ -1,10 +1,10 @@
-mod critical_section;
-mod event;
-mod interlocked;
-mod mutex;
-mod once;
-mod srw_lock;
-mod wait;
+pub(crate) mod critical_section;
+pub(crate) mod event;
+pub(crate) mod interlocked;
+pub(crate) mod mutex;
+pub(crate) mod once;
+pub(crate) mod srw_lock;
+pub(crate) mod wait;
 
 pub use critical_section::*;
 pub use event::*;

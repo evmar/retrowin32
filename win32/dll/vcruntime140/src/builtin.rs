@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn _CxxThrowException(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use vcruntime140::*;
         unsafe {
             let mem = sys.mem().detach();
             let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
@@ -35,6 +36,7 @@ mod wrappers {
         }
     }
     pub unsafe fn memcmp(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use vcruntime140::*;
         unsafe {
             let mem = sys.mem().detach();
             let lhs = <u32>::from_stack(mem, stack_args + 0u32);
@@ -59,6 +61,7 @@ mod wrappers {
         }
     }
     pub unsafe fn memcpy(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use vcruntime140::*;
         unsafe {
             let mem = sys.mem().detach();
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
@@ -83,6 +86,7 @@ mod wrappers {
         }
     }
     pub unsafe fn memset(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use vcruntime140::*;
         unsafe {
             let mem = sys.mem().detach();
             let dst = <u32>::from_stack(mem, stack_args + 0u32);

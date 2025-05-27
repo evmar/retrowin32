@@ -2,6 +2,7 @@
 
 use crate::parse;
 use proc_macro2::TokenStream;
+use quote::format_ident;
 use quote::quote;
 
 /// Generate the handler function that calls a win32api function by taking arguments using from_x86.
@@ -23,6 +24,12 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     };
     let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
+    let module_name = dllexport
+        .module_name
+        .iter()
+        .map(|s| format_ident!("{}", s))
+        .collect::<Vec<_>>();
+    let import = quote!(use #(#module_name)::*::*;);
     let mut body = quote!(let mem = sys.mem().detach(););
 
     let mut stack_offset = 0;
@@ -55,7 +62,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     let pos_name = syn::Ident::new(&format!("{}_pos", base_name), base_name.span());
 
     {
-        let trace_module_name = dllexport.trace_module;
+        let trace_module_name = dllexport.module_name.join("/");
         let trace_args = args
             .iter()
             .map(|arg| {
@@ -90,7 +97,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
 
     let defn = if dllexport.func.sig.asyncness.is_some() {
         quote! {
-            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+                #import
                 unsafe {
                     #body
                     let sys = sys as *mut dyn System;
@@ -105,6 +113,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     } else {
         quote! {
             pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+                #import
                 unsafe {
                     #body
                     let result = #impls_mod::#base_name(#self_arg, #(#args),*);

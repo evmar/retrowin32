@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn DirectDrawCreate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
@@ -37,6 +38,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DirectDrawCreateClipper(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::clipper::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
@@ -65,6 +67,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DirectDrawCreateEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
@@ -95,6 +98,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw2_CreateSurface(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -128,7 +132,8 @@ mod wrappers {
     pub unsafe fn IDirectDraw2_EnumDisplayModes(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -173,6 +178,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw2_GetDisplayMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -196,6 +202,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw2_QueryInterface(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -220,6 +227,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw2_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -242,6 +250,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw2_SetDisplayMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -272,6 +281,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_CreateClipper(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -303,6 +313,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_CreatePalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -336,6 +347,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_CreateSurface(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -369,7 +381,8 @@ mod wrappers {
     pub unsafe fn IDirectDraw7_EnumDisplayModes(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -414,6 +427,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_GetDisplayMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -437,6 +451,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -462,6 +477,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -486,7 +502,8 @@ mod wrappers {
     pub unsafe fn IDirectDraw7_SetCooperativeLevel(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -515,6 +532,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw7_SetDisplayMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -553,6 +571,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -577,6 +596,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawClipper_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::clipper::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -599,6 +619,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawClipper_SetHWnd(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::clipper::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -623,6 +644,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawPalette_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -648,6 +670,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -684,6 +707,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -717,6 +741,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface2_GetCaps(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -743,6 +768,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -766,6 +792,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface2_Lock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -798,6 +825,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface2_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -820,6 +848,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface2_Unlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw2::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -843,6 +872,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface3_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw3::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -865,6 +895,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Blt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -901,6 +932,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_BltFast(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -935,6 +967,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Flip(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -962,6 +995,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -995,6 +1029,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_GetCaps(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1018,6 +1053,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_GetDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1044,6 +1080,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1070,6 +1107,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1093,6 +1131,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_IsLost(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1115,6 +1154,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Lock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1147,6 +1187,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1172,6 +1213,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let _this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1195,6 +1237,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Restore(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let _this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1220,6 +1263,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1246,6 +1290,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1273,6 +1318,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1296,6 +1342,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface7_Unlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw7::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1322,6 +1369,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1355,6 +1403,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface_GetCaps(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1378,6 +1427,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface_Lock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1413,6 +1463,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1437,6 +1488,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1459,6 +1511,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDrawSurface_Unlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1482,6 +1535,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw_CreateSurface(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1513,6 +1567,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw_QueryInterface(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1537,6 +1592,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1559,6 +1615,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectDraw_SetDisplayMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ddraw::ddraw1::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);

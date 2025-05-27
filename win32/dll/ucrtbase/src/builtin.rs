@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn _EH_prolog(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/memory") {
@@ -30,6 +31,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _XcptFilter(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let xcptnum = <u32>::from_stack(mem, stack_args + 0u32);
@@ -53,6 +55,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __CxxFrameHandler(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let pExcept = <u32>::from_stack(mem, stack_args + 0u32);
@@ -83,6 +86,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __dllonexit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
@@ -107,6 +111,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __getmainargs(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let argc = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -139,6 +144,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __p___argc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
@@ -155,6 +161,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __p___argv(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
@@ -171,6 +178,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __p__environ(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
@@ -192,6 +200,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __set_app_type(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
@@ -214,6 +223,7 @@ mod wrappers {
         }
     }
     pub unsafe fn __setusermatherr(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::math::*;
         unsafe {
             let mem = sys.mem().detach();
             let pf = <u32>::from_stack(mem, stack_args + 0u32);
@@ -236,6 +246,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _cexit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
@@ -251,6 +262,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _configthreadlocale(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let per_thread_locale_type = <i32>::from_stack(mem, stack_args + 0u32);
@@ -273,6 +285,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _configure_narrow_argv(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _mode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -295,6 +308,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _controlfp(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _new = <u32>::from_stack(mem, stack_args + 0u32);
@@ -318,6 +332,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _controlfp_s(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _currentControl = <u32>::from_stack(mem, stack_args + 0u32);
@@ -346,6 +361,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _crt_atexit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _function = <u32>::from_stack(mem, stack_args + 0u32);
@@ -368,6 +384,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _except_handler3(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let exception_record = <u32>::from_stack(mem, stack_args + 0u32);
@@ -404,6 +421,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _exit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let status = <u32>::from_stack(mem, stack_args + 0u32);
@@ -429,6 +447,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
@@ -453,6 +472,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/init") {
@@ -476,7 +496,8 @@ mod wrappers {
     pub unsafe fn _initterm(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let start = <u32>::from_stack(mem, stack_args + 0u32);
@@ -506,7 +527,8 @@ mod wrappers {
     pub unsafe fn _initterm_e(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let start = <u32>::from_stack(mem, stack_args + 0u32);
@@ -534,6 +556,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _lock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let locknum = <u32>::from_stack(mem, stack_args + 0u32);
@@ -556,6 +579,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _onexit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
@@ -578,6 +602,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _set_app_type(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
@@ -600,6 +625,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _set_new_mode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let newhandlermode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -622,6 +648,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _setmode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let fd = <u32>::from_stack(mem, stack_args + 0u32);
@@ -645,6 +672,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _time64(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
@@ -667,6 +695,7 @@ mod wrappers {
         }
     }
     pub unsafe fn _unlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::init::*;
         unsafe {
             let mem = sys.mem().detach();
             let locknum = <u32>::from_stack(mem, stack_args + 0u32);
@@ -689,6 +718,7 @@ mod wrappers {
         }
     }
     pub unsafe fn abort(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
@@ -704,6 +734,7 @@ mod wrappers {
         }
     }
     pub unsafe fn atexit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
@@ -726,6 +757,7 @@ mod wrappers {
         }
     }
     pub unsafe fn calloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let count = <u32>::from_stack(mem, stack_args + 0u32);
@@ -749,6 +781,7 @@ mod wrappers {
         }
     }
     pub unsafe fn cos(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::math::*;
         unsafe {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -765,6 +798,7 @@ mod wrappers {
         }
     }
     pub unsafe fn exit(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let status = <u32>::from_stack(mem, stack_args + 0u32);
@@ -787,6 +821,7 @@ mod wrappers {
         }
     }
     pub unsafe fn floor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::math::*;
         unsafe {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -804,6 +839,7 @@ mod wrappers {
         }
     }
     pub unsafe fn free(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let ptr = <u32>::from_stack(mem, stack_args + 0u32);
@@ -826,6 +862,7 @@ mod wrappers {
         }
     }
     pub unsafe fn fwrite(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -849,6 +886,7 @@ mod wrappers {
         }
     }
     pub unsafe fn malloc(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let size = <u32>::from_stack(mem, stack_args + 0u32);
@@ -871,6 +909,7 @@ mod wrappers {
         }
     }
     pub unsafe fn memcpy(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let dest = <u32>::from_stack(mem, stack_args + 0u32);
@@ -895,6 +934,7 @@ mod wrappers {
         }
     }
     pub unsafe fn memset(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let dst = <u32>::from_stack(mem, stack_args + 0u32);
@@ -919,6 +959,7 @@ mod wrappers {
         }
     }
     pub unsafe fn operator_delete(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let size = <u32>::from_stack(mem, stack_args + 0u32);
@@ -941,6 +982,7 @@ mod wrappers {
         }
     }
     pub unsafe fn operator_new(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let size = <u32>::from_stack(mem, stack_args + 0u32);
@@ -963,6 +1005,7 @@ mod wrappers {
         }
     }
     pub unsafe fn printf(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let fmt = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -986,6 +1029,7 @@ mod wrappers {
         }
     }
     pub unsafe fn rand(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::rand::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/rand") {
@@ -1001,6 +1045,7 @@ mod wrappers {
         }
     }
     pub unsafe fn signal(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let sig = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1024,6 +1069,7 @@ mod wrappers {
         }
     }
     pub unsafe fn sin(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::math::*;
         unsafe {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -1040,6 +1086,7 @@ mod wrappers {
         }
     }
     pub unsafe fn sprintf(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1064,6 +1111,7 @@ mod wrappers {
         }
     }
     pub unsafe fn sqrt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::math::*;
         unsafe {
             let mem = sys.mem().detach();
             let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -1081,6 +1129,7 @@ mod wrappers {
         }
     }
     pub unsafe fn srand(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::rand::*;
         unsafe {
             let mem = sys.mem().detach();
             let seed = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1103,6 +1152,7 @@ mod wrappers {
         }
     }
     pub unsafe fn strlen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::memory::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
@@ -1125,6 +1175,7 @@ mod wrappers {
         }
     }
     pub unsafe fn terminate(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ucrtbase/misc") {
@@ -1141,6 +1192,7 @@ mod wrappers {
         }
     }
     pub unsafe fn time(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::time::*;
         unsafe {
             let mem = sys.mem().detach();
             let destTime = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -1163,6 +1215,7 @@ mod wrappers {
         }
     }
     pub unsafe fn vfprintf(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ucrtbase::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);

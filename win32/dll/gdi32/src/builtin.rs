@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn BitBlt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -49,6 +50,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateBitmap(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let nWidth = <u32>::from_stack(mem, stack_args + 0u32);
@@ -81,6 +83,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateCompatibleBitmap(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -105,6 +108,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateCompatibleDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -127,6 +131,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateDIBSection(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -161,6 +166,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateDIBitmap(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -195,6 +201,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateFontA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let cHeight = <i32>::from_stack(mem, stack_args + 0u32);
@@ -261,6 +268,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreatePalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let plpal = <u32>::from_stack(mem, stack_args + 0u32);
@@ -283,6 +291,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreatePen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let iStyle = <Result<PS, u32>>::from_stack(mem, stack_args + 0u32);
@@ -307,6 +316,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateSolidBrush(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let color = <COLORREF>::from_stack(mem, stack_args + 0u32);
@@ -329,6 +339,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <u32>::from_stack(mem, stack_args + 0u32);
@@ -351,6 +362,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteObject(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::object::*;
         unsafe {
             let mem = sys.mem().detach();
             let handle = <HGDIOBJ>::from_stack(mem, stack_args + 0u32);
@@ -373,6 +385,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EnumFontFamiliesExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -405,6 +418,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDCOrgEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -428,6 +442,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDIBits(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -464,6 +479,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDeviceCaps(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -487,6 +503,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLayout(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -509,6 +526,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetObjectA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::object::*;
         unsafe {
             let mem = sys.mem().detach();
             let handle = <HGDIOBJ>::from_stack(mem, stack_args + 0u32);
@@ -533,6 +551,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPaletteEntries(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
@@ -563,6 +582,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetPixel(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -587,6 +607,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStockObject(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::object::*;
         unsafe {
             let mem = sys.mem().detach();
             let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, stack_args + 0u32);
@@ -609,6 +630,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemPaletteEntries(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -639,6 +661,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTextExtentPoint32A(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -669,6 +692,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTextExtentPoint32W(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -699,6 +723,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTextMetricsA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -722,6 +747,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetTextMetricsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -745,6 +771,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LineDDA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let xStart = <i32>::from_stack(mem, stack_args + 0u32);
@@ -779,6 +806,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LineTo(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -803,6 +831,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MoveToEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -828,6 +857,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PatBlt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -862,6 +892,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PtVisible(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -886,6 +917,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RealizePalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -908,6 +940,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ResizePalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
@@ -931,6 +964,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SelectObject(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::object::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -954,6 +988,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SelectPalette(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -978,6 +1013,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetBkColor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1001,6 +1037,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetBkMode(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1024,6 +1061,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetBrushOrgEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1049,6 +1087,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetDIBitsToDevice(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1097,6 +1136,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetLayout(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::dc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1120,6 +1160,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetPaletteEntries(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
@@ -1150,6 +1191,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetPixel(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1175,6 +1217,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetROP2(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::draw::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1198,6 +1241,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetSystemPaletteUse(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::palette::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1221,6 +1265,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetTextAlign(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1244,6 +1289,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetTextColor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1267,6 +1313,7 @@ mod wrappers {
         }
     }
     pub unsafe fn StretchBlt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1313,6 +1360,7 @@ mod wrappers {
         }
     }
     pub unsafe fn StretchDIBits(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::bitmap_api::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1364,6 +1412,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TextOutA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1389,6 +1438,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TextOutW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use gdi32::text::*;
         unsafe {
             let mem = sys.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);

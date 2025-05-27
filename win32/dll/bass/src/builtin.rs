@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn BASS_ChannelGetPosition(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let mode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -31,6 +32,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_Free(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -48,6 +50,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_Init(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -78,6 +81,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_MusicLoad(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -110,6 +114,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_MusicPlay(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -132,6 +137,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_MusicSetPositionScaler(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
@@ -155,6 +161,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BASS_Start(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use bass::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("bass") {

@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn RegCloseKey(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -31,6 +32,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegCreateKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -59,6 +61,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegCreateKeyExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -110,6 +113,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegCreateKeyExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -161,6 +165,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegOpenKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -189,6 +194,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegOpenKeyExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -222,6 +228,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegQueryValueExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -264,6 +271,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegQueryValueExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -306,6 +314,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegSetValueExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
@@ -341,6 +350,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegSetValueExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use advapi32::*;
         unsafe {
             let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);

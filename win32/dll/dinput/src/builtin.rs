@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn DirectInputCreateA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let hinst = <u32>::from_stack(mem, stack_args + 0u32);
@@ -39,6 +40,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectInputDevice_Acquire(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -64,6 +66,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -98,6 +101,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -140,6 +144,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -167,6 +172,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -193,6 +199,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -219,6 +226,7 @@ mod wrappers {
         sys: &mut dyn System,
         stack_args: u32,
     ) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -247,6 +255,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectInput_AddRef(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -269,6 +278,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectInput_CreateDevice(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -305,6 +315,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectInput_EnumDevices(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -338,6 +349,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IDirectInput_Release(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use dinput::dinput::*;
         unsafe {
             let mem = sys.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);

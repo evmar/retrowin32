@@ -20,7 +20,7 @@ fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
 }
 
 /// Parse a directory's collection of files.
-fn parse_files(dll_name: &str, root: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
+fn parse_files(dll_name: &str, root: &Path) -> anyhow::Result<Vec<(Vec<String>, syn::File)>> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root).sort_by_file_name() {
         let entry = entry?;
@@ -52,8 +52,7 @@ fn parse_files(dll_name: &str, root: &Path) -> anyhow::Result<Vec<(String, syn::
             rel_path.pop();
         }
 
-        let trace_name = rel_path.join("/");
-        files.push((trace_name, file));
+        files.push((rel_path, file));
     }
     Ok(files)
 }
@@ -118,11 +117,11 @@ fn process_builtin_dll(src_dir: &Path, out_dir: &Path) -> anyhow::Result<()> {
 
     let files = parse_files(&dll_name, src_dir)?;
     let mut dllexports = parse::DllExports::default();
-    for (name, file) in &files {
-        if let Err(err) = parse::gather_dllexports(name, &file.items, &mut dllexports) {
+    for (module_name, file) in &files {
+        if let Err(err) = parse::gather_dllexports(module_name, &file.items, &mut dllexports) {
             let loc = err.span().start();
             // TODO: get file name from span, needs later syn version.
-            anyhow::bail!("{}:{}:{}: {}", name, loc.line, loc.column, err);
+            anyhow::bail!("{:?}:{}:{}: {}", module_name, loc.line, loc.column, err);
         }
     }
 

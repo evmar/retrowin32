@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn InternetOpenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use wininet::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpszAgent = <Option<&str>>::from_stack(mem, stack_args + 0u32);

@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn CoCreateInstance(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ole32::*;
         unsafe {
             let mem = sys.mem().detach();
             let rclsid = <u32>::from_stack(mem, stack_args + 0u32);
@@ -41,6 +42,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CoInitialize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ole32::*;
         unsafe {
             let mem = sys.mem().detach();
             let pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
@@ -63,6 +65,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CoInitializeEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ole32::*;
         unsafe {
             let mem = sys.mem().detach();
             let pvReserved = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
@@ -86,6 +89,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CoUninitialize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ole32::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("ole32") {
@@ -102,6 +106,7 @@ mod wrappers {
         }
     }
     pub unsafe fn OleInitialize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use ole32::*;
         unsafe {
             let mem = sys.mem().detach();
             let _pvReserved = <u32>::from_stack(mem, stack_args + 0u32);

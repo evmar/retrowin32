@@ -9,6 +9,7 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn AdjustWindowRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -37,6 +38,7 @@ mod wrappers {
         }
     }
     pub unsafe fn AdjustWindowRectEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -67,6 +69,7 @@ mod wrappers {
         }
     }
     pub unsafe fn AppendMenuA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -97,6 +100,7 @@ mod wrappers {
         }
     }
     pub unsafe fn BeginPaint(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -120,6 +124,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CallWindowProcA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPrevWndFunc = <u32>::from_stack(mem, stack_args + 0u32);
@@ -152,6 +157,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CharLowerA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
@@ -174,6 +180,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CharLowerBuffA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
@@ -197,6 +204,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CheckDlgButton(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -225,6 +233,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CheckMenuItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -253,6 +262,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CheckRadioButton(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -284,6 +294,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ClientToScreen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -307,6 +318,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CopyRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -330,6 +342,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInst = <u32>::from_stack(mem, stack_args + 0u32);
@@ -368,6 +381,7 @@ mod wrappers {
         }
     }
     pub unsafe fn CreatePopupMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/menu") {
@@ -391,7 +405,8 @@ mod wrappers {
     pub unsafe fn CreateWindowExA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
@@ -459,7 +474,8 @@ mod wrappers {
     pub unsafe fn CreateWindowExW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
@@ -528,7 +544,8 @@ mod wrappers {
     pub unsafe fn DefWindowProcA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -565,7 +582,8 @@ mod wrappers {
     pub unsafe fn DefWindowProcW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -600,6 +618,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DeleteMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -628,6 +647,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DestroyWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -650,6 +670,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DialogBoxIndirectParamA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -689,6 +710,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DialogBoxParamA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -728,6 +750,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DialogBoxParamW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -769,7 +792,8 @@ mod wrappers {
     pub unsafe fn DispatchMessageA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
@@ -798,7 +822,8 @@ mod wrappers {
     pub unsafe fn DispatchMessageW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
@@ -825,6 +850,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DrawMenuBar(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -847,6 +873,7 @@ mod wrappers {
         }
     }
     pub unsafe fn DrawTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -879,6 +906,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EnableMenuItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -907,6 +935,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EnableWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -930,6 +959,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EndDialog(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -953,6 +983,7 @@ mod wrappers {
         }
     }
     pub unsafe fn EndPaint(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -976,6 +1007,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FillRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1000,6 +1032,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FindWindowA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1026,6 +1059,7 @@ mod wrappers {
         }
     }
     pub unsafe fn FrameRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1050,6 +1084,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetActiveWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1071,6 +1106,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1087,6 +1123,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetClassLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1110,6 +1147,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetClientRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1133,6 +1171,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetCursorPos(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 0u32);
@@ -1155,6 +1194,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1177,6 +1217,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDesktopWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1198,6 +1239,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDlgItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1221,6 +1263,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDlgItemInt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1251,6 +1294,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetDlgItemTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1279,6 +1323,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetFocus(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1294,6 +1339,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetForegroundWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1315,6 +1361,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyNameTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let lParam = <i32>::from_stack(mem, stack_args + 0u32);
@@ -1338,6 +1385,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyState(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let nVirtKey = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1360,6 +1408,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyboardLayout(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1382,6 +1431,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyboardLayoutList(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let nBuff = <i32>::from_stack(mem, stack_args + 0u32);
@@ -1405,6 +1455,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyboardState(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
@@ -1427,6 +1478,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetKeyboardType(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
@@ -1449,6 +1501,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetLastActivePopup(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -1470,6 +1523,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1492,6 +1546,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetMenuItemRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1524,7 +1579,8 @@ mod wrappers {
     pub unsafe fn GetMessageA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
@@ -1562,7 +1618,8 @@ mod wrappers {
     pub unsafe fn GetMessageW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
@@ -1598,6 +1655,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetMonitorInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMonitor = <HMONITOR>::from_stack(mem, stack_args + 0u32);
@@ -1621,6 +1679,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetProcessWindowStation(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/misc") {
@@ -1642,6 +1701,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetQueueStatus(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
@@ -1664,6 +1724,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSubMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -1687,6 +1748,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSysColor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let nIndex = <i32>::from_stack(mem, stack_args + 0u32);
@@ -1709,6 +1771,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1732,6 +1795,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetSystemMetrics(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let nIndex = <Result<SM, u32>>::from_stack(mem, stack_args + 0u32);
@@ -1754,6 +1818,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetUpdateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1778,6 +1843,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetUserObjectInformationW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hObj = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1817,6 +1883,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetWindowDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1839,6 +1906,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetWindowLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1862,6 +1930,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetWindowPlacement(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1885,6 +1954,7 @@ mod wrappers {
         }
     }
     pub unsafe fn GetWindowRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1908,6 +1978,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InflateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -1932,6 +2003,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IntersectRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -1960,6 +2032,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InvalidateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1984,6 +2057,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InvalidateRgn(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2008,6 +2082,7 @@ mod wrappers {
         }
     }
     pub unsafe fn InvertRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -2031,6 +2106,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsDlgButtonChecked(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2054,6 +2130,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsIconic(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2076,6 +2153,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsRectEmpty(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
@@ -2098,6 +2176,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2120,6 +2199,7 @@ mod wrappers {
         }
     }
     pub unsafe fn IsWindowVisible(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2142,6 +2222,7 @@ mod wrappers {
         }
     }
     pub unsafe fn KillTimer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::timer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2165,6 +2246,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadAcceleratorsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2188,6 +2270,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadBitmapA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
@@ -2211,6 +2294,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadCursorA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2234,6 +2318,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadCursorW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2257,6 +2342,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadIconA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2280,6 +2366,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadIconW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2303,6 +2390,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadImageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
@@ -2337,6 +2425,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadImageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
@@ -2371,6 +2460,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadMenuA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2394,6 +2484,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadMenuW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2417,6 +2508,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
@@ -2447,6 +2539,7 @@ mod wrappers {
         }
     }
     pub unsafe fn LoadStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
@@ -2477,6 +2570,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MapVirtualKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let uCode = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2500,6 +2594,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MapWindowPoints(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWndFrom = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2528,6 +2623,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MessageBoxA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2558,6 +2654,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MessageBoxW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2588,6 +2685,7 @@ mod wrappers {
         }
     }
     pub unsafe fn MoveWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2624,7 +2722,8 @@ mod wrappers {
     pub unsafe fn MsgWaitForMultipleObjects(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2669,6 +2768,7 @@ mod wrappers {
         }
     }
     pub unsafe fn OemToCharA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let pSrc = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -2692,6 +2792,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PeekMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
@@ -2725,6 +2826,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PeekMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
@@ -2758,6 +2860,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PostMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2788,6 +2891,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PostMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2818,6 +2922,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PostQuitMessage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let nExitCode = <i32>::from_stack(mem, stack_args + 0u32);
@@ -2840,6 +2945,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PostThreadMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2870,6 +2976,7 @@ mod wrappers {
         }
     }
     pub unsafe fn PtInRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
@@ -2895,7 +3002,8 @@ mod wrappers {
     pub unsafe fn RedrawWindow(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2930,6 +3038,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterClassA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
@@ -2952,6 +3061,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterClassExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, stack_args + 0u32);
@@ -2974,6 +3084,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterClassExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpWndClassEx = <Option<&WNDCLASSEXW>>::from_stack(mem, stack_args + 0u32);
@@ -2996,6 +3107,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterClassW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
@@ -3018,6 +3130,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterClipboardFormatA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpszFormat = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -3040,6 +3153,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterWindowMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -3062,6 +3176,7 @@ mod wrappers {
         }
     }
     pub unsafe fn RegisterWindowMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -3084,6 +3199,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReleaseCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/window") {
@@ -3105,6 +3221,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ReleaseDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3128,6 +3245,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SendDlgItemMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3162,7 +3280,8 @@ mod wrappers {
     pub unsafe fn SendMessageA(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3199,7 +3318,8 @@ mod wrappers {
     pub unsafe fn SendMessageW(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3234,6 +3354,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3256,6 +3377,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetClassLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3284,6 +3406,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let hCursor = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3306,6 +3429,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetCursorPos(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let x = <i32>::from_stack(mem, stack_args + 0u32);
@@ -3329,6 +3453,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetDlgItemInt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3359,6 +3484,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetDlgItemTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3387,6 +3513,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetDlgItemTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::dialog::*;
         unsafe {
             let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3417,7 +3544,8 @@ mod wrappers {
     pub unsafe fn SetFocus(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3444,6 +3572,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetForegroundWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3466,6 +3595,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3489,6 +3619,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetMenuItemInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::menu::*;
         unsafe {
             let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -3519,6 +3650,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -3551,6 +3683,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetRectEmpty(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::rect::*;
         unsafe {
             let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
@@ -3573,6 +3706,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetTimer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::timer::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3603,6 +3737,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetWindowLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3633,7 +3768,8 @@ mod wrappers {
     pub unsafe fn SetWindowPos(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3675,6 +3811,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetWindowTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3698,6 +3835,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SetWindowsHookExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let idHook = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3728,6 +3866,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ShowCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::resource::*;
         unsafe {
             let mem = sys.mem().detach();
             let bShow = <bool>::from_stack(mem, stack_args + 0u32);
@@ -3752,7 +3891,8 @@ mod wrappers {
     pub unsafe fn ShowWindow(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3780,6 +3920,7 @@ mod wrappers {
         }
     }
     pub unsafe fn SystemParametersInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let uiAction = <Result<SPI, u32>>::from_stack(mem, stack_args + 0u32);
@@ -3810,6 +3951,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TrackMouseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
@@ -3832,6 +3974,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TranslateAcceleratorW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3860,6 +4003,7 @@ mod wrappers {
         }
     }
     pub unsafe fn TranslateMessage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
@@ -3882,6 +4026,7 @@ mod wrappers {
         }
     }
     pub unsafe fn UnregisterClassA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::wndclass::*;
         unsafe {
             let mem = sys.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -3907,7 +4052,8 @@ mod wrappers {
     pub unsafe fn UpdateWindow(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::window::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3934,6 +4080,7 @@ mod wrappers {
         }
     }
     pub unsafe fn ValidateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::paint::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3959,7 +4106,8 @@ mod wrappers {
     pub unsafe fn WaitMessage(
         sys: &mut dyn System,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn> + '_>> {
+    ) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ABIReturn> + '_>> {
+        use user32::message::*;
         unsafe {
             let mem = sys.mem().detach();
             let __trace_record = if trace::enabled("user32/message") {
@@ -3985,6 +4133,7 @@ mod wrappers {
         }
     }
     pub unsafe fn WinHelpW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let hWndMain = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -4015,6 +4164,7 @@ mod wrappers {
         }
     }
     pub unsafe fn keybd_event(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::keyboard::*;
         unsafe {
             let mem = sys.mem().detach();
             let bVk = <u8>::from_stack(mem, stack_args + 0u32);
@@ -4045,6 +4195,7 @@ mod wrappers {
         }
     }
     pub unsafe fn wsprintfA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4069,6 +4220,7 @@ mod wrappers {
         }
     }
     pub unsafe fn wsprintfW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use user32::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);

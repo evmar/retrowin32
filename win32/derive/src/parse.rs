@@ -23,8 +23,8 @@ pub struct DllExportMeta {
 
 /// A function tagged as dllexport.
 pub struct DllExport<'a> {
-    /// Module name as used in tracing, e.g. "kernel32/file".
-    pub trace_module: &'a str,
+    /// Module name e.g. ["kernel32", "file"], to import from and for tracing.
+    pub module_name: &'a [String],
     pub meta: DllExportMeta,
     /// Whether the first arg is Machine (old API) or System (new API).
     pub sys_arg: bool,
@@ -173,7 +173,7 @@ pub fn parse_argument_stack(ty: &syn::Type) -> u32 {
 
 /// Parse a fn declaration looking for dllexport attributes.
 fn parse_fn<'a>(
-    trace_module: &'a str,
+    module_name: &'a [String],
     func: &'a syn::ItemFn,
 ) -> syn::Result<Option<DllExport<'a>>> {
     let meta = match find_dllexport(&func.attrs)? {
@@ -213,7 +213,7 @@ fn parse_fn<'a>(
     }
 
     Ok(Some(DllExport {
-        trace_module,
+        module_name,
         meta,
         sys_arg,
         args,
@@ -242,7 +242,7 @@ fn parse_self_type(arg: &syn::FnArg) -> syn::Result<bool> {
 
 /// Parse a mod looking for dllexport attributes.
 fn parse_mod<'a>(
-    trace_module: &'a str,
+    module_name: &'a [String],
     item: &'a syn::ItemMod,
 ) -> syn::Result<Option<DllExports<'a>>> {
     if find_dllexport(&item.attrs)?.is_none() {
@@ -252,7 +252,7 @@ fn parse_mod<'a>(
     let name = &item.ident;
     let mut dllexports = DllExports::default();
     let body = &item.content.as_ref().unwrap().1;
-    gather_dllexports(trace_module, body, &mut dllexports)?;
+    gather_dllexports(module_name, body, &mut dllexports)?;
     for dllexport in &mut dllexports.fns {
         dllexport.vtable = Some(name);
         dllexport.flat_name = quote::format_ident!("{}_{}", name, dllexport.flat_name);
@@ -354,19 +354,19 @@ fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData>> {
 
 /// Gather all the dllexports in a list of syn::Items (module contents).
 pub fn gather_dllexports<'a>(
-    trace_module: &'a str,
+    module_name: &'a [String],
     items: &'a [syn::Item],
     out: &mut DllExports<'a>,
 ) -> syn::Result<()> {
     for item in items {
         match item {
             syn::Item::Fn(func) => {
-                if let Some(func) = parse_fn(trace_module, func)? {
+                if let Some(func) = parse_fn(module_name, func)? {
                     out.fns.push(func);
                 }
             }
             syn::Item::Mod(item) => {
-                if let Some(exports) = parse_mod(trace_module, item)? {
+                if let Some(exports) = parse_mod(module_name, item)? {
                     out.fns.extend(exports.fns);
                     out.vtables.extend(exports.vtables);
                 }
