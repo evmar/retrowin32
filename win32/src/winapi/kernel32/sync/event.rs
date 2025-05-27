@@ -1,7 +1,5 @@
-use crate::{
-    Machine,
-    winapi::kernel32::{KernelObject, KernelObjectsMethods},
-};
+use crate::Machine;
+use crate::winapi::kernel32::{KernelObject, KernelObjectsMethods};
 use win32_system::{Event, System};
 use win32_winapi::HANDLE;
 

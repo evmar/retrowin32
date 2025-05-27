@@ -1,9 +1,7 @@
-use crate::{
-    Machine,
-    winapi::kernel32::{
-        FILETIME,
-        file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
-    },
+use crate::Machine;
+use crate::winapi::kernel32::{
+    FILETIME,
+    file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
 };
 use bitflags::bitflags;
 use win32_system::{System, host};

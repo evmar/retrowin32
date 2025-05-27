@@ -1,7 +1,5 @@
-use crate::{
-    Machine,
-    winapi::kernel32::{FILETIME, file::FileAttribute},
-};
+use crate::Machine;
+use crate::winapi::kernel32::{FILETIME, file::FileAttribute};
 use win32_system::{System, host};
 use win32_winapi::{DWORD, ERROR, HANDLE, Str16, WindowsPath};
 
