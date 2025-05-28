@@ -2,7 +2,6 @@
 
 use super::{
     HEVENT, Thread,
-    arena::Arena,
     command_line::CommandLineState,
     file::{
         HFILE, STDERR_HFILE, STDOUT_HFILE,
@@ -96,9 +95,8 @@ impl KernelObjectsMethods for KernelObjects {
     }
 }
 
+#[derive(Default)]
 pub struct State {
-    /// Memory for kernel32 data structures.
-    pub arena: Arena,
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of PEB (process information exposed to executable).
@@ -121,24 +119,6 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(memory: &mut Memory) -> Self {
-        let mapping = memory
-            .mappings
-            .alloc(memory.imp.mem(), 0x1000, "kernel32 data".into());
-        let arena = Arena::new(mapping.addr, mapping.size);
-
-        State {
-            arena,
-            image_base: 0,
-            peb: 0,
-            objects: Default::default(),
-            files: Default::default(),
-            find_handles: Default::default(),
-            cmdline: CommandLineState::default(),
-            break_on_startup: false,
-        }
-    }
-
     pub fn init_process(&mut self, memory: &mut Memory, cmdline: &str) {
         // Initialize the process heap.
         // We use this for misc allocations like per-thread TEBs,

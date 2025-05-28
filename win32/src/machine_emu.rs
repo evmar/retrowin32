@@ -28,23 +28,19 @@ impl MachineX<Emulator> {
         let mut memory = Memory::new(MemImpl::new(256 << 20));
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
 
-        let kernel32 = winapi::kernel32::State::new(&mut memory);
         let module = retrowin32_dll_module(&mut memory, retrowin32_syscall);
         let modules = HashMap::from([(HMODULE::from_raw(module.image_base), module)]);
-
-        let shims = Shims::default();
-        let state = winapi::State::new(kernel32);
 
         Machine {
             status: Default::default(),
             emu: Emulator {
                 x86: x86::X86::new(),
-                shims,
+                shims: Default::default(),
                 breakpoints: Default::default(),
             },
             memory,
             host,
-            state,
+            state: Default::default(),
             state2: Default::default(),
             external_dlls: Default::default(),
             process: Process {

@@ -4,6 +4,7 @@ mod ntdll;
 
 pub use kernel32::file::HFILE;
 
+#[derive(Default)]
 pub struct State {
     pub ddraw: std::cell::RefCell<builtin_ddraw::State>,
     pub dsound: std::cell::RefCell<builtin_dsound::State>,
@@ -14,14 +15,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(kernel32: kernel32::State) -> Self {
-        State {
-            ddraw: Default::default(),
-            dsound: Default::default(),
-            gdi32: Default::default(),
-            kernel32,
-            user32: Default::default(),
-            winmm: Default::default(),
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 }
