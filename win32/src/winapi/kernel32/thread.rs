@@ -1,8 +1,8 @@
-use super::{KernelObject, arena::Arena, peb_mut};
+use super::{KernelObject, peb_mut};
 use crate::Machine;
-use memory::{Extensions, Mem};
+use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
-use win32_system::{Event, System};
+use win32_system::{Event, System, memory::Memory};
 use win32_winapi::{HANDLE, Str16};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -47,6 +47,7 @@ pub struct TEB {
     pub WOW32Reserved: u32,
     pub CurrentLocale: u32,
     // TODO: ... there are many more fields here
+    pub padding: [u32; 20],
 
     // This is at the wrong offset, but it shouldn't matter.
     pub TlsSlots: [u32; 64],
@@ -65,20 +66,27 @@ pub struct Thread {
 
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(peb_addr: u32, thread_id: u32, arena: &mut Arena, mem: Mem) -> u32 {
+fn init_teb(peb_addr: u32, thread_id: u32, memory: &Memory) -> u32 {
     // SEH chain
-    let seh_addr = arena.alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
-    let seh = mem.get_aligned_ref_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
-    seh.Prev = 0xFFFF_FFFF;
-    seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
+    let seh_addr = memory.store(_EXCEPTION_REGISTRATION_RECORD {
+        Prev: 0xFFFF_FFFF,
+        Handler: 0xFF5E_5EFF, // Hopefully easier to spot.
+    });
 
     // TEB
-    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
-    let teb = mem.get_aligned_ref_mut::<TEB>(teb_addr);
-    teb.Tib.ExceptionList = seh_addr;
-    teb.Tib._Self = teb_addr; // Confusing: it points to itself.
-    teb.Peb = peb_addr;
-    teb.ClientId_UniqueThread = thread_id;
+    let teb_addr = memory.store(TEB {
+        Tib: NT_TIB {
+            ExceptionList: seh_addr,
+            // _Self: circular
+            ..memory::Pod::zeroed()
+        },
+        Peb: peb_addr,
+        ClientId_UniqueThread: thread_id,
+        ..memory::Pod::zeroed()
+    });
+
+    let teb = memory.mem().get_aligned_ref_mut::<TEB>(teb_addr);
+    teb.Tib._Self = teb_addr; // circular reference
 
     teb_addr
 }
@@ -101,13 +109,7 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     );
     let stack_pointer = stack.addr + stack.size - 4;
 
-    let mem = machine.memory.mem();
-    let teb = init_teb(
-        machine.state.kernel32.peb,
-        handle.to_raw(),
-        &mut machine.state.kernel32.arena,
-        mem,
-    );
+    let teb = init_teb(machine.state.kernel32.peb, handle.to_raw(), &machine.memory);
 
     let thread = Rc::new(Thread {
         handle: HTHREAD::from_raw(handle.to_raw()),

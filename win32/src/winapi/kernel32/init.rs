@@ -21,20 +21,14 @@ pub struct UNICODE_STRING {
     pub MaximumLength: WORD,
     pub Buffer: DWORD,
 }
-
-impl UNICODE_STRING {
-    fn clear(&mut self) {
-        self.Length = 0;
-        self.MaximumLength = 0;
-        self.Buffer = 0;
-    }
-}
+unsafe impl ::memory::Pod for UNICODE_STRING {}
 
 #[repr(C)]
 struct CURDIR {
     DosPath: UNICODE_STRING,
     Handle: DWORD,
 }
+unsafe impl ::memory::Pod for CURDIR {}
 
 #[repr(C)]
 struct RTL_USER_PROCESS_PARAMETERS {
@@ -53,6 +47,15 @@ struct RTL_USER_PROCESS_PARAMETERS {
     CommandLine: UNICODE_STRING,
 }
 unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
+
+/// We stamp one of these into a process's memory to expose all the data structures
+/// that the kernel32 APIs need to access.
+#[repr(C)]
+struct UserspaceData {
+    peb: PEB,
+    params: RTL_USER_PROCESS_PARAMETERS,
+}
+unsafe impl ::memory::Pod for UserspaceData {}
 
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
 #[cfg(feature = "x86-unicorn")]
@@ -149,29 +152,41 @@ impl State {
         memory.process_heap = heap;
         let mem = memory.mem();
 
-        // RTL_USER_PROCESS_PARAMETERS
-        let params_addr = self.arena.alloc(std::cmp::max(
-            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-            0x100,
-        ));
-        let params = mem.get_aligned_ref_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
-        // x86.put::<u32>(params_addr + 0x10, console_handle);
-        // x86.put::<u32>(params_addr + 0x14, console_flags);
-        // x86.put::<u32>(params_addr + 0x18, stdin);
-        params.hStdOutput = STDOUT_HFILE;
-        params.hStdError = STDERR_HFILE;
-        params.ImagePathName.clear();
-        params.CommandLine = self
-            .cmdline
-            .as_unicode_string(&cmdline, &mut self.arena, mem);
-
-        self.peb = self
-            .arena
-            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
-        let peb = mem.get_aligned_ref_mut::<PEB>(self.peb);
-        peb.ProcessParameters = params_addr;
-        peb.ProcessHeap = 0; // TODO: use state.process_heap_addr instead
-        peb.TlsCount = 0;
+        let user_data = memory.store(UserspaceData {
+            peb: PEB {
+                InheritedAddressSpace: 0,
+                ReadImageFileExecOptions: 0,
+                BeingDebugged: 0,
+                SpareBool: 0,
+                Mutant: 0,
+                ImageBaseAddress: self.image_base,
+                LdrData: 0,
+                ProcessParameters: 0, // set below
+                SubSystemData: 0,
+                ProcessHeap: memory.process_heap.addr,
+                TlsCount: 0, // will be set later
+            },
+            params: RTL_USER_PROCESS_PARAMETERS {
+                AllocationSize: 0,
+                Size: 0,
+                Flags: 0,
+                DebugFlags: 0,
+                ConsoleHandle: 0,
+                ConsoleFlags: 0,
+                hStdInput: STDOUT_HFILE,
+                hStdOutput: STDOUT_HFILE,
+                hStdError: STDERR_HFILE,
+                CurrentDirectory: memory::Pod::zeroed(),
+                DllPath: memory::Pod::zeroed(),
+                ImagePathName: memory::Pod::zeroed(),
+                CommandLine: self
+                    .cmdline
+                    .as_unicode_string(&cmdline, &mut self.arena, mem),
+            },
+        });
+        self.peb = user_data;
+        let peb = memory.mem().get_aligned_ref_mut::<PEB>(self.peb);
+        peb.ProcessParameters = user_data;
     }
 
     #[cfg(feature = "x86-unicorn")]
