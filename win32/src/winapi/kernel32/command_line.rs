@@ -10,14 +10,14 @@ use win32_winapi::String16;
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
 #[derive(Default)]
-pub struct CommandLineState {
+pub struct State {
     /// Command line in process memory, ASCII.
     cmdline8: u32,
     /// Command line in process memory, UTF16.
     cmdline16: u32,
 }
 
-impl CommandLineState {
+impl State {
     fn cmdline8(&mut self, cmdline: &str, memory: &Memory) -> u32 {
         if self.cmdline8 == 0 {
             let mut cmdline = cmdline.to_string();

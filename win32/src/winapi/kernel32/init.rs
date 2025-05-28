@@ -1,8 +1,7 @@
 //! Process initialization and startup.
 
 use super::{
-    HEVENT, Thread,
-    command_line::CommandLineState,
+    HEVENT, Thread, command_line,
     file::{
         HFILE, STDERR_HFILE, STDOUT_HFILE,
         find::{FindHandle, HFIND},
@@ -112,7 +111,7 @@ pub struct State {
 
     /// State for command line APIs.
     /// The actual process command line is held in Machine, this is just to stash some pointers.
-    pub(crate) cmdline: CommandLineState,
+    pub(crate) cmdline: command_line::State,
 
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,
