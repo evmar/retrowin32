@@ -62,7 +62,7 @@ impl MachineX<Emulator> {
         self.process.cmdline = CommandLine::new(cmdline);
         self.state
             .kernel32
-            .init_process(self.memory.mem(), &self.process.cmdline.string);
+            .init_process(&mut self.memory, &self.process.cmdline.string);
 
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();

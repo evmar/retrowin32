@@ -10,7 +10,6 @@ use super::{
     },
 };
 use crate::Machine;
-use ::memory::Mem;
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, host, memory::Memory};
@@ -137,7 +136,19 @@ impl State {
         }
     }
 
-    pub fn init_process(&mut self, mem: Mem, cmdline: &str) {
+    pub fn init_process(&mut self, memory: &mut Memory, cmdline: &str) {
+        // Initialize the process heap.
+        // We use this for misc allocations like per-thread TEBs,
+        // so we need it to exist very early in process startup,
+        // before even the exe is loaded.  This means we need to be
+        // careful to not make it so big as to cover the memory region
+        // that the exe will be loaded into.
+        debug_assert!(memory.process_heap.addr == 0);
+        let size = 1 << 20;
+        let heap = memory.new_heap(size, "process heap".into());
+        memory.process_heap = heap;
+        let mem = memory.mem();
+
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.alloc(std::cmp::max(
             std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
