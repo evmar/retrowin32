@@ -1,17 +1,13 @@
 //! Process initialization and startup.
 
-use super::{
-    HEVENT, Thread, command_line,
-    file::{
-        HFILE, STDERR_HFILE, STDOUT_HFILE,
-        find::{FindHandle, HFIND},
-    },
+use super::{State, file::HFILE};
+use crate::{
+    Machine,
+    winapi::kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
 };
-use crate::Machine;
 use memory::Extensions;
-use std::{rc::Rc, sync::Arc};
-use win32_system::{Event, host, memory::Memory};
-use win32_winapi::{DWORD, HANDLE, Handles, WORD};
+use win32_system::memory::Memory;
+use win32_winapi::{DWORD, WORD};
 
 #[repr(C)]
 pub struct UNICODE_STRING {
@@ -55,6 +51,53 @@ struct UserspaceData {
 }
 unsafe impl ::memory::Pod for UserspaceData {}
 
+pub fn init_process(state: &mut State, memory: &mut Memory, cmdline: &str) {
+    // Initialize the process heap.
+    // We use this for misc allocations like per-thread TEBs,
+    // so we need it to exist very early in process startup,
+    // before even the exe is loaded.  This means we need to be
+    // careful to not make it so big as to cover the memory region
+    // that the exe will be loaded into.
+    debug_assert!(memory.process_heap.addr == 0);
+    let size = 1 << 20;
+    let heap = memory.new_heap(size, "process heap".into());
+    memory.process_heap = heap;
+
+    let user_data = memory.store(UserspaceData {
+        peb: PEB {
+            InheritedAddressSpace: 0,
+            ReadImageFileExecOptions: 0,
+            BeingDebugged: 0,
+            SpareBool: 0,
+            Mutant: 0,
+            ImageBaseAddress: state.image_base,
+            LdrData: 0,
+            ProcessParameters: 0, // set below
+            SubSystemData: 0,
+            ProcessHeap: memory.process_heap.addr,
+            TlsCount: 0, // will be set later
+        },
+        params: RTL_USER_PROCESS_PARAMETERS {
+            AllocationSize: 0,
+            Size: 0,
+            Flags: 0,
+            DebugFlags: 0,
+            ConsoleHandle: 0,
+            ConsoleFlags: 0,
+            hStdInput: STDIN_HFILE,
+            hStdOutput: STDOUT_HFILE,
+            hStdError: STDERR_HFILE,
+            CurrentDirectory: memory::Pod::zeroed(),
+            DllPath: memory::Pod::zeroed(),
+            ImagePathName: memory::Pod::zeroed(),
+            CommandLine: state.cmdline.as_unicode_string(&cmdline, memory),
+        },
+    });
+    state.peb = user_data;
+    let peb = memory.mem().get_aligned_ref_mut::<PEB>(state.peb);
+    peb.ProcessParameters = user_data;
+}
+
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
 #[cfg(feature = "x86-unicorn")]
 pub struct GDTEntries {
@@ -66,184 +109,84 @@ pub struct GDTEntries {
     pub ss: u16,
 }
 
-/// Objects identified by kernel handles, all of which can be passed to Wait* functions.
-pub enum KernelObject {
-    Event(Arc<Event>),
-    Thread(Rc<Thread>),
-}
+#[cfg(feature = "x86-unicorn")]
+pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
+    use segments::SegmentDescriptor;
+    const COUNT: usize = 5;
+    let addr = self.arena.alloc(COUNT as u32 * 8, 8);
+    let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };
 
-impl Clone for KernelObject {
-    fn clone(&self) -> Self {
-        match self {
-            KernelObject::Event(ev) => KernelObject::Event(ev.clone()),
-            KernelObject::Thread(th) => KernelObject::Thread(th.clone()),
-        }
+    gdt[0] = 0;
+
+    let cs = (1 << 3) | 0b011;
+    gdt[1] = SegmentDescriptor {
+        base: 0x0000_0000,
+        limit: 0xFFFF_FFFF,
+        granularity: true,
+        db: true, // 32 bit
+        long: false,
+        available: false,
+        present: true,
+        dpl: 3,
+        system: true,  // code/data
+        type_: 0b1011, // code, execute/read, accessed
     }
-}
+    .encode();
 
-type KernelObjects = Handles<HANDLE<()>, KernelObject>;
-pub trait KernelObjectsMethods {
-    fn get_event(&self, handle: HEVENT) -> Option<&Event>;
-}
-impl KernelObjectsMethods for KernelObjects {
-    fn get_event(&self, handle: HEVENT) -> Option<&Event> {
-        match self.get_raw(handle.to_raw()) {
-            Some(KernelObject::Event(ev)) => Some(ev),
-            _ => None,
-        }
+    let ds = (2 << 3) | 0b011;
+    gdt[2] = SegmentDescriptor {
+        base: 0x0000_0000,
+        limit: 0xFFFF_FFFF,
+        granularity: true,
+        db: true, // 32 bit
+        long: false,
+        available: false,
+        present: true,
+        dpl: 3,
+        system: true,  // code/data
+        type_: 0b0011, // data, read/write, accessed
     }
-}
+    .encode();
 
-#[derive(Default)]
-pub struct State {
-    /// Address image was loaded at.
-    pub image_base: u32,
-    /// Address of PEB (process information exposed to executable).
-    pub peb: u32,
-
-    // There is a collection of handle types that are all from the same key space,
-    // because they can be passed to the various Wait functions.
-    pub objects: Handles<HANDLE<()>, KernelObject>,
-
-    pub files: Handles<HFILE, Box<dyn host::File>>,
-
-    pub find_handles: Handles<HFIND, FindHandle>,
-
-    /// State for command line APIs.
-    /// The actual process command line is held in Machine, this is just to stash some pointers.
-    pub(crate) cmdline: command_line::State,
-
-    /// If true, debug break when entering the exe entry point.
-    pub break_on_startup: bool,
-}
-
-impl State {
-    pub fn init_process(&mut self, memory: &mut Memory, cmdline: &str) {
-        // Initialize the process heap.
-        // We use this for misc allocations like per-thread TEBs,
-        // so we need it to exist very early in process startup,
-        // before even the exe is loaded.  This means we need to be
-        // careful to not make it so big as to cover the memory region
-        // that the exe will be loaded into.
-        debug_assert!(memory.process_heap.addr == 0);
-        let size = 1 << 20;
-        let heap = memory.new_heap(size, "process heap".into());
-        memory.process_heap = heap;
-
-        let user_data = memory.store(UserspaceData {
-            peb: PEB {
-                InheritedAddressSpace: 0,
-                ReadImageFileExecOptions: 0,
-                BeingDebugged: 0,
-                SpareBool: 0,
-                Mutant: 0,
-                ImageBaseAddress: self.image_base,
-                LdrData: 0,
-                ProcessParameters: 0, // set below
-                SubSystemData: 0,
-                ProcessHeap: memory.process_heap.addr,
-                TlsCount: 0, // will be set later
-            },
-            params: RTL_USER_PROCESS_PARAMETERS {
-                AllocationSize: 0,
-                Size: 0,
-                Flags: 0,
-                DebugFlags: 0,
-                ConsoleHandle: 0,
-                ConsoleFlags: 0,
-                hStdInput: STDOUT_HFILE,
-                hStdOutput: STDOUT_HFILE,
-                hStdError: STDERR_HFILE,
-                CurrentDirectory: memory::Pod::zeroed(),
-                DllPath: memory::Pod::zeroed(),
-                ImagePathName: memory::Pod::zeroed(),
-                CommandLine: self.cmdline.as_unicode_string(&cmdline, memory),
-            },
-        });
-        self.peb = user_data;
-        let peb = memory.mem().get_aligned_ref_mut::<PEB>(self.peb);
-        peb.ProcessParameters = user_data;
+    let fs = (3 << 3) | 0b011;
+    gdt[3] = SegmentDescriptor {
+        base: 0, // TODO: get teb into here
+        limit: 0x1000,
+        granularity: false,
+        db: true, // 32 bit
+        long: false,
+        available: false,
+        present: true,
+        dpl: 3,
+        system: true,  // code/data
+        type_: 0b0011, // data, read/write, accessed
     }
+    .encode();
 
-    #[cfg(feature = "x86-unicorn")]
-    pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
-        use segments::SegmentDescriptor;
-        const COUNT: usize = 5;
-        let addr = self.arena.alloc(COUNT as u32 * 8, 8);
-        let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };
+    // unicorn test says: "when setting SS, need rpl == cpl && dpl == cpl",
+    // which is to say because the system is level 0 (cpl) we need the descriptor
+    // to also be zero (dpl) and the selector to also be zero (rpl, the 0b000 here).
+    let ss = (4 << 3) | 0b000;
+    gdt[4] = SegmentDescriptor {
+        base: 0x0000_0000,
+        limit: 0xFFFF_FFFF,
+        granularity: true,
+        db: true, // 32 bit
+        long: false,
+        available: false,
+        present: true,
+        dpl: 0,        // NOTE: this is different from others
+        system: true,  // code/data
+        type_: 0b0011, // data, read/write, accessed
+    }
+    .encode();
 
-        gdt[0] = 0;
-
-        let cs = (1 << 3) | 0b011;
-        gdt[1] = SegmentDescriptor {
-            base: 0x0000_0000,
-            limit: 0xFFFF_FFFF,
-            granularity: true,
-            db: true, // 32 bit
-            long: false,
-            available: false,
-            present: true,
-            dpl: 3,
-            system: true,  // code/data
-            type_: 0b1011, // code, execute/read, accessed
-        }
-        .encode();
-
-        let ds = (2 << 3) | 0b011;
-        gdt[2] = SegmentDescriptor {
-            base: 0x0000_0000,
-            limit: 0xFFFF_FFFF,
-            granularity: true,
-            db: true, // 32 bit
-            long: false,
-            available: false,
-            present: true,
-            dpl: 3,
-            system: true,  // code/data
-            type_: 0b0011, // data, read/write, accessed
-        }
-        .encode();
-
-        let fs = (3 << 3) | 0b011;
-        gdt[3] = SegmentDescriptor {
-            base: 0, // TODO: get teb into here
-            limit: 0x1000,
-            granularity: false,
-            db: true, // 32 bit
-            long: false,
-            available: false,
-            present: true,
-            dpl: 3,
-            system: true,  // code/data
-            type_: 0b0011, // data, read/write, accessed
-        }
-        .encode();
-
-        // unicorn test says: "when setting SS, need rpl == cpl && dpl == cpl",
-        // which is to say because the system is level 0 (cpl) we need the descriptor
-        // to also be zero (dpl) and the selector to also be zero (rpl, the 0b000 here).
-        let ss = (4 << 3) | 0b000;
-        gdt[4] = SegmentDescriptor {
-            base: 0x0000_0000,
-            limit: 0xFFFF_FFFF,
-            granularity: true,
-            db: true, // 32 bit
-            long: false,
-            available: false,
-            present: true,
-            dpl: 0,        // NOTE: this is different from others
-            system: true,  // code/data
-            type_: 0b0011, // data, read/write, accessed
-        }
-        .encode();
-
-        GDTEntries {
-            addr,
-            cs,
-            ds,
-            fs,
-            ss,
-        }
+    GDTEntries {
+        addr,
+        cs,
+        ds,
+        fs,
+        ss,
     }
 }
 
