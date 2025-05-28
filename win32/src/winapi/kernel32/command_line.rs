@@ -1,8 +1,9 @@
 //! Process command line, as exposed in GetCommandLine() and also TEB.
 
-use super::{arena::Arena, init::UNICODE_STRING};
+use super::init::UNICODE_STRING;
 use crate::Machine;
-use memory::{ExtensionsMut, Mem};
+use memory::ExtensionsMut;
+use win32_system::memory::Memory;
 use win32_winapi::String16;
 
 /// Pointers returned by GetCommandLineA and GetCommandLineW.
@@ -17,26 +18,34 @@ pub struct CommandLineState {
 }
 
 impl CommandLineState {
-    fn cmdline8(&mut self, cmdline: &str, arena: &mut Arena, mem: Mem) -> u32 {
+    fn cmdline8(&mut self, cmdline: &str, memory: &Memory) -> u32 {
         if self.cmdline8 == 0 {
             let mut cmdline = cmdline.to_string();
             cmdline.push(0 as char); // nul terminator
 
-            let ptr = arena.alloc(cmdline.len() as u32);
-            mem.sub32_mut(ptr, cmdline.len() as u32)
+            let ptr = memory
+                .process_heap
+                .alloc(memory.mem(), cmdline.len() as u32);
+            memory
+                .mem()
+                .sub32_mut(ptr, cmdline.len() as u32)
                 .copy_from_slice(cmdline.as_bytes());
             self.cmdline8 = ptr;
         }
         self.cmdline8
     }
 
-    fn cmdline16(&mut self, cmdline: &str, arena: &mut Arena, mem: Mem) -> u32 {
+    fn cmdline16(&mut self, cmdline: &str, memory: &Memory) -> u32 {
         if self.cmdline16 == 0 {
             let mut cmdline16 = String16::from(cmdline);
             cmdline16.0.push(0); // nul terminator
 
-            let ptr = arena.alloc(cmdline16.byte_size() as u32);
-            mem.sub32_mut(ptr, cmdline16.byte_size() as u32)
+            let ptr = memory
+                .process_heap
+                .alloc(memory.mem(), cmdline16.byte_size() as u32);
+            memory
+                .mem()
+                .sub32_mut(ptr, cmdline16.byte_size() as u32)
                 .copy_from_slice(unsafe {
                     std::slice::from_raw_parts::<u8>(
                         cmdline16.0.as_ptr() as *const _,
@@ -48,13 +57,8 @@ impl CommandLineState {
         self.cmdline16
     }
 
-    pub fn as_unicode_string(
-        &mut self,
-        cmdline: &str,
-        arena: &mut Arena,
-        mem: Mem,
-    ) -> UNICODE_STRING {
-        let cmdline16 = self.cmdline16(cmdline, arena, mem);
+    pub fn as_unicode_string(&mut self, cmdline: &str, memory: &Memory) -> UNICODE_STRING {
+        let cmdline16 = self.cmdline16(cmdline, memory);
         let len = cmdline.len();
         UNICODE_STRING {
             Length: len as u16,
@@ -66,18 +70,18 @@ impl CommandLineState {
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline.cmdline8(
-        &machine.process.cmdline.string,
-        &mut machine.state.kernel32.arena,
-        machine.memory.mem(),
-    )
+    machine
+        .state
+        .kernel32
+        .cmdline
+        .cmdline8(&machine.process.cmdline.string, &machine.memory)
 }
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline.cmdline16(
-        &machine.process.cmdline.string,
-        &mut machine.state.kernel32.arena,
-        machine.memory.mem(),
-    )
+    machine
+        .state
+        .kernel32
+        .cmdline
+        .cmdline16(&machine.process.cmdline.string, &machine.memory)
 }

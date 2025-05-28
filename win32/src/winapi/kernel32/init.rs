@@ -150,7 +150,6 @@ impl State {
         let size = 1 << 20;
         let heap = memory.new_heap(size, "process heap".into());
         memory.process_heap = heap;
-        let mem = memory.mem();
 
         let user_data = memory.store(UserspaceData {
             peb: PEB {
@@ -179,9 +178,7 @@ impl State {
                 CurrentDirectory: memory::Pod::zeroed(),
                 DllPath: memory::Pod::zeroed(),
                 ImagePathName: memory::Pod::zeroed(),
-                CommandLine: self
-                    .cmdline
-                    .as_unicode_string(&cmdline, &mut self.arena, mem),
+                CommandLine: self.cmdline.as_unicode_string(&cmdline, memory),
             },
         });
         self.peb = user_data;
