@@ -202,7 +202,7 @@ fn main() -> anyhow::Result<ExitCode> {
             }
         } else if let Some(mut trace_points) = args.trace_points {
             // Break once the exe is loaded, so we can set breakpoints within it.
-            machine.state.kernel32.break_on_startup = true;
+            machine.break_on_startup();
             while machine.run() {}
             assert_eq!(machine.status, win32::Status::DebugBreak);
             machine.unblock();

@@ -66,8 +66,8 @@ impl MachineX<Emulator> {
         self.memory.create_process_heap();
 
         {
-            let mut state2 = winapi::kernel32::get_state(self);
-            state2.init_process(&self.memory, &self.process.cmdline.string);
+            let mut state = winapi::kernel32::get_state(self);
+            state.init_process(&self.memory, &self.process.cmdline.string);
         };
 
         let machine = self as *mut Machine;

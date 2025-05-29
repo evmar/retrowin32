@@ -31,16 +31,13 @@ impl KernelObjectsMethods for KernelObjects {
     }
 }
 
+/// State held via the sys.get_state() interface.
+// TODO: move all State to State2, rename to State.
 #[derive(Default)]
 pub struct State {
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,
-}
 
-/// State held via the sys.get_state() interface.
-// TODO: move all State to State2, rename to State.
-#[derive(Default)]
-pub struct State2 {
     /// Address image was loaded at.
     pub image_base: u32,
 
@@ -56,16 +53,16 @@ pub struct State2 {
     pub objects: Handles<HANDLE<()>, KernelObject>,
 }
 
-impl State2 {
+impl State {
     pub fn init_process(&mut self, memory: &Memory, cmdline: &str) {
         init_peb(self, memory, cmdline);
     }
 }
 
-pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State2> {
-    type SysState = std::cell::RefCell<State2>;
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    type SysState = std::cell::RefCell<State>;
     sys.state2(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(std::cell::RefCell::new(State2::default()))
+        Box::new(std::cell::RefCell::new(State::default()))
     })
     .downcast_ref::<SysState>()
     .unwrap()

@@ -7,7 +7,7 @@ use win32::{Machine, loader::Module, winapi};
 /// This means eip is the real entry point, and all the exe's code/data is unpacked in memory.
 fn run_to_entry_point(machine: &mut Machine, unpack_at: u32) -> anyhow::Result<()> {
     // Run until we hit the initial entry point, which means load the exe and its dlls.
-    machine.state.kernel32.break_on_startup = true;
+    machine.break_on_startup();
     while machine.run() {}
     if machine.status != win32::Status::DebugBreak {
         machine.dump_state(0);

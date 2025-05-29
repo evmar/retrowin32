@@ -31,7 +31,10 @@ pub struct Process {
     pub modules: HashMap<HMODULE, loader::Module>,
 }
 
-impl<Emu> MachineX<Emu> {
+impl<Emu> MachineX<Emu>
+where
+    MachineX<Emu>: System,
+{
     /// Hackily make a null pointer, for use in tests when we know the pointer isn't needed.
     #[cfg(test)]
     pub fn null() -> &'static mut MachineX<Emu> {
@@ -46,6 +49,10 @@ impl<Emu> MachineX<Emu> {
             .into_iter()
             .map(|dll| loader::normalize_module_name(&dll))
             .collect();
+    }
+
+    pub fn break_on_startup(&mut self) {
+        kernel32::get_state(self).break_on_startup = true;
     }
 }
 

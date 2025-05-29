@@ -1,6 +1,6 @@
 //! Process initialization and startup.
 
-use super::{file::HFILE, get_state, state::State2};
+use super::{State, file::HFILE, get_state};
 use crate::Machine; // TODO(Machine): break_on_startup, exit_thread, file
 use crate::winapi::kernel32; // TODO: until we are in our own crate
 use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
@@ -50,7 +50,7 @@ struct UserspaceData {
 }
 unsafe impl ::memory::Pod for UserspaceData {}
 
-pub fn init_peb(state: &mut State2, memory: &Memory, cmdline: &str) {
+pub fn init_peb(state: &mut State, memory: &Memory, cmdline: &str) {
     let user_data = memory.store(UserspaceData {
         peb: PEB {
             InheritedAddressSpace: 0,
@@ -209,7 +209,7 @@ unsafe impl ::memory::Pod for PEB {}
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
-    if machine.state.kernel32.break_on_startup {
+    if get_state(machine).break_on_startup {
         #[cfg(feature = "x86-emu")]
         {
             machine.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;

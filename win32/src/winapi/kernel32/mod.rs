@@ -27,7 +27,7 @@ pub use file::HFILE;
 pub use init::{peb_mut, retrowin32_main};
 pub use misc::SECURITY_ATTRIBUTES;
 pub use process::CURRENT_PROCESS_HANDLE;
-pub use state::{KernelObject, KernelObjectsMethods, State, State2, get_state};
+pub use state::{KernelObject, KernelObjectsMethods, State, get_state};
 pub use sync::{event::HEVENT, wait::wait_for_events};
 pub use thread::{Thread, create_thread, current_thread, teb_mut};
 pub use time::{FILETIME, Sleep};
