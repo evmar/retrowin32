@@ -1,11 +1,9 @@
 //! Process initialization and startup.
 
 use super::{file::HFILE, get_state, state::State2};
-use crate::{
-    // TODO(Machine): break_on_startup, exit_thread, file
-    Machine,
-    winapi::kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
-};
+use crate::Machine; // TODO(Machine): break_on_startup, exit_thread, file
+use crate::winapi::kernel32; // TODO: until we are in our own crate
+use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
 use memory::Extensions;
 use win32_system::memory::Memory;
 use win32_winapi::{DWORD, WORD};

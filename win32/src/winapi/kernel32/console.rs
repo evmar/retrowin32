@@ -1,6 +1,5 @@
 use super::file::HFILE;
-use crate::Machine; // TODO(Machine): uses file API
-use crate::winapi::kernel32;
+use crate::winapi::kernel32; // TODO: until we are in our own crate
 use win32_system::System;
 use win32_winapi::{DWORD, HANDLE, WORD, calling_convention::Array};
 
@@ -77,13 +76,13 @@ pub fn WriteConsoleA(
 
 #[win32_derive::dllexport]
 pub fn WriteConsoleW(
-    machine: &mut Machine,
+    sys: &dyn System,
     hConsoleOutput: HFILE,
     lpBuffer: Array<u16>,
     lpNumberOfCharsWritten: Option<&mut u32>,
     _lpReserved: u32,
 ) -> bool {
-    match kernel32::file::write_file(machine, hConsoleOutput, &lpBuffer) {
+    match kernel32::file::write_file(sys, hConsoleOutput, &lpBuffer) {
         Err(err) => {
             log::debug!("WriteConsoleW({hConsoleOutput:?}) failed: {:?}", err);
             false

@@ -6364,7 +6364,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::console::WriteConsoleW(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hConsoleOutput,
                 lpBuffer,
                 lpNumberOfCharsWritten,

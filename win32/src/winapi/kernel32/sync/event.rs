@@ -1,4 +1,4 @@
-use crate::Machine;
+use crate::Machine; // TODO(Machine): kernel32 objects
 use crate::winapi::kernel32::{KernelObject, KernelObjectsMethods};
 use win32_system::{Event, System};
 use win32_winapi::HANDLE;
