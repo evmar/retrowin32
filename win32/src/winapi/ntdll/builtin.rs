@@ -8,15 +8,21 @@ mod wrappers {
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
     pub unsafe fn NtCurrentTeb(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        use ntdll::*;
+        use ntdll::misc::*;
         unsafe {
             let mem = sys.mem().detach();
-            let __trace_record = if trace::enabled("ntdll") {
-                trace::Record::new(ntdll::NtCurrentTeb_pos, "ntdll", "NtCurrentTeb", &[]).enter()
+            let __trace_record = if trace::enabled("ntdll/misc") {
+                trace::Record::new(
+                    ntdll::misc::NtCurrentTeb_pos,
+                    "ntdll/misc",
+                    "NtCurrentTeb",
+                    &[],
+                )
+                .enter()
             } else {
                 None
             };
-            let result = ntdll::NtCurrentTeb(&mut *(sys.machine() as *mut crate::Machine));
+            let result = ntdll::misc::NtCurrentTeb(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -24,7 +30,7 @@ mod wrappers {
         }
     }
     pub unsafe fn NtReadFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        use ntdll::*;
+        use ntdll::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let FileHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -35,10 +41,10 @@ mod wrappers {
             let Buffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 20u32);
             let ByteOffset = <Option<&mut u64>>::from_stack(mem, stack_args + 28u32);
             let Key = <u32>::from_stack(mem, stack_args + 32u32);
-            let __trace_record = if trace::enabled("ntdll") {
+            let __trace_record = if trace::enabled("ntdll/misc") {
                 trace::Record::new(
-                    ntdll::NtReadFile_pos,
-                    "ntdll",
+                    ntdll::misc::NtReadFile_pos,
+                    "ntdll/misc",
                     "NtReadFile",
                     &[
                         ("FileHandle", &FileHandle),
@@ -55,8 +61,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = ntdll::NtReadFile(
-                &mut *(sys.machine() as *mut crate::Machine),
+            let result = ntdll::misc::NtReadFile(
+                sys,
                 FileHandle,
                 Event,
                 ApcRoutine,
@@ -73,14 +79,14 @@ mod wrappers {
         }
     }
     pub unsafe fn RtlExitUserProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        use ntdll::*;
+        use ntdll::misc::*;
         unsafe {
             let mem = sys.mem().detach();
             let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("ntdll") {
+            let __trace_record = if trace::enabled("ntdll/misc") {
                 trace::Record::new(
-                    ntdll::RtlExitUserProcess_pos,
-                    "ntdll",
+                    ntdll::misc::RtlExitUserProcess_pos,
+                    "ntdll/misc",
                     "RtlExitUserProcess",
                     &[("exit_code", &exit_code)],
                 )
@@ -88,8 +94,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                ntdll::RtlExitUserProcess(&mut *(sys.machine() as *mut crate::Machine), exit_code);
+            let result = ntdll::misc::RtlExitUserProcess(sys, exit_code);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
