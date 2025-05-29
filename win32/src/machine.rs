@@ -143,6 +143,15 @@ impl System for Machine {
         kernel32::teb_mut(self).LastErrorValue = err.into();
     }
 
+    fn load_library(&mut self, dll: &str) -> std::pin::Pin<Box<dyn Future<Output = HMODULE> + '_>> {
+        let dll = dll.to_string();
+        Box::pin(async move {
+            let res = loader::load_dll(self, &dll).await;
+            // TODO: forward errors to caller?
+            res.unwrap()
+        })
+    }
+
     fn get_symbol(&self, dll: &str, name: &str) -> u32 {
         loader::get_symbol(self, dll, name)
     }

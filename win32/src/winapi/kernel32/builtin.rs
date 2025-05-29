@@ -2324,11 +2324,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetModuleFileNameA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                filename,
-            );
+            let result = kernel32::dll::GetModuleFileNameA(sys, hModule, filename);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2357,12 +2353,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetModuleFileNameW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                lpFilename,
-                nSize,
-            );
+            let result = kernel32::dll::GetModuleFileNameW(sys, hModule, lpFilename, nSize);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4190,11 +4181,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::dll::LoadLibraryA(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    filename,
-                )
-                .await;
+                let result = kernel32::dll::LoadLibraryA(sys, filename).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4230,13 +4217,8 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::dll::LoadLibraryExW(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    lpLibFileName,
-                    hFile,
-                    dwFlags,
-                )
-                .await;
+                let result =
+                    kernel32::dll::LoadLibraryExW(sys, lpLibFileName, hFile, dwFlags).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -4266,11 +4248,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::dll::LoadLibraryW(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    filename,
-                )
-                .await;
+                let result = kernel32::dll::LoadLibraryW(sys, filename).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

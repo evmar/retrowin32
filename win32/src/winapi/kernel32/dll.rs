@@ -1,5 +1,5 @@
 use super::{file::HFILE, get_state};
-use crate::{Machine, loader}; // TODO(Machine): uses modules, loader
+use crate::{Machine, loader}; // TODO(Machine): uses modules
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -55,19 +55,15 @@ pub fn GetModuleHandleExW(
     return !hMod.is_null();
 }
 
-fn get_module_file_name(
-    machine: &mut Machine,
-    hModule: HMODULE,
-    filename: &mut dyn Encoder,
-) -> u32 {
-    let state = get_state(machine);
+fn get_module_file_name(sys: &dyn System, hModule: HMODULE, filename: &mut dyn Encoder) -> u32 {
+    let state = get_state(sys);
     if hModule.is_null() || hModule.to_raw() == state.image_base {
         let exe = state.cmdline.exe_name();
         filename.write_nul(&exe);
         match filename.status() {
             Ok(n) => n - 1,
             Err(_) => {
-                machine.set_last_error(ERROR::INSUFFICIENT_BUFFER);
+                sys.set_last_error(ERROR::INSUFFICIENT_BUFFER);
                 // TODO: nul termination behavior.
                 // Docs say this returns buffer size, not needed space.
                 return filename.capacity() as u32;
@@ -79,58 +75,45 @@ fn get_module_file_name(
 }
 
 #[win32_derive::dllexport]
-pub fn GetModuleFileNameA(
-    machine: &mut Machine,
-    hModule: HMODULE,
-    mut filename: ArrayOut<u8>,
-) -> u32 {
-    get_module_file_name(machine, hModule, &mut EncoderAnsi::new(&mut filename))
+pub fn GetModuleFileNameA(sys: &dyn System, hModule: HMODULE, mut filename: ArrayOut<u8>) -> u32 {
+    get_module_file_name(sys, hModule, &mut EncoderAnsi::new(&mut filename))
 }
 
 #[win32_derive::dllexport]
-pub fn GetModuleFileNameW(
-    machine: &mut Machine,
-    hModule: HMODULE,
-    lpFilename: u32,
-    nSize: u32,
-) -> u32 {
+pub fn GetModuleFileNameW(sys: &dyn System, hModule: HMODULE, lpFilename: u32, nSize: u32) -> u32 {
     // TODO: figure out what we should do with ArrayWithSize for u16.
-    let mut filename = EncoderWide::from_mem(unsafe { machine.mem().detach() }, lpFilename, nSize);
-    get_module_file_name(machine, hModule, &mut filename)
+    let mut filename = EncoderWide::from_mem(unsafe { sys.mem().detach() }, lpFilename, nSize);
+    get_module_file_name(sys, hModule, &mut filename)
 }
 
-async fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
-    let res = loader::resolve_dll(&machine.external_dlls, filename);
-    match loader::load_dll(machine, &res).await {
-        Ok(hmodule) => hmodule,
-        Err(e) => {
-            // TODO: set_last_error fails here if this happens before TEB setup
-            log::error!("LoadLibraryA({:?}) failed: {:?}", filename, e);
-            // machine.set_last_error(winapi::ERROR::MOD_NOT_FOUND);
-            HMODULE::null()
-        }
+async fn load_library(sys: &mut dyn System, filename: &str) -> HMODULE {
+    let hmodule = sys.load_library(filename).await;
+    if hmodule.is_null() {
+        // TODO: other error codes?
+        sys.set_last_error(ERROR::MOD_NOT_FOUND);
     }
+    hmodule
 }
 
 #[win32_derive::dllexport]
-pub async fn LoadLibraryW(machine: &mut Machine, filename: Option<&Str16>) -> HMODULE {
-    load_library(machine, &filename.unwrap().to_string()).await
+pub async fn LoadLibraryW(sys: &mut dyn System, filename: Option<&Str16>) -> HMODULE {
+    load_library(sys, &filename.unwrap().to_string()).await
 }
 
 #[win32_derive::dllexport]
-pub async fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    load_library(machine, filename.unwrap()).await
+pub async fn LoadLibraryA(sys: &mut dyn System, filename: Option<&str>) -> HMODULE {
+    load_library(sys, filename.unwrap()).await
 }
 
 #[win32_derive::dllexport]
 pub async fn LoadLibraryExW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpLibFileName: Option<&Str16>,
     hFile: HFILE,
     dwFlags: u32,
 ) -> HMODULE {
     let filename = lpLibFileName.map(|f| f.to_string());
-    load_library(machine, &filename.unwrap()).await
+    load_library(sys, &filename.unwrap()).await
 }
 
 #[win32_derive::dllexport]
@@ -214,9 +197,9 @@ pub fn GetStartupInfoA(sys: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA
 }
 
 #[win32_derive::dllexport]
-pub fn GetStartupInfoW(machine: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+pub fn GetStartupInfoW(sys: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
-    GetStartupInfoA(machine, lpStartupInfo)
+    GetStartupInfoA(sys, lpStartupInfo)
 }
 
 #[win32_derive::dllexport]

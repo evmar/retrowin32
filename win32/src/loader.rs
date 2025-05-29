@@ -157,9 +157,8 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             log::warn!("skipping non-ascii import {:?}", imports.image_name(image));
             continue;
         };
-        let res = resolve_dll(&machine.external_dlls, dll_name);
         let mut module = {
-            match load_dll(machine, &res).await {
+            match load_dll(machine, dll_name).await {
                 Ok(hmodule) => machine.process.modules.get_mut(&hmodule),
                 Err(err) => {
                     log::warn!("failed to load import {dll_name:?}: {err}");
@@ -173,7 +172,7 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
         // Use DLL name from module if available.
         let (dll_name, mut exports) = match &mut module {
             Some(module) => (module.name.as_str(), Some(&mut module.exports)),
-            None => (res.name(), None),
+            None => (dll_name, None),
         };
         for (iat_addr, entry) in imports.iat_iter(image) {
             let iat_addr = iat_addr + base;
@@ -427,13 +426,13 @@ impl Exports {
 }
 
 /// The result of resolving a DLL name, after string normalization and aliasing.
-pub enum DLLResolution {
+enum DLLResolution {
     Builtin(&'static BuiltinDLL),
     External(String),
 }
 
 impl DLLResolution {
-    pub fn name(&self) -> &str {
+    fn name(&self) -> &str {
         match self {
             DLLResolution::Builtin(builtin) => builtin.file_name,
             DLLResolution::External(name) => name,
@@ -443,7 +442,7 @@ impl DLLResolution {
 
 /// Given an imported DLL name, find the name of the DLL file we'll load for it.
 /// Handles normalizing the name, aliases, and builtins.
-pub fn resolve_dll(external_dlls: &[String], filename: &str) -> DLLResolution {
+fn resolve_dll(external_dlls: &[String], filename: &str) -> DLLResolution {
     let mut filename = normalize_module_name(filename);
     if filename.starts_with("api-") {
         match winapi::builtin::apiset(&filename) {
@@ -479,7 +478,8 @@ fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8
     Ok(buf)
 }
 
-pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HMODULE> {
+pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODULE> {
+    let res = resolve_dll(&machine.external_dlls, name);
     let module_name = res.name();
     // See if already loaded.
     if let Some((&hmodule, _)) = machine

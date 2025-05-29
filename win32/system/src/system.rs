@@ -46,6 +46,8 @@ pub trait System {
 
     fn set_last_error(&self, err: ERROR);
 
+    fn load_library(&mut self, dll: &str) -> Pin<Box<dyn Future<Output = HMODULE> + '_>>;
+
     /// Look up a symbol from a DLL; DLL must have already been loaded.
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
 
