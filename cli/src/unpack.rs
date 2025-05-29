@@ -50,7 +50,7 @@ fn construct_idt(
 
     let mut buf = Vec::new();
 
-    for module in machine.process.modules.values() {
+    for module in kernel32::get_state(machine).modules.values() {
         if module.name == "retrowin32.dll" {
             continue;
         }

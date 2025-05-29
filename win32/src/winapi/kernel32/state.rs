@@ -1,7 +1,7 @@
-use super::{HEVENT, Thread, command_line, init::init_peb};
-use std::{rc::Rc, sync::Arc};
+use super::{HEVENT, Thread, command_line, init::init_peb, loader::Module};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 use win32_system::{Event, System, memory::Memory};
-use win32_winapi::{HANDLE, Handles};
+use win32_winapi::{HANDLE, HMODULE, Handles};
 
 /// Objects identified by kernel handles, all of which can be passed to Wait* functions.
 pub enum KernelObject {
@@ -47,14 +47,18 @@ pub struct State {
     /// Process command line.
     pub(crate) cmdline: command_line::State,
 
+    pub modules: HashMap<HMODULE, Module>,
+
     // There is a collection of handle types that are all from the same key space,
     // because they can be passed to the various Wait functions.
     pub objects: Handles<HANDLE<()>, KernelObject>,
 }
 
 impl State {
-    pub fn init_process(&mut self, memory: &Memory, cmdline: String) {
+    pub fn init_process(&mut self, memory: &Memory, builtin_module: Module, cmdline: String) {
         let cmdline = command_line::State::new(cmdline);
+        self.modules
+            .insert(HMODULE::from_raw(builtin_module.image_base), builtin_module);
         init_peb(self, memory, cmdline);
     }
 }

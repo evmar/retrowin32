@@ -36,7 +36,7 @@ impl Shims {
 
 /// Return the loader::Module for the magic retrowin32.dll module, which
 /// provides the retrowin32_syscall function needed for x86<->win32 calls.
-pub fn retrowin32_dll_module(memory: &mut Memory, retrowin32_syscall: &[u8]) -> loader::Module {
+pub fn retrowin32_dll_module(memory: &Memory, retrowin32_syscall: &[u8]) -> loader::Module {
     // Always put the syscall stub at the same address,
     // so different emulators match on memory layout.
     assert!(retrowin32_syscall.len() <= 8);

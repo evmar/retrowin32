@@ -1,14 +1,14 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
-    machine::{MachineX, Process, Status},
+    machine::{MachineX, Status},
     shims::{Shims, retrowin32_dll_module},
     winapi,
 };
 use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::collections::HashMap;
 use win32_system::{dll::Handler, host, memory::Memory};
-use win32_winapi::{HMODULE, calling_convention::ABIReturn};
+use win32_winapi::calling_convention::ABIReturn;
 
 pub struct Emulator {
     pub x86: x86::X86,
@@ -23,11 +23,7 @@ pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = Memory::new(MemImpl::new(256 << 20));
-        let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-
-        let module = retrowin32_dll_module(&mut memory, retrowin32_syscall);
-        let modules = HashMap::from([(HMODULE::from_raw(module.image_base), module)]);
+        let memory = Memory::new(MemImpl::new(256 << 20));
 
         Machine {
             status: Default::default(),
@@ -41,7 +37,6 @@ impl MachineX<Emulator> {
             state: Default::default(),
             state2: Default::default(),
             external_dlls: Default::default(),
-            process: Process { modules },
         }
     }
 
@@ -58,9 +53,12 @@ impl MachineX<Emulator> {
         // that the exe will be loaded into.
         self.memory.create_process_heap();
 
+        let retrowin32_syscall = b"\x0f\x34\xc3"; // sysenter; ret
+        let module = retrowin32_dll_module(&mut self.memory, retrowin32_syscall);
+
         let exe_name = {
             let mut state = winapi::kernel32::get_state(self);
-            state.init_process(&self.memory, cmdline);
+            state.init_process(&self.memory, module, cmdline);
             state.cmdline.exe_name()
         };
 

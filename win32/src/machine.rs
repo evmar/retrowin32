@@ -22,12 +22,6 @@ pub struct MachineX<Emu> {
     pub state: winapi::State,
     pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
-
-    pub process: Process,
-}
-
-pub struct Process {
-    pub modules: HashMap<HMODULE, kernel32::loader::Module>,
 }
 
 impl<Emu> MachineX<Emu>
@@ -146,8 +140,7 @@ impl System for Machine {
     fn get_library(&self, name: &str) -> HMODULE {
         let name = kernel32::loader::normalize_module_name(name);
 
-        if let Some((hmodule, _)) = self
-            .process
+        if let Some((hmodule, _)) = kernel32::get_state(self)
             .modules
             .iter()
             .find(|(_, dll)| dll.name == name)
@@ -172,7 +165,8 @@ impl System for Machine {
     }
 
     fn get_resources(&self, module: HMODULE) -> Option<&[u8]> {
-        let module = self.process.modules.get(&module)?;
+        let state = kernel32::get_state(self);
+        let module = state.modules.get(&module)?;
         module.resources(self.mem())
     }
 

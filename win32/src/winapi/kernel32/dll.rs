@@ -144,7 +144,8 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    let module = machine.process.modules.get_mut(&hModule).unwrap();
+    let mut state = get_state(machine);
+    let module = state.modules.get_mut(&hModule).unwrap();
     let Some(addr) = module.exports.resolve(&lpProcName.0) else {
         log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);
         return 0; // fail
