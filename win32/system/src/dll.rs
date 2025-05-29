@@ -27,3 +27,18 @@ pub struct BuiltinDLL {
     /// Raw bytes of generated .dll.
     pub raw: &'static [u8],
 }
+
+/// The result of resolving a DLL name, after string normalization and aliasing.
+pub enum DLLResolution {
+    Builtin(&'static BuiltinDLL),
+    External(String),
+}
+
+impl DLLResolution {
+    pub fn name(&self) -> &str {
+        match self {
+            DLLResolution::Builtin(builtin) => builtin.file_name,
+            DLLResolution::External(name) => name,
+        }
+    }
+}

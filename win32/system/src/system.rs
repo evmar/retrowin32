@@ -1,4 +1,5 @@
 use crate::{
+    dll::DLLResolution,
     event::ArcEvent,
     host,
     wait::{Wait, WaitResult},
@@ -76,4 +77,6 @@ pub trait System {
     // TODO: added in kernel32 migration, need a better place.
     fn teb_addr(&self) -> u32;
     fn debug_break(&mut self);
+
+    fn resolve_dll(&self, filename: &str) -> DLLResolution;
 }

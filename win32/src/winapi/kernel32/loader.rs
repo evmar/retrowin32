@@ -5,12 +5,12 @@
 //! as well as recursively resolving imported modules.
 
 use super::{get_state, init::retrowin32_main};
-use crate::{machine::Machine, winapi};
+use crate::machine::Machine;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::{HashMap, HashSet};
 use win32_system::{
     System,
-    dll::{BuiltinDLL, Shim},
+    dll::{DLLResolution, Shim},
     host,
     memory::{Mapping, Memory},
 };
@@ -425,48 +425,6 @@ impl Exports {
     }
 }
 
-/// The result of resolving a DLL name, after string normalization and aliasing.
-enum DLLResolution {
-    Builtin(&'static BuiltinDLL),
-    External(String),
-}
-
-impl DLLResolution {
-    fn name(&self) -> &str {
-        match self {
-            DLLResolution::Builtin(builtin) => builtin.file_name,
-            DLLResolution::External(name) => name,
-        }
-    }
-}
-
-/// Given an imported DLL name, find the name of the DLL file we'll load for it.
-/// Handles normalizing the name, aliases, and builtins.
-fn resolve_dll(external_dlls: &[String], filename: &str) -> DLLResolution {
-    let mut filename = normalize_module_name(filename);
-    if filename.starts_with("api-") {
-        match winapi::builtin::apiset(&filename) {
-            Some(name) => filename = name.to_string(),
-            None => return DLLResolution::External(filename),
-        }
-    }
-
-    let use_external = external_dlls.contains(&filename);
-    if !use_external {
-        if let Some(alias) = winapi::builtin::dll_alias(&filename) {
-            filename = alias.to_string();
-        }
-        if let Some(builtin) = winapi::builtin::DLLS
-            .iter()
-            .find(|&dll| dll.file_name == filename)
-        {
-            return DLLResolution::Builtin(builtin);
-        }
-    }
-
-    DLLResolution::External(filename)
-}
-
 fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8>> {
     let mut buf = Vec::new();
     let Ok(mut file) = host.open(path, host::FileOptions::read()) else {
@@ -494,7 +452,7 @@ fn find_dll(machine: &Machine, filename: &str) -> anyhow::Result<Vec<u8>> {
 }
 
 pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODULE> {
-    let res = resolve_dll(&machine.external_dlls, name);
+    let res = machine.resolve_dll(name);
     let module_name = res.name();
 
     // See if already loaded.
@@ -547,7 +505,7 @@ fn register_builtin_shims(machine: &mut Machine, shims: &'static [Shim], hmodule
 }
 
 pub fn get_symbol(machine: &Machine, dll: &str, name: &str) -> u32 {
-    let res = resolve_dll(&machine.external_dlls, dll);
+    let res = machine.resolve_dll(dll);
     let dll_name = res.name();
 
     let state = get_state(machine);

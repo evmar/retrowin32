@@ -2,6 +2,7 @@ use crate::winapi;
 use crate::winapi::kernel32;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
+use win32_system::dll::DLLResolution;
 use win32_system::memory::Memory;
 use win32_system::{ArcEvent, System, Wait, WaitResult, host};
 use win32_winapi::{ERROR, HANDLE, HMODULE};
@@ -215,6 +216,33 @@ impl System for Machine {
 
     fn debug_break(&mut self) {
         self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+    }
+
+    /// Given an imported DLL name, find the name of the DLL file we'll load for it.
+    /// Handles normalizing the name, aliases, and builtins.
+    fn resolve_dll(&self, filename: &str) -> DLLResolution {
+        let mut filename = kernel32::loader::normalize_module_name(filename);
+        if filename.starts_with("api-") {
+            match winapi::builtin::apiset(&filename) {
+                Some(name) => filename = name.to_string(),
+                None => return DLLResolution::External(filename),
+            }
+        }
+
+        let use_external = self.external_dlls.contains(&filename);
+        if !use_external {
+            if let Some(alias) = winapi::builtin::dll_alias(&filename) {
+                filename = alias.to_string();
+            }
+            if let Some(builtin) = winapi::builtin::DLLS
+                .iter()
+                .find(|&dll| dll.file_name == filename)
+            {
+                return DLLResolution::Builtin(builtin);
+            }
+        }
+
+        DLLResolution::External(filename)
     }
 }
 
