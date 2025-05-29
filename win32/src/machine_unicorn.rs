@@ -271,7 +271,7 @@ impl MachineX<Emulator> {
                 let hook = self
                     .emu
                     .unicorn
-                    .add_code_hook(addr as u64, (addr + 1) as u64, |u, addr, _size| {
+                    .add_code_hook(addr as u64, addr as u64, |u, addr, _size| {
                         log::debug!("machine_unicorn: breakpoint hit at {:#x}", addr);
                         u.emu_stop().unwrap()
                     })
