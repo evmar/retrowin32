@@ -365,7 +365,8 @@ pub async fn start_exe(
     let module = machine.process.modules.get(&hmodule).unwrap();
     winapi::kernel32::get_state(machine).image_base = module.image_base;
 
-    winapi::kernel32::retrowin32_main(machine, module.entry_point.unwrap()).await;
+    let entry_point = module.entry_point.unwrap();
+    winapi::kernel32::retrowin32_main(machine, entry_point).await;
     Ok(())
 }
 

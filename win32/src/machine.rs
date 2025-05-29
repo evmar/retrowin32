@@ -159,6 +159,9 @@ impl System for Machine {
     fn exit(&mut self, status: u32) {
         Machine::exit(self, status);
     }
+    fn exit_thread(&mut self, status: u32) {
+        Machine::exit_thread(self, status);
+    }
 
     fn state(&self, id: &TypeId) -> &dyn Any {
         if id == &TypeId::of::<std::cell::RefCell<builtin_user32::State>>() {
@@ -190,6 +193,10 @@ impl System for Machine {
 
     fn teb_addr(&self) -> u32 {
         self.teb_addr()
+    }
+
+    fn debug_break(&mut self) {
+        self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
     }
 }
 

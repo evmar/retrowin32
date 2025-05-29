@@ -55,6 +55,7 @@ pub trait System {
     fn get_thread_id(&self) -> u32;
 
     fn exit(&mut self, status: u32);
+    fn exit_thread(&mut self, status: u32);
 
     /// Get a per-subcomponent state object.  The idea is each library (e.g. gdi32)
     /// can store its own state in the system, without this API needing to depend
@@ -69,4 +70,5 @@ pub trait System {
 
     // TODO: added in kernel32 migration, need a better place.
     fn teb_addr(&self) -> u32;
+    fn debug_break(&mut self);
 }

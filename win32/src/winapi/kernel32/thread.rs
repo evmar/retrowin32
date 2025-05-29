@@ -1,5 +1,4 @@
 use super::{KernelObject, get_state, peb_mut};
-use crate::Machine; // TODO(Machine): exit thread
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System, memory::Memory};
@@ -227,23 +226,9 @@ pub async fn CreateThread(
 }
 
 #[win32_derive::dllexport]
-pub fn ExitThread(machine: &mut Machine, dwExitCode: u32) {
-    #[cfg(feature = "x86-emu")]
-    {
-        if machine.emu.x86.cur_cpu == 0 {
-            panic!("ExitThread called on main thread");
-        }
-
-        log::warn!(
-            "thread on cpu {id} exiting with code {code}",
-            code = dwExitCode,
-            id = machine.emu.x86.cur_cpu
-        );
-        // TODO: free stack, other thread cleanup, set event to signal waiters, etc.
-        machine.exit_thread();
-    }
-    #[cfg(not(feature = "x86-emu"))]
-    todo!();
+pub fn ExitThread(sys: &mut dyn System, dwExitCode: u32) {
+    // TODO: free stack, other thread cleanup, set event to signal waiters, etc.
+    sys.exit_thread(dwExitCode);
 }
 
 #[win32_derive::dllexport]

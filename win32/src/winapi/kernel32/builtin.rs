@@ -960,10 +960,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::thread::ExitThread(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwExitCode,
-            );
+            let result = kernel32::thread::ExitThread(sys, dwExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6784,11 +6781,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::init::retrowin32_main(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    entry_point,
-                )
-                .await;
+                let result = kernel32::init::retrowin32_main(sys, entry_point).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
@@ -6819,12 +6812,7 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::init::retrowin32_thread_main(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    entry_point,
-                    param,
-                )
-                .await;
+                let result = kernel32::init::retrowin32_thread_main(sys, entry_point, param).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

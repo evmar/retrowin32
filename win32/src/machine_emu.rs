@@ -288,7 +288,17 @@ impl MachineX<Emulator> {
         thread.thread.handle.to_raw()
     }
 
-    pub fn exit_thread(&mut self) {
+    pub fn exit_thread(&mut self, status: u32) {
+        if self.emu.x86.cur_cpu == 0 {
+            panic!("ExitThread called on main thread");
+        }
+
+        log::warn!(
+            "thread on cpu {id} exiting with code {code}",
+            code = status,
+            id = self.emu.x86.cur_cpu
+        );
+
         self.emu.x86.cpu_mut().state = x86::CPUState::Free;
     }
 

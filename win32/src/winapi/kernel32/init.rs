@@ -1,7 +1,6 @@
 //! Process initialization and startup.
 
 use super::{State, command_line, file::HFILE, get_state};
-use crate::Machine; // TODO(Machine): break_on_startup, exit_thread, file
 use crate::winapi::kernel32; // TODO: until we are in our own crate
 use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
 use memory::Extensions;
@@ -209,25 +208,18 @@ unsafe impl ::memory::Pod for PEB {}
 /// point for when retrowin32 starts/stops a process, initializing DLLs and calling main.
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
-pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
-    if get_state(machine).break_on_startup {
-        #[cfg(feature = "x86-emu")]
-        {
-            machine.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
-        }
-        #[cfg(not(feature = "x86-emu"))]
-        {
-            todo!();
-        }
+pub async fn retrowin32_main(sys: &mut dyn System, entry_point: u32) {
+    if get_state(sys).break_on_startup {
+        sys.debug_break();
     }
-    machine.call_x86(entry_point, vec![]).await;
+    sys.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
     // spawned threads before exiting.
-    machine.exit(0);
+    sys.exit(0);
 }
 
 #[win32_derive::dllexport]
-pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) {
-    machine.call_x86(entry_point, vec![param]).await;
-    machine.exit_thread();
+pub async fn retrowin32_thread_main(sys: &mut dyn System, entry_point: u32, param: u32) {
+    let status = sys.call_x86(entry_point, vec![param]).await;
+    sys.exit_thread(status);
 }
