@@ -1,5 +1,4 @@
 use super::{FileAttribute, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, get_state};
-use crate::Machine;
 use bitflags::bitflags;
 use memory::Pod;
 use win32_system::{System, host};
@@ -52,7 +51,7 @@ impl TryFrom<u32> for FlagsAndAttributes {
 
 #[win32_derive::dllexport]
 pub fn CreateFileA(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&str>,
     dwDesiredAccess: Result<GENERIC, u32>,
     dwShareMode: u32,
@@ -63,7 +62,7 @@ pub fn CreateFileA(
 ) -> HFILE {
     let Some(file_name) = lpFileName else {
         log::debug!("CreateFileA failed: null lpFileName");
-        machine.set_last_error(ERROR::INVALID_DATA);
+        sys.set_last_error(ERROR::INVALID_DATA);
         return HFILE::invalid();
     };
 
@@ -73,7 +72,7 @@ pub fn CreateFileA(
         Ok(value) => value,
         Err(value) => {
             log::debug!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
-            machine.set_last_error(ERROR::INVALID_DATA);
+            sys.set_last_error(ERROR::INVALID_DATA);
             return HFILE::invalid();
         }
     };
@@ -109,14 +108,14 @@ pub fn CreateFileA(
     }
 
     let path = WindowsPath::new(file_name);
-    match machine.host.open(path, file_options) {
+    match sys.host().open(path, file_options) {
         Ok(file) => {
-            machine.set_last_error(ERROR::SUCCESS);
-            get_state(machine).files.add(file)
+            sys.set_last_error(ERROR::SUCCESS);
+            get_state(sys).files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
-            machine.set_last_error(err);
+            sys.set_last_error(err);
             HFILE::invalid()
         }
     }
@@ -124,7 +123,7 @@ pub fn CreateFileA(
 
 #[win32_derive::dllexport]
 pub fn CreateFileW(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&Str16>,
     dwDesiredAccess: Result<GENERIC, u32>,
     dwShareMode: u32,
@@ -134,7 +133,7 @@ pub fn CreateFileW(
     hTemplateFile: HFILE,
 ) -> HFILE {
     CreateFileA(
-        machine,
+        sys,
         lpFileName
             .map(|f| f.to_string())
             .as_ref()
@@ -162,7 +161,7 @@ unsafe impl Pod for OFSTRUCT {}
 
 #[win32_derive::dllexport]
 pub fn OpenFile(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&str>,
     lpReOpenBuff: Option<&mut OFSTRUCT>,
     uStyle: u32,
@@ -181,14 +180,14 @@ pub fn OpenFile(
 
     let file_name = lpFileName.unwrap();
     let path = WindowsPath::new(file_name);
-    let hfile = match machine.host.open(path, file_options) {
+    let hfile = match sys.host().open(path, file_options) {
         Ok(file) => {
-            machine.set_last_error(ERROR::SUCCESS);
-            get_state(machine).files.add(file)
+            sys.set_last_error(ERROR::SUCCESS);
+            get_state(sys).files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
-            machine.set_last_error(err);
+            sys.set_last_error(err);
             return HFILE::invalid();
         }
     };
@@ -209,7 +208,7 @@ pub fn OpenFile(
 
 #[win32_derive::dllexport]
 pub fn ReadFile(
-    machine: &mut Machine,
+    sys: &dyn System,
     hFile: HFILE,
     mut lpBuffer: ArrayOut<u8>,
     mut lpNumberOfBytesRead: Option<&mut u32>,
@@ -219,13 +218,13 @@ pub fn ReadFile(
     if let Some(bytes) = lpNumberOfBytesRead.as_deref_mut() {
         *bytes = 0;
     }
-    let mut state = get_state(machine);
+    let mut state = get_state(sys);
     let Some(file) = (match hFile {
         STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
         _ => state.files.get_mut(hFile),
     }) else {
         log::debug!("ReadFile({hFile:?}) unknown handle");
-        machine.set_last_error(ERROR::INVALID_HANDLE);
+        sys.set_last_error(ERROR::INVALID_HANDLE);
         return false;
     };
     if lpOverlapped != 0 {
@@ -243,29 +242,29 @@ pub fn ReadFile(
             }
             Err(err) => {
                 log::debug!("ReadFile({hFile:?}) failed: {:?}", err);
-                machine.set_last_error(ERROR::from(err));
+                sys.set_last_error(ERROR::from(err));
                 return false;
             }
         }
     }
 
-    machine.set_last_error(ERROR::SUCCESS);
+    sys.set_last_error(ERROR::SUCCESS);
     if let Some(bytes) = lpNumberOfBytesRead {
         *bytes = read as u32;
     }
     true
 }
 
-pub fn write_file(machine: &mut Machine, hFile: HFILE, mut buf: &[u8]) -> Result<usize, ERROR> {
+pub fn write_file(sys: &dyn System, hFile: HFILE, mut buf: &[u8]) -> Result<usize, ERROR> {
     match hFile {
         STDOUT_HFILE | STDERR_HFILE => {
-            machine.host.stdout(buf);
+            sys.host().stdout(buf);
             return Ok(buf.len());
         }
         _ => {}
     };
 
-    let mut state = get_state(machine);
+    let mut state = get_state(sys);
     let Some(file) = state.files.get_mut(hFile) else {
         log::debug!("WriteFile({hFile:?}) unknown handle");
         return Err(ERROR::INVALID_HANDLE);
@@ -289,7 +288,7 @@ pub fn write_file(machine: &mut Machine, hFile: HFILE, mut buf: &[u8]) -> Result
 
 #[win32_derive::dllexport]
 pub fn WriteFile(
-    machine: &mut Machine,
+    sys: &dyn System,
     hFile: HFILE,
     lpBuffer: Array<u8>,
     mut lpNumberOfBytesWritten: Option<&mut u32>,
@@ -303,13 +302,13 @@ pub fn WriteFile(
         unimplemented!("ReadFile overlapped");
     }
 
-    match write_file(machine, hFile, &lpBuffer) {
+    match write_file(sys, hFile, &lpBuffer) {
         Err(err) => {
-            machine.set_last_error(err);
+            sys.set_last_error(err);
             false
         }
         Ok(n) => {
-            machine.set_last_error(ERROR::SUCCESS);
+            sys.set_last_error(ERROR::SUCCESS);
             if let Some(written) = lpNumberOfBytesWritten {
                 *written = n as u32;
             }
@@ -319,13 +318,13 @@ pub fn WriteFile(
 }
 
 #[win32_derive::dllexport]
-pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
-    let mut state = get_state(machine);
+pub fn SetEndOfFile(sys: &dyn System, hFile: HFILE) -> bool {
+    let mut state = get_state(sys);
     let file = match state.files.get_mut(hFile) {
         Some(f) => f,
         None => {
             log::debug!("SetEndOfFile({hFile:?}) unknown handle");
-            machine.set_last_error(ERROR::INVALID_HANDLE);
+            sys.set_last_error(ERROR::INVALID_HANDLE);
             return false;
         }
     };
@@ -334,25 +333,25 @@ pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
         Ok(pos) => pos,
         Err(err) => {
             log::debug!("SetEndOfFile({hFile:?}) failed: {:?}", err);
-            machine.set_last_error(ERROR::from(err));
+            sys.set_last_error(ERROR::from(err));
             return false;
         }
     };
     match file.set_len(len) {
         Ok(()) => {
-            machine.set_last_error(ERROR::SUCCESS);
+            sys.set_last_error(ERROR::SUCCESS);
             true
         }
         Err(err) => {
             log::debug!("SetEndOfFile({hFile:?}) failed: {err:?}",);
-            machine.set_last_error(err);
+            sys.set_last_error(err);
             false
         }
     }
 }
 
 #[win32_derive::dllexport]
-pub fn FlushFileBuffers(machine: &mut Machine, hFile: HFILE) -> bool {
+pub fn FlushFileBuffers(sys: &dyn System, hFile: HFILE) -> bool {
     todo!();
 }
 

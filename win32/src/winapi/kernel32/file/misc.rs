@@ -1,10 +1,9 @@
-use crate::Machine;
 use memory::str16::Str16;
 use win32_system::System;
 
 #[win32_derive::dllexport]
 pub fn GetDiskFreeSpaceA(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpRootPathName: Option<&str>,
     lpSectorsPerCluster: Option<&mut u32>,
     lpBytesPerSector: Option<&mut u32>,

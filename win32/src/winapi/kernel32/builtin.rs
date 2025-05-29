@@ -219,11 +219,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::fs::CreateDirectoryA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpPathName,
-                lpSecurityAttributes,
-            );
+            let result =
+                kernel32::file::fs::CreateDirectoryA(sys, lpPathName, lpSecurityAttributes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -329,7 +326,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::file::CreateFileA(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpFileName,
                 dwDesiredAccess,
                 dwShareMode,
@@ -421,7 +418,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::file::CreateFileW(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpFileName,
                 dwDesiredAccess,
                 dwShareMode,
@@ -752,10 +749,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::fs::DeleteFileA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileName,
-            );
+            let result = kernel32::file::fs::DeleteFileA(sys, lpFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1270,10 +1264,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file::FlushFileBuffers(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-            );
+            let result = kernel32::file::file::FlushFileBuffers(sys, hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1643,11 +1634,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::fs::GetCurrentDirectoryA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                nBufferLength,
-                lpBuffer,
-            );
+            let result = kernel32::file::fs::GetCurrentDirectoryA(sys, nBufferLength, lpBuffer);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1671,11 +1658,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::fs::GetCurrentDirectoryW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                nBufferLength,
-                lpBuffer,
-            );
+            let result = kernel32::file::fs::GetCurrentDirectoryW(sys, nBufferLength, lpBuffer);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1799,7 +1782,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::misc::GetDiskFreeSpaceA(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpRootPathName,
                 lpSectorsPerCluster,
                 lpBytesPerSector,
@@ -1990,10 +1973,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::metadata::GetFileAttributesA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileName,
-            );
+            let result = kernel32::file::metadata::GetFileAttributesA(sys, lpFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2041,11 +2021,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::metadata::GetFileInformationByHandle(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-                lpFileInformation,
-            );
+            let result =
+                kernel32::file::metadata::GetFileInformationByHandle(sys, hFile, lpFileInformation);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2069,11 +2046,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::metadata::GetFileSize(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-                lpFileSizeHigh,
-            );
+            let result = kernel32::file::metadata::GetFileSize(sys, hFile, lpFileSizeHigh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2105,7 +2078,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::metadata::GetFileTime(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hFile,
                 lpCreationTime,
                 lpLastAccessTime,
@@ -2133,10 +2106,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::metadata::GetFileType(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-            );
+            let result = kernel32::file::metadata::GetFileType(sys, hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4631,12 +4601,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file::OpenFile(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileName,
-                lpReOpenBuff,
-                uStyle,
-            );
+            let result = kernel32::file::file::OpenFile(sys, lpFileName, lpReOpenBuff, uStyle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4986,7 +4951,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::file::ReadFile(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hFile,
                 lpBuffer,
                 lpNumberOfBytesRead,
@@ -5060,10 +5025,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::fs::RemoveDirectoryA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpPathName,
-            );
+            let result = kernel32::file::fs::RemoveDirectoryA(sys, lpPathName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5281,10 +5243,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file::SetEndOfFile(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-            );
+            let result = kernel32::file::file::SetEndOfFile(sys, hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5408,11 +5367,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::metadata::SetFileAttributesA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileName,
-                dwFileAttributes,
-            );
+            let result =
+                kernel32::file::metadata::SetFileAttributesA(sys, lpFileName, dwFileAttributes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5472,7 +5428,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::metadata::SetFilePointer(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hFile,
                 lDistanceToMove,
                 lpDistanceToMoveHigh,
@@ -5509,7 +5465,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::metadata::SetFileTime(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hFile,
                 lpCreationTime,
                 lpLastAccessTime,
@@ -6445,7 +6401,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::file::WriteFile(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 hFile,
                 lpBuffer,
                 lpNumberOfBytesWritten,
@@ -6536,11 +6492,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file16::_hread(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-                lpBuffer,
-            );
+            let result = kernel32::file::file16::_hread(sys, hFile, lpBuffer);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6563,10 +6515,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file16::_lclose(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-            );
+            let result = kernel32::file::file16::_lclose(sys, hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6595,12 +6544,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file16::_llseek(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-                lOffset,
-                iOrigin,
-            );
+            let result = kernel32::file::file16::_llseek(sys, hFile, lOffset, iOrigin);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6624,11 +6568,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file16::_lopen(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpPathName,
-                iReadWrite,
-            );
+            let result = kernel32::file::file16::_lopen(sys, lpPathName, iReadWrite);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6652,11 +6592,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::file16::_lread(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFile,
-                lpBuffer,
-            );
+            let result = kernel32::file::file16::_lread(sys, hFile, lpBuffer);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

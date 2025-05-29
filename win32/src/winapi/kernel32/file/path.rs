@@ -72,7 +72,7 @@ pub fn GetFullPathNameA(
 
 #[win32_derive::dllexport]
 pub fn GetFullPathNameW(
-    machine: &dyn System,
+    sys: &dyn System,
     lpFileName: Option<&Str16>,
     nBufferLength: u32,
     lpBuffer: u32,
