@@ -1,5 +1,4 @@
 use super::{file::HFILE, get_state};
-use crate::Machine;
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -139,12 +138,8 @@ impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
 }
 
 #[win32_derive::dllexport]
-pub fn GetProcAddress(
-    machine: &mut Machine,
-    hModule: HMODULE,
-    lpProcName: GetProcAddressArg,
-) -> u32 {
-    let mut state = get_state(machine);
+pub fn GetProcAddress(sys: &dyn System, hModule: HMODULE, lpProcName: GetProcAddressArg) -> u32 {
+    let mut state = get_state(sys);
     let module = state.modules.get_mut(&hModule).unwrap();
     let Some(addr) = module.exports.resolve(&lpProcName.0) else {
         log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);

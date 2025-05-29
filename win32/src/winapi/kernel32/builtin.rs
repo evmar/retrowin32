@@ -2652,11 +2652,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetProcAddress(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hModule,
-                lpProcName,
-            );
+            let result = kernel32::dll::GetProcAddress(sys, hModule, lpProcName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
