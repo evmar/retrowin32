@@ -495,3 +495,8 @@ pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -
 pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
     false
 }
+
+#[win32_derive::dllexport]
+pub fn GetSystemDefaultLangID(_machine: &mut Machine) -> u16 {
+    0x0409 // en-US
+}

@@ -199,6 +199,26 @@ impl ToX86 for bool {
         }
     }
 }
+impl ToX86 for u8 {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ToX86 for i8 {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ToX86 for u16 {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}
+impl ToX86 for i16 {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}
 impl ToX86 for u32 {
     fn to_raw(&self) -> u32 {
         *self

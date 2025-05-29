@@ -2526,6 +2526,10 @@ pub mod kernel32 {
             let _CodePage = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::IsDBCSLeadByteEx(machine, _TestChar, _CodePage).to_raw()
         }
+        pub unsafe fn GetSystemDefaultLangID(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::GetSystemDefaultLangID(machine).to_raw()
+        }
         pub unsafe fn IsDebuggerPresent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::IsDebuggerPresent(machine).to_raw()
@@ -3394,6 +3398,11 @@ pub mod kernel32 {
             func: Handler::Sync(impls::IsDBCSLeadByteEx),
             stack_consumed: 8u32,
         };
+        pub const GetSystemDefaultLangID: Shim = Shim {
+            name: "GetSystemDefaultLangID",
+            func: Handler::Sync(impls::GetSystemDefaultLangID),
+            stack_consumed: 0u32,
+        };
         pub const IsDebuggerPresent: Shim = Shim {
             name: "IsDebuggerPresent",
             func: Handler::Sync(impls::IsDebuggerPresent),
@@ -3680,7 +3689,7 @@ pub mod kernel32 {
             stack_consumed: 8u32,
         };
     }
-    const SHIMS: [Shim; 148usize] = [
+    const SHIMS: [Shim; 149usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -3772,6 +3781,7 @@ pub mod kernel32 {
         shims::IsBadWritePtr,
         shims::IsDBCSLeadByte,
         shims::IsDBCSLeadByteEx,
+        shims::GetSystemDefaultLangID,
         shims::IsDebuggerPresent,
         shims::IsProcessorFeaturePresent,
         shims::IsValidCodePage,
