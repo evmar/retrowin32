@@ -2,7 +2,9 @@
 //! Each winapi DLL contains a generated 'builtin.rs',
 //! which joins the raw DLL bytes with emulator-side implementation.
 
-use win32_system::dll::BuiltinDLL;
+use win32_system::dll::{BuiltinDLL, DLLResolution};
+
+use super::kernel32;
 
 pub const DLLS: [BuiltinDLL; 19] = [
     builtin_advapi32::DLL,
@@ -26,7 +28,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_retrowin32_test::DLL,
 ];
 
-pub fn dll_alias(name: &str) -> Option<&'static str> {
+fn dll_alias(name: &str) -> Option<&'static str> {
     Some(match name {
         "msvcrt.dll" => "ucrtbase.dll",
         _ => return None,
@@ -35,7 +37,7 @@ pub fn dll_alias(name: &str) -> Option<&'static str> {
 
 /// Maps a DLL "api set" alias to the underlying dll.
 /// https://learn.microsoft.com/en-us/windows/win32/apiindex/api-set-loader-operation
-pub fn apiset(name: &str) -> Option<&'static str> {
+fn apiset(name: &str) -> Option<&'static str> {
     Some(match name {
         "api-ms-win-crt-heap-l1-1-0.dll" => "ucrtbase.dll",
         "api-ms-win-crt-locale-l1-1-0.dll" => "ucrtbase.dll",
@@ -51,4 +53,26 @@ pub fn apiset(name: &str) -> Option<&'static str> {
 
         _ => return None,
     })
+}
+
+pub fn resolve_dll(external_dlls: &[String], filename: &str) -> DLLResolution {
+    let mut filename = kernel32::loader::normalize_module_name(filename);
+    if filename.starts_with("api-") {
+        match apiset(&filename) {
+            Some(name) => filename = name.to_string(),
+            None => return DLLResolution::External(filename),
+        }
+    }
+
+    let use_external = external_dlls.contains(&filename);
+    if !use_external {
+        if let Some(alias) = dll_alias(&filename) {
+            filename = alias.to_string();
+        }
+        if let Some(builtin) = DLLS.iter().find(|&dll| dll.file_name == filename) {
+            return DLLResolution::Builtin(builtin);
+        }
+    }
+
+    DLLResolution::External(filename)
 }

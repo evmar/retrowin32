@@ -5,7 +5,6 @@
 //! as well as recursively resolving imported modules.
 
 use super::{get_state, init::retrowin32_main};
-use crate::machine::Machine;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::{HashMap, HashSet};
 use win32_system::{
@@ -144,12 +143,12 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
     }
 }
 
-async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
+async fn load_imports(sys: &mut dyn System, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the correct targets.
     let mut patches: Vec<(u32, u32)> = Vec::new();
 
-    let image: &[u8] = unsafe { machine.mem().detach().slice(base..) };
+    let image: &[u8] = unsafe { sys.mem().detach().slice(base..) };
     let Some(section) = imports_addr.as_slice(image) else {
         return;
     };
@@ -158,14 +157,14 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             log::warn!("skipping non-ascii import {:?}", imports.image_name(image));
             continue;
         };
-        let hmodule = match load_dll(machine, dll_name).await {
+        let hmodule = match load_dll(sys, dll_name).await {
             Ok(hmodule) => hmodule,
             Err(err) => {
                 log::warn!("failed to load import {dll_name:?}: {err}");
                 HMODULE::null()
             }
         };
-        let mut state = get_state(machine);
+        let mut state = get_state(sys);
         let module = state.modules.get_mut(&hmodule);
 
         // We traverse the IAT even if the module failed to load, because we still label the
@@ -205,7 +204,7 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
     }
 
     for (addr, target) in patches {
-        machine.mem().put_pod::<u32>(addr, target);
+        sys.mem().put_pod::<u32>(addr, target);
     }
 }
 
@@ -294,7 +293,7 @@ fn load_one_module(
 
 /// Load a module's imports and invoke its DllMain().
 async fn init_module(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     file: &pe::File,
     module: Module,
 ) -> anyhow::Result<HMODULE> {
@@ -306,10 +305,10 @@ async fn init_module(
 
     // Register module before loading imports, because loaded imports may refer back to this module.
     let hmodule = HMODULE::from_raw(image_base);
-    get_state(machine).modules.insert(hmodule, module);
+    get_state(sys).modules.insert(hmodule, module);
 
     if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
-        Box::pin(load_imports(machine, image_base, imports)).await;
+        Box::pin(load_imports(sys, image_base, imports)).await;
     }
 
     // Invoke DllMain() if present.
@@ -319,8 +318,7 @@ async fn init_module(
         let hInstance = image_base;
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;
-        machine
-            .call_x86(entry_point, vec![hInstance, fdwReason, lpvReserved])
+        sys.call_x86(entry_point, vec![hInstance, fdwReason, lpvReserved])
             .await;
     }
 
@@ -329,23 +327,23 @@ async fn init_module(
 
 /// Load an exe or dll, recursively initializing its imports.
 async fn load_module(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     module_name: String,
     buf: &[u8],
     file: &pe::File,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<HMODULE> {
-    let module = load_one_module(&mut machine.memory, module_name, buf, file, relocate)?;
-    init_module(machine, file, module).await
+    let module = load_one_module(sys.memory_mut(), module_name, buf, file, relocate)?;
+    init_module(sys, file, module).await
 }
 
 pub async fn start_exe(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     exe_name: String,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<()> {
     let path = WindowsPath::new(&exe_name);
-    let buf = read_file(&*machine.host, path)?; // TODO: .await
+    let buf = read_file(sys.host(), path)?; // TODO: .await
     let file = pe::File::parse(&buf)?;
 
     // We need a current thread to load the exe, because we may need to
@@ -355,17 +353,17 @@ pub async fn start_exe(
     // TODO: zig asks for 16mb of stack space, which then conflicts with the
     // exe load address.  Clip it here.
     let stack_size = file.opt_header.SizeOfStackReserve.min(0x10_0000);
-    machine.new_thread(false, stack_size, 0, &[]);
+    sys.new_thread(false, stack_size, 0, &[]);
 
     let filename = std::str::from_utf8(path.file_name().unwrap()).unwrap();
     let module_name = normalize_module_name(&filename);
 
-    let module = load_one_module(&mut machine.memory, module_name, &buf, &file, relocate)?;
+    let module = load_one_module(sys.memory_mut(), module_name, &buf, &file, relocate)?;
     let image_base = module.image_base;
     let entry_point = module.entry_point.unwrap();
-    init_module(machine, &file, module).await.unwrap();
-    get_state(machine).image_base = image_base;
-    retrowin32_main(machine, entry_point).await;
+    init_module(sys, &file, module).await.unwrap();
+    get_state(sys).image_base = image_base;
+    retrowin32_main(sys, entry_point).await;
     Ok(())
 }
 
@@ -437,13 +435,13 @@ fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8
 }
 
 /// Read a DLL from the DLL search path.
-fn find_dll(machine: &Machine, filename: &str) -> anyhow::Result<Vec<u8>> {
-    let exe = get_state(machine).cmdline.exe_name();
+fn find_dll(sys: &dyn System, filename: &str) -> anyhow::Result<Vec<u8>> {
+    let exe = get_state(sys).cmdline.exe_name();
     let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
     let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
     for path in &dll_paths {
         let path = WindowsPath::new(path);
-        let buf = read_file(&*machine.host, path)?;
+        let buf = read_file(sys.host(), path)?;
         if !buf.is_empty() {
             return Ok(buf);
         }
@@ -451,12 +449,12 @@ fn find_dll(machine: &Machine, filename: &str) -> anyhow::Result<Vec<u8>> {
     anyhow::bail!("{filename:?} not found in {dll_paths:?}");
 }
 
-pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODULE> {
-    let res = machine.resolve_dll(name);
+pub async fn load_dll(sys: &mut dyn System, name: &str) -> anyhow::Result<HMODULE> {
+    let res = sys.resolve_dll(name);
     let module_name = res.name();
 
     // See if already loaded.
-    if let Some((&hmodule, _)) = get_state(machine)
+    if let Some((&hmodule, _)) = get_state(sys)
         .modules
         .iter()
         .find(|(_, dll)| dll.name == module_name)
@@ -468,47 +466,39 @@ pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODU
         DLLResolution::Builtin(builtin) => {
             let file = pe::File::parse(builtin.raw)?;
             let module_name = builtin.file_name.to_owned();
-            let hmodule = load_module(machine, module_name, builtin.raw, &file, Some(None)).await?;
-            register_builtin_shims(machine, builtin.shims, hmodule);
+            let hmodule = load_module(sys, module_name, builtin.raw, &file, Some(None)).await?;
+            register_builtin_shims(sys, builtin.shims, hmodule);
             Ok(hmodule)
         }
         DLLResolution::External(filename) => {
-            let buf = find_dll(machine, &filename)?;
+            let buf = find_dll(sys, &filename)?;
             let file = pe::File::parse(&buf)?;
-            load_module(machine, filename.to_owned(), &buf, &file, Some(None)).await
+            load_module(sys, filename.to_owned(), &buf, &file, Some(None)).await
         }
     }
 }
 
-fn register_builtin_shims(machine: &mut Machine, shims: &'static [Shim], hmodule: HMODULE) {
+fn register_builtin_shims(sys: &mut dyn System, shims: &'static [Shim], hmodule: HMODULE) {
     // For builtins, register all the exports as known symbols.
-    let exports = {
-        let state = get_state(machine);
+    let addr_to_shim = {
+        let state = get_state(sys);
         let module = state.modules.get(&hmodule).unwrap();
 
         // It is critical that the DLL's exports match up to the shims array;
         // this is ensured by both being generated by the same generator.
         // Note we filter out 0 entries in the exports table, due to how ordinals
         // can create holes; see where .fns is filled in.
-        module
-            .exports
-            .fns
-            .iter()
-            .copied()
-            .filter(|&addr| addr != 0)
-            .collect::<Vec<_>>()
+        let exports = module.exports.fns.iter().copied().filter(|&addr| addr != 0);
+        exports.zip(shims).collect::<Vec<_>>()
     };
-
-    for (&addr, shim) in exports.iter().zip(shims) {
-        machine.emu.shims.register(addr, Ok(shim));
-    }
+    sys.register_shims(&addr_to_shim);
 }
 
-pub fn get_symbol(machine: &Machine, dll: &str, name: &str) -> u32 {
-    let res = machine.resolve_dll(dll);
+pub fn get_symbol(sys: &dyn System, dll: &str, name: &str) -> u32 {
+    let state = get_state(sys);
+    let res = sys.resolve_dll(dll);
     let dll_name = res.name();
 
-    let state = get_state(machine);
     let module = state.modules.values().find(|m| m.name == dll_name).unwrap();
     module
         .exports

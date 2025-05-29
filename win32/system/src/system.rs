@@ -1,5 +1,5 @@
 use crate::{
-    dll::DLLResolution,
+    dll::{DLLResolution, Shim},
     event::ArcEvent,
     host,
     wait::{Wait, WaitResult},
@@ -77,6 +77,8 @@ pub trait System {
     // TODO: added in kernel32 migration, need a better place.
     fn teb_addr(&self) -> u32;
     fn debug_break(&mut self);
-
+    /// Given an imported DLL name, find the name of the DLL file we'll load for it.
+    /// Handles normalizing the name, aliases, and builtins.
     fn resolve_dll(&self, filename: &str) -> DLLResolution;
+    fn register_shims(&mut self, export_to_shim: &[(u32, &'static Shim)]);
 }
