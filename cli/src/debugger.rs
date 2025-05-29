@@ -1,4 +1,4 @@
-use gdbstub::arch::Arch;
+use gdbstub::arch::{Arch, Registers};
 use gdbstub::common::Pid;
 use gdbstub::stub::state_machine::GdbStubStateMachine;
 use gdbstub::stub::SingleThreadStopReason;
@@ -29,6 +29,144 @@ use std::io::ErrorKind;
 use win32::mem::{Extensions, ExtensionsMut};
 use win32::Machine;
 
+// Copy of gdbstub_arch::x86::X86_SSE, but without padding
+// See https://github.com/daniel5151/gdbstub/issues/165
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct X86CoreRegs {
+    /// Accumulator
+    pub eax: u32,
+    /// Count register
+    pub ecx: u32,
+    /// Data register
+    pub edx: u32,
+    /// Base register
+    pub ebx: u32,
+    /// Stack pointer
+    pub esp: u32,
+    /// Base pointer
+    pub ebp: u32,
+    /// Source index
+    pub esi: u32,
+    /// Destination index
+    pub edi: u32,
+    /// Instruction pointer
+    pub eip: u32,
+    /// Status register
+    pub eflags: u32,
+    /// Segment registers: CS, SS, DS, ES, FS, GS
+    pub segments: gdbstub_arch::x86::reg::X86SegmentRegs,
+    /// FPU registers: ST0 through ST7
+    pub st: [gdbstub_arch::x86::reg::F80; 8],
+    /// FPU internal registers
+    pub fpu: gdbstub_arch::x86::reg::X87FpuInternalRegs,
+    /// SIMD Registers: XMM0 through XMM7
+    pub xmm: [u128; 8],
+    /// SSE Status/Control Register
+    pub mxcsr: u32,
+}
+
+impl Registers for X86CoreRegs {
+    type ProgramCounter = u32;
+
+    fn pc(&self) -> Self::ProgramCounter {
+        self.eip
+    }
+
+    fn gdb_serialize(&self, mut write_byte: impl FnMut(Option<u8>)) {
+        macro_rules! write_bytes {
+            ($bytes:expr) => {
+                for b in $bytes {
+                    write_byte(Some(*b))
+                }
+            };
+        }
+
+        macro_rules! write_regs {
+            ($($reg:ident),*) => {
+                $(
+                    write_bytes!(&self.$reg.to_le_bytes());
+                )*
+            }
+        }
+
+        write_regs!(eax, ecx, edx, ebx, esp, ebp, esi, edi, eip, eflags);
+
+        self.segments.gdb_serialize(&mut write_byte);
+
+        // st0 to st7
+        for st_reg in &self.st {
+            write_bytes!(st_reg);
+        }
+
+        self.fpu.gdb_serialize(&mut write_byte);
+
+        // xmm0 to xmm15
+        for xmm_reg in &self.xmm {
+            write_bytes!(&xmm_reg.to_le_bytes());
+        }
+
+        // mxcsr
+        write_bytes!(&self.mxcsr.to_le_bytes());
+    }
+
+    fn gdb_deserialize(&mut self, bytes: &[u8]) -> Result<(), ()> {
+        if bytes.len() < 0x134 {
+            return Err(());
+        }
+
+        macro_rules! parse_regs {
+            ($($reg:ident),*) => {
+                let mut regs = bytes[0..0x28]
+                    .chunks_exact(4)
+                    .map(|x| u32::from_le_bytes(x.try_into().unwrap()));
+                $(
+                    self.$reg = regs.next().ok_or(())?;
+                )*
+            }
+        }
+
+        parse_regs!(eax, ecx, edx, ebx, esp, ebp, esi, edi, eip, eflags);
+
+        self.segments.gdb_deserialize(&bytes[0x28..0x40])?;
+
+        let mut regs = bytes[0x40..0x90].chunks_exact(10).map(TryInto::try_into);
+
+        for reg in self.st.iter_mut() {
+            *reg = regs.next().ok_or(())?.map_err(|_| ())?;
+        }
+
+        self.fpu.gdb_deserialize(&bytes[0x90..0xb0])?;
+
+        let mut regs = bytes[0xb0..0x130]
+            .chunks_exact(0x10)
+            .map(|x| u128::from_le_bytes(x.try_into().unwrap()));
+
+        for reg in self.xmm.iter_mut() {
+            *reg = regs.next().ok_or(())?;
+        }
+
+        self.mxcsr = u32::from_le_bytes(bytes[0x130..0x134].try_into().unwrap());
+
+        Ok(())
+    }
+}
+
+#[allow(non_camel_case_types, clippy::upper_case_acronyms)]
+pub enum X86_SSE {}
+
+impl Arch for X86_SSE {
+    type Usize = u32;
+    type Registers = X86CoreRegs;
+    type RegId = gdbstub_arch::x86::reg::id::X86CoreRegId;
+    type BreakpointKind = usize;
+
+    fn target_description_xml() -> Option<&'static str> {
+        Some(
+            r#"<target version="1.0"><architecture>i386:intel</architecture><feature name="org.gnu.gdb.i386.sse"></feature></target>"#,
+        )
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum MachineTargetAction {
     Stop,
@@ -54,7 +192,7 @@ impl MachineTarget {
 }
 
 impl Target for MachineTarget {
-    type Arch = gdbstub_arch::x86::X86_SSE;
+    type Arch = X86_SSE;
     type Error = std::io::Error;
 
     fn base_ops(&mut self) -> BaseOps<'_, Self::Arch, Self::Error> {
