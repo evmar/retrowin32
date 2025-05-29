@@ -1,3 +1,4 @@
+use super::get_state;
 use crate::Machine;
 use crate::winapi::kernel32::{
     FILETIME,
@@ -76,7 +77,7 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
         STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => return FILE_TYPE_CHAR,
         _ => {}
     }
-    if machine.state.kernel32.files.get(hFile).is_some() {
+    if get_state(machine).files.get(hFile).is_some() {
         return FILE_TYPE_CHAR;
     }
 
@@ -122,7 +123,8 @@ pub fn GetFileInformationByHandle(
     hFile: HFILE,
     lpFileInformation: Option<&mut BY_HANDLE_FILE_INFORMATION>,
 ) -> bool {
-    let file = match machine.state.kernel32.files.get(hFile) {
+    let state = get_state(machine);
+    let file = match state.files.get(hFile) {
         Some(f) => f,
         None => {
             log::debug!("GetFileInformationByHandle({hFile:?}) unknown handle");
@@ -167,7 +169,8 @@ pub fn SetFilePointer(
     if let Some(high) = &mut lpDistanceToMoveHigh {
         lDistanceToMove |= (**high as i64) << 32;
     }
-    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+    let mut state = get_state(machine);
+    let Some(file) = state.files.get_mut(hFile) else {
         log::debug!("SetFilePointer({hFile:?}) unknown handle");
         machine.set_last_error(ERROR::INVALID_HANDLE);
         return u32::MAX;
@@ -230,7 +233,8 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
 
 #[win32_derive::dllexport]
 pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&mut u32>) -> u32 {
-    let file = match machine.state.kernel32.files.get(hFile) {
+    let state = get_state(machine);
+    let file = match state.files.get(hFile) {
         Some(f) => f,
         None => {
             log::debug!("GetFileSize({hFile:?}) unknown handle");
@@ -267,7 +271,8 @@ pub fn GetFileTime(
     lpLastAccessTime: Option<&mut FILETIME>,
     lpLastWriteTime: Option<&mut FILETIME>,
 ) -> bool {
-    let file = match machine.state.kernel32.files.get(hFile) {
+    let state = get_state(machine);
+    let file = match state.files.get(hFile) {
         Some(f) => f,
         None => {
             log::debug!("GetFileTime({hFile:?}) unknown handle");
@@ -334,7 +339,8 @@ pub fn SetFileTime(
     lpLastAccessTime: Option<&FILETIME>,
     lpLastWriteTime: Option<&FILETIME>,
 ) -> bool {
-    let file = match machine.state.kernel32.files.get_mut(hFile) {
+    let mut state = get_state(machine);
+    let file = match state.files.get_mut(hFile) {
         Some(f) => f,
         None => {
             log::debug!("SetFileTime({hFile:?}) unknown handle");

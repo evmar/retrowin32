@@ -1,6 +1,6 @@
-use super::{HEVENT, HFILE, Thread, command_line, init::init_peb};
+use super::{HEVENT, Thread, command_line, init::init_peb};
 use std::{rc::Rc, sync::Arc};
-use win32_system::{Event, System, host, memory::Memory};
+use win32_system::{Event, System, memory::Memory};
 use win32_winapi::{HANDLE, Handles};
 
 /// Objects identified by kernel handles, all of which can be passed to Wait* functions.
@@ -36,8 +36,6 @@ pub struct State {
     // There is a collection of handle types that are all from the same key space,
     // because they can be passed to the various Wait functions.
     pub objects: Handles<HANDLE<()>, KernelObject>,
-
-    pub files: Handles<HFILE, Box<dyn host::File>>,
 
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,

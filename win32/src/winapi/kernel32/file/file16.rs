@@ -1,6 +1,6 @@
 //! File API for 16-bit Windows backward compat.
 
-use super::HFILE;
+use super::{HFILE, get_state};
 use crate::Machine;
 use std::io::SeekFrom;
 use win32_system::System;
@@ -16,7 +16,7 @@ pub fn _lopen(machine: &mut Machine, lpPathName: Option<&str>, iReadWrite: i32) 
 
 #[win32_derive::dllexport]
 pub fn _lclose(machine: &mut Machine, hFile: HFILE) -> HFILE {
-    if machine.state.kernel32.files.remove(hFile).is_none() {
+    if get_state(machine).files.remove(hFile).is_none() {
         log::debug!("CloseHandle({hFile:?}): unknown handle");
         machine.set_last_error(ERROR::INVALID_HANDLE);
         // Docs don't mention any error handling, this is just a guess!
@@ -29,7 +29,8 @@ pub fn _lclose(machine: &mut Machine, hFile: HFILE) -> HFILE {
 
 #[win32_derive::dllexport]
 pub fn _llseek(machine: &mut Machine, hFile: HFILE, lOffset: i32, iOrigin: i32) -> i32 {
-    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+    let mut state = get_state(machine);
+    let Some(file) = state.files.get_mut(hFile) else {
         machine.set_last_error(ERROR::INVALID_HANDLE);
         return -1;
     };
@@ -54,7 +55,8 @@ pub fn _llseek(machine: &mut Machine, hFile: HFILE, lOffset: i32, iOrigin: i32) 
 
 #[win32_derive::dllexport]
 pub fn _lread(machine: &mut Machine, hFile: HFILE, mut lpBuffer: ArrayOut<u8>) -> i32 {
-    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+    let mut state = get_state(machine);
+    let file = state.files.get_mut(hFile).unwrap();
     let Ok(len) = file.read(lpBuffer.as_mut_slice()) else {
         machine.set_last_error(ERROR::INVALID_HANDLE);
         return -1;

@@ -1,4 +1,4 @@
-use super::{FileAttribute, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
+use super::{FileAttribute, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, get_state};
 use crate::Machine;
 use bitflags::bitflags;
 use memory::Pod;
@@ -112,7 +112,7 @@ pub fn CreateFileA(
     match machine.host.open(path, file_options) {
         Ok(file) => {
             machine.set_last_error(ERROR::SUCCESS);
-            machine.state.kernel32.files.add(file)
+            get_state(machine).files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
@@ -184,7 +184,7 @@ pub fn OpenFile(
     let hfile = match machine.host.open(path, file_options) {
         Ok(file) => {
             machine.set_last_error(ERROR::SUCCESS);
-            machine.state.kernel32.files.add(file)
+            get_state(machine).files.add(file)
         }
         Err(err) => {
             log::debug!("CreateFileA({file_name:?}) failed: {err:?}",);
@@ -219,9 +219,10 @@ pub fn ReadFile(
     if let Some(bytes) = lpNumberOfBytesRead.as_deref_mut() {
         *bytes = 0;
     }
+    let mut state = get_state(machine);
     let Some(file) = (match hFile {
         STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
-        _ => machine.state.kernel32.files.get_mut(hFile),
+        _ => state.files.get_mut(hFile),
     }) else {
         log::debug!("ReadFile({hFile:?}) unknown handle");
         machine.set_last_error(ERROR::INVALID_HANDLE);
@@ -264,7 +265,8 @@ pub fn write_file(machine: &mut Machine, hFile: HFILE, mut buf: &[u8]) -> Result
         _ => {}
     };
 
-    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+    let mut state = get_state(machine);
+    let Some(file) = state.files.get_mut(hFile) else {
         log::debug!("WriteFile({hFile:?}) unknown handle");
         return Err(ERROR::INVALID_HANDLE);
     };
@@ -318,7 +320,8 @@ pub fn WriteFile(
 
 #[win32_derive::dllexport]
 pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
-    let file = match machine.state.kernel32.files.get_mut(hFile) {
+    let mut state = get_state(machine);
+    let file = match state.files.get_mut(hFile) {
         Some(f) => f,
         None => {
             log::debug!("SetEndOfFile({hFile:?}) unknown handle");

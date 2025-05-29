@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::kernel32::file::HFILE;
+use super::kernel32::{self, file::HFILE};
 use crate::Machine;
 use win32_winapi::calling_convention::ArrayOut;
 
@@ -31,7 +31,8 @@ pub fn NtReadFile(
     ByteOffset: Option<&mut u64>,
     Key: u32,
 ) -> u32 {
-    let file = machine.state.kernel32.files.get_mut(FileHandle).unwrap();
+    let mut state = kernel32::file::get_state(machine);
+    let file = state.files.get_mut(FileHandle).unwrap();
     if Event != 0 {
         todo!();
     }

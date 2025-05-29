@@ -1,6 +1,10 @@
 //! kernel32 API without a better home.
 
-use super::{CURRENT_PROCESS_HANDLE, file::HFILE, teb_mut};
+use super::{
+    CURRENT_PROCESS_HANDLE,
+    file::{self, HFILE},
+    teb_mut,
+};
 use crate::Machine; // TODO(machine): files, teb
 use ::memory::Pod;
 use bitflags::bitflags;
@@ -240,7 +244,7 @@ pub fn FormatMessageW(
 
 #[win32_derive::dllexport]
 pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
-    if machine.state.kernel32.files.remove(hObject).is_none() {
+    if file::get_state(machine).files.remove(hObject).is_none() {
         log::debug!("CloseHandle({hObject:?}): unknown handle");
         machine.set_last_error(ERROR::INVALID_HANDLE);
         return false;
