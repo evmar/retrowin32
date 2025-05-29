@@ -1,5 +1,5 @@
-use crate::Machine; // TODO(Machine): kernel32 objects
-use crate::winapi::kernel32::{KernelObject, KernelObjectsMethods};
+use crate::winapi::kernel32;
+use kernel32::{KernelObject, KernelObjectsMethods, get_state};
 use win32_system::{Event, System};
 use win32_winapi::HANDLE;
 
@@ -9,14 +9,15 @@ pub type HEVENT = HANDLE<HEVENTT>;
 
 #[win32_derive::dllexport]
 pub fn CreateEventA(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpEventAttributes: u32,
     bManualReset: bool,
     bInitialState: bool,
     lpName: Option<&str>,
 ) -> HEVENT {
     let name = if let Some(name) = lpName {
-        if let Some(ev) = machine.state.kernel32.objects.iter().find(|(_, ev)| {
+        let state = get_state(sys);
+        if let Some(ev) = state.objects.iter().find(|(_, ev)| {
             if let KernelObject::Event(ev) = ev {
                 if let Some(n) = &ev.name {
                     if n == name {
@@ -34,9 +35,7 @@ pub fn CreateEventA(
     };
 
     HEVENT::from_raw(
-        machine
-            .state
-            .kernel32
+        get_state(sys)
             .objects
             .add(KernelObject::Event(Event::new(
                 name,
@@ -48,14 +47,8 @@ pub fn CreateEventA(
 }
 
 #[win32_derive::dllexport]
-pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
-    machine
-        .state
-        .kernel32
-        .objects
-        .get_event(hEvent)
-        .unwrap()
-        .signal();
+pub fn SetEvent(sys: &dyn System, hEvent: HEVENT) -> bool {
+    get_state(sys).objects.get_event(hEvent).unwrap().signal();
     true
 }
 

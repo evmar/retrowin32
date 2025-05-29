@@ -33,10 +33,6 @@ impl KernelObjectsMethods for KernelObjects {
 
 #[derive(Default)]
 pub struct State {
-    // There is a collection of handle types that are all from the same key space,
-    // because they can be passed to the various Wait functions.
-    pub objects: Handles<HANDLE<()>, KernelObject>,
-
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,
 }
@@ -54,6 +50,10 @@ pub struct State2 {
     /// State for command line APIs.
     /// The actual process command line is held in Machine, this is just to stash some pointers.
     pub(crate) cmdline: command_line::State,
+
+    // There is a collection of handle types that are all from the same key space,
+    // because they can be passed to the various Wait functions.
+    pub objects: Handles<HANDLE<()>, KernelObject>,
 }
 
 impl State2 {

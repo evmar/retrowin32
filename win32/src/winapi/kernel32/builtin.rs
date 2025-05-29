@@ -280,7 +280,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::sync::event::CreateEventA(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpEventAttributes,
                 bManualReset,
                 bInitialState,
@@ -647,7 +647,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = kernel32::thread::CreateThread(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     lpThreadAttributes,
                     dwStackSize,
                     lpStartAddress,
@@ -5323,10 +5323,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::sync::event::SetEvent(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hEvent,
-            );
+            let result = kernel32::sync::event::SetEvent(sys, hEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6178,7 +6175,7 @@ mod wrappers {
             Box::pin(async move {
                 let sys = &mut *sys;
                 let result = kernel32::sync::wait::WaitForMultipleObjects(
-                    &mut *(sys.machine() as *mut crate::Machine),
+                    sys,
                     nCount,
                     lpHandles,
                     bWaitAll,
@@ -6215,12 +6212,8 @@ mod wrappers {
             let sys = sys as *mut dyn System;
             Box::pin(async move {
                 let sys = &mut *sys;
-                let result = kernel32::sync::wait::WaitForSingleObject(
-                    &mut *(sys.machine() as *mut crate::Machine),
-                    handle,
-                    dwMilliseconds,
-                )
-                .await;
+                let result =
+                    kernel32::sync::wait::WaitForSingleObject(sys, handle, dwMilliseconds).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }

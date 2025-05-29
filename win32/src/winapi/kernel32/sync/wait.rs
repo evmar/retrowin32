@@ -1,7 +1,6 @@
 //! WaitFor* functions that can block on various types of kernel objects.
 
-use crate::Machine; // TODO(Machine): kernel32 objects
-use crate::winapi::kernel32::KernelObject;
+use crate::winapi::kernel32::{KernelObject, get_state};
 use memory::Extensions;
 use win32_system::{ArcEvent, System, Wait, WaitResult};
 use win32_winapi::HANDLE;
@@ -61,48 +60,37 @@ pub async fn wait_for_events(
 
 #[win32_derive::dllexport]
 pub async fn WaitForSingleObject(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     handle: HANDLE<()>,
     dwMilliseconds: u32,
 ) -> u32 {
-    let event = machine
-        .state
-        .kernel32
-        .objects
-        .get(handle)
-        .unwrap()
-        .get_event()
-        .clone();
-    let wait = Wait::from_millis(machine.host(), dwMilliseconds);
-    wait_for_events(machine, [event].into(), false, wait)
+    let event = {
+        let state = get_state(sys);
+        state.objects.get(handle).unwrap().get_event().clone()
+    };
+    let wait = Wait::from_millis(sys.host(), dwMilliseconds);
+    wait_for_events(sys, [event].into(), false, wait)
         .await
         .to_code()
 }
 
 #[win32_derive::dllexport]
 pub async fn WaitForMultipleObjects(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     nCount: u32,
     lpHandles: u32,
     bWaitAll: bool,
     dwMilliseconds: u32,
 ) -> u32 /* WAIT_EVENT */ {
-    let events = machine
-        .mem()
-        .iter_pod::<HANDLE<()>>(lpHandles, nCount)
-        .map(|handle| {
-            machine
-                .state
-                .kernel32
-                .objects
-                .get(handle)
-                .unwrap()
-                .get_event()
-                .clone()
-        })
-        .collect::<Vec<_>>();
-    let wait = Wait::from_millis(machine.host(), dwMilliseconds);
-    wait_for_events(machine, events.into(), false, wait)
+    let events = {
+        let state = get_state(sys);
+        sys.mem()
+            .iter_pod::<HANDLE<()>>(lpHandles, nCount)
+            .map(|handle| state.objects.get(handle).unwrap().get_event().clone())
+            .collect::<Vec<_>>()
+    };
+    let wait = Wait::from_millis(sys.host(), dwMilliseconds);
+    wait_for_events(sys, events.into(), false, wait)
         .await
         .to_code()
 }

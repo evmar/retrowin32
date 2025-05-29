@@ -1,5 +1,5 @@
 use super::{KernelObject, get_state, peb_mut};
-use crate::Machine; // TODO(Machine): thread APIs
+use crate::Machine; // TODO(Machine): exit thread
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System, memory::Memory};
@@ -99,29 +99,26 @@ pub struct NewThread {
     pub stack_pointer: u32,
 }
 
-pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
-    let handle = machine.state.kernel32.objects.reserve();
-
-    let stack = machine.memory.mappings.alloc(
-        machine.memory.imp.mem(),
+pub fn create_thread(sys: &mut dyn System, stack_size: u32) -> NewThread {
+    // TODO: 2x get_state calls here is gross, need to figure out mappings mutability.
+    let handle = get_state(sys).objects.reserve();
+    let memory = sys.memory_mut();
+    let stack = memory.mappings.alloc(
+        memory.imp.mem(),
         stack_size,
         format!("thread {handle:x} stack", handle = handle.to_raw()),
     );
     let stack_pointer = stack.addr + stack.size - 4;
 
-    let teb = {
-        let state = get_state(machine);
-        init_teb(state.peb, handle.to_raw(), &machine.memory)
-    };
+    let mut state = get_state(sys);
+    let teb = init_teb(state.peb, handle.to_raw(), &sys.memory());
 
     let thread = Rc::new(Thread {
         handle: HTHREAD::from_raw(handle.to_raw()),
         teb,
         terminated: Event::new(None, false, false),
     });
-    machine
-        .state
-        .kernel32
+    state
         .objects
         .set(handle, KernelObject::Thread(thread.clone()));
 
@@ -187,7 +184,7 @@ pub fn TlsGetValue(sys: &mut dyn System, dwTlsIndex: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub async fn CreateThread(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     lpThreadAttributes: u32,
     dwStackSize: u32,
     lpStartAddress: u32,
@@ -195,7 +192,7 @@ pub async fn CreateThread(
     dwCreationFlags: u32,
     lpThreadId: u32,
 ) -> HTHREAD {
-    let retrowin32_thread_main = machine.get_symbol("kernel32.dll", "retrowin32_thread_main");
+    let retrowin32_thread_main = sys.get_symbol("kernel32.dll", "retrowin32_thread_main");
 
     let stack_size = if dwStackSize > 0 {
         dwStackSize
@@ -207,7 +204,7 @@ pub async fn CreateThread(
     #[cfg(feature = "x86-emu")]
     {
         // TODO: should reuse a CPU from a previous thread that has exited
-        let handle = machine.new_thread(
+        let handle = sys.new_thread(
             true,
             stack_size,
             retrowin32_thread_main,
@@ -224,7 +221,7 @@ pub async fn CreateThread(
     {
         _ = retrowin32_thread_main;
         log::warn!("CreateThread running thread synchronously");
-        machine.call_x86(lpStartAddress, vec![lpParameter]).await;
+        sys.call_x86(lpStartAddress, vec![lpParameter]).await;
         HTHREAD::null()
     }
 }

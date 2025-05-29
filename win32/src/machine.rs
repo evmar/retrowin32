@@ -123,18 +123,13 @@ impl System for Machine {
         wait_all: bool,
         wait: Wait,
     ) -> std::pin::Pin<Box<dyn Future<Output = WaitResult> + '_>> {
-        let objects = events
-            .into_iter()
-            .map(|handle| {
-                self.state
-                    .kernel32
-                    .objects
-                    .get(*handle)
-                    .unwrap()
-                    .get_event()
-                    .clone()
-            })
-            .collect();
+        let objects = {
+            let state = kernel32::get_state(self);
+            events
+                .into_iter()
+                .map(|handle| state.objects.get(*handle).unwrap().get_event().clone())
+                .collect()
+        };
         Box::pin(kernel32::wait_for_events(self, objects, wait_all, wait))
     }
 
