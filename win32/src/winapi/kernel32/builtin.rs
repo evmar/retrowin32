@@ -2179,7 +2179,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::path::GetFullPathNameA(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpFileName,
                 nBufferLength,
                 lpBuffer,
@@ -2216,7 +2216,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::file::path::GetFullPathNameW(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 lpFileName,
                 nBufferLength,
                 lpBuffer,

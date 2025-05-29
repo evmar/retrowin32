@@ -1,4 +1,3 @@
-use crate::Machine;
 use memory::ExtensionsMut;
 use win32_system::System;
 use win32_winapi::{ERROR, Str16};
@@ -18,7 +17,7 @@ pub fn normalize_dos_path(path: &str) -> &str {
 
 #[win32_derive::dllexport]
 pub fn GetFullPathNameA(
-    machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&str>,
     nBufferLength: u32,
     lpBuffer: u32,
@@ -26,24 +25,24 @@ pub fn GetFullPathNameA(
 ) -> u32 {
     let Some(file_name) = lpFileName else {
         log::debug!("GetFullPathNameA failed: null lpFileName");
-        machine.set_last_error(ERROR::INVALID_DATA);
+        sys.set_last_error(ERROR::INVALID_DATA);
         return 0;
     };
 
-    let cwd = match machine.host.current_dir() {
+    let cwd = match sys.host().current_dir() {
         Ok(value) => value,
         Err(err) => {
             log::debug!("GetFullPathNameA({file_name:?}) failed: {err:?}",);
-            machine.set_last_error(err);
+            sys.set_last_error(err);
             return 0;
         }
     };
     let out_path = cwd.join(file_name).normalize();
     let out_bytes = out_path.as_bytes();
 
-    machine.set_last_error(ERROR::SUCCESS);
+    sys.set_last_error(ERROR::SUCCESS);
 
-    let buf = machine.mem().sub32_mut(lpBuffer, nBufferLength);
+    let buf = sys.mem().sub32_mut(lpBuffer, nBufferLength);
     if let Some(part) = lpFilePart {
         if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\') {
             if i == out_bytes.len() - 1 {
@@ -73,7 +72,7 @@ pub fn GetFullPathNameA(
 
 #[win32_derive::dllexport]
 pub fn GetFullPathNameW(
-    machine: &mut Machine,
+    machine: &dyn System,
     lpFileName: Option<&Str16>,
     nBufferLength: u32,
     lpBuffer: u32,
