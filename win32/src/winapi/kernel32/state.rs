@@ -44,8 +44,7 @@ pub struct State {
     /// Address of PEB (process information exposed to executable).
     pub peb: u32,
 
-    /// State for command line APIs.
-    /// The actual process command line is held in Machine, this is just to stash some pointers.
+    /// Process command line.
     pub(crate) cmdline: command_line::State,
 
     // There is a collection of handle types that are all from the same key space,

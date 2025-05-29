@@ -50,7 +50,7 @@ pub async fn wait_for_events(
 
         // log::info!(
         //     "{:?}: waiting for {:?}",
-        //     crate::winapi::kernel32::current_thread(machine),
+        //     crate::winapi::kernel32::current_thread(sys),
         //     handles
         // );
 

@@ -188,13 +188,13 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn VirtualAlloc(
-    machine: &mut dyn System,
+    sys: &mut dyn System,
     lpAddress: u32,
     dwSize: u32,
     flAllocationType: Result<MEM, u32>,
     flProtec: Result<PAGE, u32>,
 ) -> u32 {
-    let memory = machine.memory_mut();
+    let memory = sys.memory_mut();
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
         match memory
@@ -323,8 +323,8 @@ pub fn GlobalReAlloc(sys: &dyn System, hMem: u32, dwBytes: u32, uFlags: GMEM) ->
     // if uFlags.contains(GMEM::MODIFY) {
     //     todo!("GMEM_MODIFY");
     // }
-    // let heap = &machine.memory.process_heap;
-    // let mem = machine.memory.mem();
+    // let heap = &sys.memory.process_heap;
+    // let mem = sys.memory.mem();
     // let old_size = heap.size(mem, hMem);
     // if dwBytes <= old_size {
     //     return hMem;
@@ -344,15 +344,15 @@ pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
     true // success
 }
 
-fn free(machine: &dyn System, hMem: u32) -> u32 {
-    let memory = machine.memory();
+fn free(sys: &dyn System, hMem: u32) -> u32 {
+    let memory = sys.memory();
     memory.process_heap.free(memory.mem(), hMem);
     return 0; // success
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalFree(machine: &dyn System, hMem: u32) -> u32 {
-    free(machine, hMem)
+pub fn GlobalFree(sys: &dyn System, hMem: u32) -> u32 {
+    free(sys, hMem)
 }
 
 #[win32_derive::dllexport]
