@@ -479,9 +479,25 @@ fn read_file(host: &dyn host::Host, path: &WindowsPath) -> anyhow::Result<Vec<u8
     Ok(buf)
 }
 
+/// Read a DLL from the DLL search path.
+fn find_dll(machine: &Machine, filename: &str) -> anyhow::Result<Vec<u8>> {
+    let exe = get_state(machine).cmdline.exe_name();
+    let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
+    let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
+    for path in &dll_paths {
+        let path = WindowsPath::new(path);
+        let buf = read_file(&*machine.host, path)?;
+        if !buf.is_empty() {
+            return Ok(buf);
+        }
+    }
+    anyhow::bail!("{filename:?} not found in {dll_paths:?}");
+}
+
 pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODULE> {
     let res = resolve_dll(&machine.external_dlls, name);
     let module_name = res.name();
+
     // See if already loaded.
     if let Some((&hmodule, _)) = machine
         .process
@@ -495,14 +511,8 @@ pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODU
     match res {
         DLLResolution::Builtin(builtin) => {
             let file = pe::File::parse(builtin.raw)?;
-            let hmodule = load_module(
-                machine,
-                builtin.file_name.to_owned(),
-                builtin.raw,
-                &file,
-                Some(None),
-            )
-            .await?;
+            let module_name = builtin.file_name.to_owned();
+            let hmodule = load_module(machine, module_name, builtin.raw, &file, Some(None)).await?;
             let module = machine.process.modules.get(&hmodule).unwrap();
 
             // For builtins, register all the exports as known symbols.
@@ -518,21 +528,7 @@ pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODU
             Ok(hmodule)
         }
         DLLResolution::External(filename) => {
-            let mut buf = Vec::new();
-            let exe = get_state(machine).cmdline.exe_name();
-            let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
-            let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
-            for path in &dll_paths {
-                let path = WindowsPath::new(path);
-                buf = read_file(&*machine.host, path)?;
-                if !buf.is_empty() {
-                    break;
-                }
-                break;
-            }
-            if buf.is_empty() {
-                anyhow::bail!("{filename:?} not found");
-            }
+            let buf = find_dll(machine, &filename)?;
             let file = pe::File::parse(&buf)?;
             load_module(machine, filename.to_owned(), &buf, &file, Some(None)).await
         }
