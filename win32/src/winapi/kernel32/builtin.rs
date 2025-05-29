@@ -2857,14 +2857,14 @@ mod wrappers {
         }
     }
     pub unsafe fn GetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        use kernel32::file::std::*;
+        use kernel32::file::stdio::*;
         unsafe {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
-            let __trace_record = if trace::enabled("kernel32/file/std") {
+            let __trace_record = if trace::enabled("kernel32/file/stdio") {
                 trace::Record::new(
-                    kernel32::file::std::GetStdHandle_pos,
-                    "kernel32/file/std",
+                    kernel32::file::stdio::GetStdHandle_pos,
+                    "kernel32/file/stdio",
                     "GetStdHandle",
                     &[("nStdHandle", &nStdHandle)],
                 )
@@ -2872,7 +2872,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::std::GetStdHandle(sys, nStdHandle);
+            let result = kernel32::file::stdio::GetStdHandle(sys, nStdHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5621,15 +5621,15 @@ mod wrappers {
         }
     }
     pub unsafe fn SetStdHandle(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
-        use kernel32::file::std::*;
+        use kernel32::file::stdio::*;
         unsafe {
             let mem = sys.mem().detach();
             let nStdHandle = <Result<STD, i32>>::from_stack(mem, stack_args + 0u32);
             let hHandle = <u32>::from_stack(mem, stack_args + 4u32);
-            let __trace_record = if trace::enabled("kernel32/file/std") {
+            let __trace_record = if trace::enabled("kernel32/file/stdio") {
                 trace::Record::new(
-                    kernel32::file::std::SetStdHandle_pos,
-                    "kernel32/file/std",
+                    kernel32::file::stdio::SetStdHandle_pos,
+                    "kernel32/file/stdio",
                     "SetStdHandle",
                     &[("nStdHandle", &nStdHandle), ("hHandle", &hHandle)],
                 )
@@ -5637,7 +5637,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::std::SetStdHandle(sys, nStdHandle, hHandle);
+            let result = kernel32::file::stdio::SetStdHandle(sys, nStdHandle, hHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

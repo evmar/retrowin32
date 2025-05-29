@@ -6,8 +6,8 @@ pub(crate) mod mapping;
 pub(crate) mod metadata;
 pub(crate) mod misc;
 pub(crate) mod path;
-pub(crate) mod std;
+pub(crate) mod stdio;
 
 pub use file::{HFILE, write_file};
 pub use metadata::FileAttribute;
-pub use std::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
+pub use stdio::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
