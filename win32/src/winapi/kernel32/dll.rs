@@ -1,5 +1,5 @@
 use super::{file::HFILE, get_state};
-use crate::{Machine, loader}; // TODO(Machine): uses modules
+use crate::Machine;
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -10,37 +10,30 @@ use win32_winapi::{
 };
 
 #[win32_derive::dllexport]
-pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
-    let state = get_state(machine);
-    let name = match lpModuleName {
-        None => return HMODULE::from_raw(state.image_base),
-        Some(name) => name,
+pub fn GetModuleHandleA(sys: &dyn System, lpModuleName: Option<&str>) -> HMODULE {
+    let name = {
+        let state = get_state(sys);
+        match lpModuleName {
+            None => return HMODULE::from_raw(state.image_base),
+            Some(name) => name,
+        }
     };
-
-    let name = loader::normalize_module_name(name);
-
-    if let Some((hmodule, _)) = machine
-        .process
-        .modules
-        .iter()
-        .find(|(_, dll)| dll.name == name)
-    {
-        return *hmodule;
+    let hmodule = sys.get_library(name);
+    if hmodule.is_null() {
+        sys.set_last_error(ERROR::MOD_NOT_FOUND);
     }
-
-    machine.set_last_error(ERROR::MOD_NOT_FOUND);
     return HMODULE::null();
 }
 
 #[win32_derive::dllexport]
-pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<&Str16>) -> HMODULE {
+pub fn GetModuleHandleW(sys: &dyn System, lpModuleName: Option<&Str16>) -> HMODULE {
     let ascii = lpModuleName.map(|str| str.to_string());
-    GetModuleHandleA(machine, ascii.as_deref())
+    GetModuleHandleA(sys, ascii.as_deref())
 }
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleExW(
-    machine: &mut Machine,
+    sys: &dyn System,
     dwFlags: u32,
     lpModuleName: Option<&Str16>,
     hModule: Option<&mut HMODULE>,
@@ -48,7 +41,7 @@ pub fn GetModuleHandleExW(
     if dwFlags != 0 {
         unimplemented!("GetModuleHandleExW flags {dwFlags:x}");
     }
-    let hMod = GetModuleHandleW(machine, lpModuleName);
+    let hMod = GetModuleHandleW(sys, lpModuleName);
     if let Some(out) = hModule {
         *out = hMod;
     }

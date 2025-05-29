@@ -2376,10 +2376,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetModuleHandleA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpModuleName,
-            );
+            let result = kernel32::dll::GetModuleHandleA(sys, lpModuleName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2408,12 +2405,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetModuleHandleExW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwFlags,
-                lpModuleName,
-                hModule,
-            );
+            let result = kernel32::dll::GetModuleHandleExW(sys, dwFlags, lpModuleName, hModule);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2436,10 +2428,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetModuleHandleW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpModuleName,
-            );
+            let result = kernel32::dll::GetModuleHandleW(sys, lpModuleName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

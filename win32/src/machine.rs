@@ -143,6 +143,21 @@ impl System for Machine {
         kernel32::teb_mut(self).LastErrorValue = err.into();
     }
 
+    fn get_library(&self, name: &str) -> HMODULE {
+        let name = loader::normalize_module_name(name);
+
+        if let Some((hmodule, _)) = self
+            .process
+            .modules
+            .iter()
+            .find(|(_, dll)| dll.name == name)
+        {
+            *hmodule
+        } else {
+            HMODULE::null()
+        }
+    }
+
     fn load_library(&mut self, dll: &str) -> std::pin::Pin<Box<dyn Future<Output = HMODULE> + '_>> {
         let dll = dll.to_string();
         Box::pin(async move {
