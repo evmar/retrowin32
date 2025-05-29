@@ -56,9 +56,19 @@ impl MachineX<Emulator> {
 
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
         self.process.cmdline = CommandLine::new(cmdline);
-        self.state
-            .kernel32
-            .init_process(&mut self.memory, &self.process.cmdline.string);
+
+        // Initialize the process heap.
+        // We use this for misc allocations like per-thread TEBs,
+        // so we need it to exist very early in process startup,
+        // before even the exe is loaded.  This means we need to be
+        // careful to not make it so big as to cover the memory region
+        // that the exe will be loaded into.
+        self.memory.create_process_heap();
+
+        {
+            let mut state2 = winapi::kernel32::get_state(self);
+            state2.init_process(&self.memory, &self.process.cmdline.string);
+        };
 
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();

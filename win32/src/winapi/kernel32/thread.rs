@@ -1,4 +1,4 @@
-use super::{KernelObject, peb_mut};
+use super::{KernelObject, get_state, peb_mut};
 use crate::Machine;
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
@@ -109,7 +109,10 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     );
     let stack_pointer = stack.addr + stack.size - 4;
 
-    let teb = init_teb(machine.state.kernel32.peb, handle.to_raw(), &machine.memory);
+    let teb = {
+        let state = get_state(machine);
+        init_teb(state.peb, handle.to_raw(), &machine.memory)
+    };
 
     let thread = Rc::new(Thread {
         handle: HTHREAD::from_raw(handle.to_raw()),

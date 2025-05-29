@@ -193,6 +193,16 @@ impl Memory {
         self.imp.mem()
     }
 
+    pub fn create_process_heap(&mut self) {
+        debug_assert!(self.process_heap.addr == 0);
+        // Default process heap size is 1MB.  It can be adjusted with linker flags, so we might
+        // need to revisit this.  Unfortunately currently we need a process heap in place before
+        // we load the exe.
+        let size = 1 << 20;
+        let heap = self.new_heap(size, "process heap".into());
+        self.process_heap = heap;
+    }
+
     pub fn new_heap(&mut self, size: usize, desc: String) -> Rc<Heap> {
         let mapping = self.mappings.alloc(self.imp.mem(), size as u32, desc);
         let heap = Rc::new(Heap::new(mapping.addr, mapping.size));

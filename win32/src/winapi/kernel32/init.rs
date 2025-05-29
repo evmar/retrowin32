@@ -1,6 +1,6 @@
 //! Process initialization and startup.
 
-use super::{State, file::HFILE};
+use super::{file::HFILE, get_state, state::State2};
 use crate::{
     Machine,
     winapi::kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
@@ -51,18 +51,7 @@ struct UserspaceData {
 }
 unsafe impl ::memory::Pod for UserspaceData {}
 
-pub fn init_process(state: &mut State, memory: &mut Memory, cmdline: &str) {
-    // Initialize the process heap.
-    // We use this for misc allocations like per-thread TEBs,
-    // so we need it to exist very early in process startup,
-    // before even the exe is loaded.  This means we need to be
-    // careful to not make it so big as to cover the memory region
-    // that the exe will be loaded into.
-    debug_assert!(memory.process_heap.addr == 0);
-    let size = 1 << 20;
-    let heap = memory.new_heap(size, "process heap".into());
-    memory.process_heap = heap;
-
+pub fn init_peb(state: &mut State2, memory: &Memory, cmdline: &str) {
     let user_data = memory.store(UserspaceData {
         peb: PEB {
             InheritedAddressSpace: 0,
@@ -191,9 +180,8 @@ pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
 }
 
 pub fn peb_mut(machine: &mut Machine) -> &mut PEB {
-    machine
-        .mem()
-        .get_aligned_ref_mut::<PEB>(machine.state.kernel32.peb)
+    let state = get_state(machine);
+    machine.mem().get_aligned_ref_mut::<PEB>(state.peb)
 }
 
 #[repr(C)]

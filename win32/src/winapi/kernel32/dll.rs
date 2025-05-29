@@ -1,4 +1,4 @@
-use super::file::HFILE;
+use super::{file::HFILE, get_state};
 use crate::{Machine, loader};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
@@ -11,8 +11,9 @@ use win32_winapi::{
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
+    let state = get_state(machine);
     let name = match lpModuleName {
-        None => return HMODULE::from_raw(machine.state.kernel32.image_base),
+        None => return HMODULE::from_raw(state.image_base),
         Some(name) => name,
     };
 
@@ -59,7 +60,8 @@ fn get_module_file_name(
     hModule: HMODULE,
     filename: &mut dyn Encoder,
 ) -> u32 {
-    if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
+    let state = get_state(machine);
+    if hModule.is_null() || hModule.to_raw() == state.image_base {
         let exe = machine.process.cmdline.exe_name();
         filename.write_nul(&exe);
         match filename.status() {

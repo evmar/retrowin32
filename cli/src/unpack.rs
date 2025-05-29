@@ -1,7 +1,7 @@
 use std::{io::Write, ops::Range};
 
 use memory::{Extensions, ExtensionsMut, Pod};
-use win32::{Machine, loader::Module};
+use win32::{Machine, loader::Module, winapi};
 
 /// Load and run the exe until we've hit the "real" (unpacked) entry point.
 /// This means eip is the real entry point, and all the exe's code/data is unpacked in memory.
@@ -250,12 +250,13 @@ pub fn unpack(machine: &mut Machine, unpack_at: u32) -> anyhow::Result<()> {
     run_to_entry_point(machine, unpack_at)?;
 
     // Find the initial memory mapping where the exe was loaded.
+    let image_base = winapi::kernel32::get_state(machine).image_base;
     let image_mapping = machine
         .memory
         .mappings
         .vec()
         .iter()
-        .find(|m| m.addr == machine.state.kernel32.image_base)
+        .find(|m| m.addr == image_base)
         .expect("failed to find image base mapping");
 
     // Re-parse the in-memory PE header to gather info and rewrite the relevant parts.

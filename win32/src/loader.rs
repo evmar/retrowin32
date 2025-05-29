@@ -360,7 +360,7 @@ pub async fn start_exe(machine: &mut Machine, relocate: Option<Option<u32>>) -> 
     let hmodule = init_module(machine, &file, module).await.unwrap();
 
     let module = machine.process.modules.get(&hmodule).unwrap();
-    machine.state.kernel32.image_base = module.image_base;
+    winapi::kernel32::get_state(machine).image_base = module.image_base;
 
     winapi::kernel32::retrowin32_main(machine, module.entry_point.unwrap()).await;
     Ok(())
