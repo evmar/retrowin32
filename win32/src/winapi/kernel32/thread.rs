@@ -1,5 +1,5 @@
 use super::{KernelObject, get_state, peb_mut};
-use crate::Machine; // TODO(Machine): teb_addr
+use crate::Machine; // TODO(Machine): thread APIs
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System, memory::Memory};
@@ -131,45 +131,39 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     }
 }
 
-pub fn current_thread(machine: &Machine) -> HTHREAD {
-    HTHREAD::from_raw(teb(machine).ClientId_UniqueThread)
+pub fn current_thread(sys: &dyn System) -> HTHREAD {
+    HTHREAD::from_raw(teb(sys).ClientId_UniqueThread)
 }
 
 #[win32_derive::dllexport]
-pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
-    current_thread(machine)
+pub fn GetCurrentThread(sys: &dyn System) -> HTHREAD {
+    current_thread(sys)
 }
 
 #[win32_derive::dllexport]
-pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
-    current_thread(machine).to_raw()
+pub fn GetCurrentThreadId(sys: &dyn System) -> u32 {
+    current_thread(sys).to_raw()
 }
 
-pub fn teb(machine: &Machine) -> &TEB {
-    machine
-        .memory
-        .mem()
-        .get_aligned_ref::<TEB>(machine.teb_addr())
+pub fn teb(sys: &dyn System) -> &TEB {
+    sys.mem().get_aligned_ref::<TEB>(sys.teb_addr())
 }
 
-pub fn teb_mut(machine: &Machine) -> &mut TEB {
-    machine
-        .memory
-        .mem()
-        .get_aligned_ref_mut::<TEB>(machine.teb_addr())
+pub fn teb_mut(sys: &dyn System) -> &mut TEB {
+    sys.mem().get_aligned_ref_mut::<TEB>(sys.teb_addr())
 }
 
 #[win32_derive::dllexport]
-pub fn TlsAlloc(machine: &mut Machine) -> u32 {
-    let peb = peb_mut(machine);
+pub fn TlsAlloc(sys: &dyn System) -> u32 {
+    let peb = peb_mut(sys);
     let slot = peb.TlsCount;
     peb.TlsCount = slot + 1;
     slot
 }
 
 #[win32_derive::dllexport]
-pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
-    let peb = peb_mut(machine);
+pub fn TlsFree(sys: &dyn System, dwTlsIndex: u32) -> bool {
+    let peb = peb_mut(sys);
     if dwTlsIndex >= peb.TlsCount {
         log::warn!("TlsFree of unknown slot {dwTlsIndex}");
         return false;
@@ -179,15 +173,15 @@ pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn TlsSetValue(machine: &mut Machine, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
-    let teb = teb_mut(machine);
+pub fn TlsSetValue(sys: &mut dyn System, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
+    let teb = teb_mut(sys);
     teb.TlsSlots[dwTlsIndex as usize] = lpTlsValue;
     true
 }
 
 #[win32_derive::dllexport]
-pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
-    let teb = teb_mut(machine);
+pub fn TlsGetValue(sys: &mut dyn System, dwTlsIndex: u32) -> u32 {
+    let teb = teb_mut(sys);
     teb.TlsSlots[dwTlsIndex as usize]
 }
 

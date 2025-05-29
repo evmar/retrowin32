@@ -5,7 +5,6 @@ use super::{
     file::{self, HFILE},
     teb_mut,
 };
-use crate::Machine; // TODO(machine): files, teb
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
@@ -15,18 +14,18 @@ use win32_winapi::{DWORD, ERROR, HANDLE, encoding::*};
 pub type SECURITY_ATTRIBUTES = u32; // TODO
 
 #[win32_derive::dllexport]
-pub fn SetLastError(machine: &mut Machine, dwErrCode: Result<ERROR, u32>) {
-    teb_mut(machine).LastErrorValue = dwErrCode.map_or_else(|err| err, |err| err as u32);
+pub fn SetLastError(sys: &dyn System, dwErrCode: Result<ERROR, u32>) {
+    teb_mut(sys).LastErrorValue = dwErrCode.map_or_else(|err| err, |err| err as u32);
 }
 
 #[win32_derive::dllexport]
-pub fn GetLastError(machine: &mut Machine) -> Result<ERROR, u32> {
-    ERROR::try_from(teb_mut(machine).LastErrorValue)
+pub fn GetLastError(sys: &dyn System) -> Result<ERROR, u32> {
+    ERROR::try_from(teb_mut(sys).LastErrorValue)
 }
 
 #[win32_derive::dllexport]
-pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) {
-    machine.exit(uExitCode);
+pub fn ExitProcess(sys: &mut dyn System, uExitCode: u32) {
+    sys.exit(uExitCode);
 }
 
 #[win32_derive::dllexport]
@@ -208,7 +207,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn FormatMessageW(
-    machine: &mut Machine,
+    sys: &dyn System,
     dwFlags: Result<FormatMessageFlags, u32>,
     lpSource: u32,
     dwMessageId: u32,
@@ -234,8 +233,7 @@ pub fn FormatMessageW(
         todo!();
     };
 
-    let buf = machine.mem().sub32_mut(lpBuffer, nSize);
-    let mut enc = EncoderWide::from_mem(machine.mem(), lpBuffer, nSize);
+    let mut enc = EncoderWide::from_mem(sys.mem(), lpBuffer, nSize);
     enc.write_nul(msg);
     let len = enc.status().unwrap();
 
@@ -243,27 +241,27 @@ pub fn FormatMessageW(
 }
 
 #[win32_derive::dllexport]
-pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
-    if file::get_state(machine).files.remove(hObject).is_none() {
+pub fn CloseHandle(sys: &dyn System, hObject: HFILE) -> bool {
+    if file::get_state(sys).files.remove(hObject).is_none() {
         log::debug!("CloseHandle({hObject:?}): unknown handle");
-        machine.set_last_error(ERROR::INVALID_HANDLE);
+        sys.set_last_error(ERROR::INVALID_HANDLE);
         return false;
     }
 
-    machine.set_last_error(ERROR::SUCCESS);
+    sys.set_last_error(ERROR::SUCCESS);
     true
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
+pub fn GetSystemDirectoryA(sys: &dyn System, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows\\System32";
     let path_bytes = path.as_bytes();
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }
-    machine.set_last_error(ERROR::SUCCESS);
+    sys.set_last_error(ERROR::SUCCESS);
     if lpBuffer != 0 {
-        let buf = machine.mem().sub32_mut(lpBuffer, uSize);
+        let buf = sys.mem().sub32_mut(lpBuffer, uSize);
         buf[..path_bytes.len()].copy_from_slice(path_bytes);
         buf[path_bytes.len()] = 0;
     }
@@ -271,15 +269,15 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
+pub fn GetWindowsDirectoryA(sys: &dyn System, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows";
     let path_bytes = path.as_bytes();
-    machine.set_last_error(ERROR::SUCCESS);
+    sys.set_last_error(ERROR::SUCCESS);
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }
     if lpBuffer != 0 {
-        let buf = machine.mem().sub32_mut(lpBuffer, uSize);
+        let buf = sys.mem().sub32_mut(lpBuffer, uSize);
         buf[..path_bytes.len()].copy_from_slice(path_bytes);
         buf[path_bytes.len()] = 0;
     }
@@ -288,7 +286,7 @@ pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) ->
 
 #[win32_derive::dllexport]
 pub fn FormatMessageA(
-    machine: &mut Machine,
+    sys: &dyn System,
     dwFlags: u32,
     lpSource: u32,
     dwMessageId: u32,
@@ -299,7 +297,7 @@ pub fn FormatMessageA(
 ) -> u32 {
     log::warn!("FormatMessageA: stub");
     if lpBuffer != 0 && nSize > 0 {
-        let buf = machine.mem().sub32_mut(lpBuffer, nSize);
+        let buf = sys.mem().sub32_mut(lpBuffer, nSize);
         buf[0] = 0;
     }
     0

@@ -117,8 +117,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::misc::CloseHandle(&mut *(sys.machine() as *mut crate::Machine), hObject);
+            let result = kernel32::misc::CloseHandle(sys, hObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -938,10 +937,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::misc::ExitProcess(
-                &mut *(sys.machine() as *mut crate::Machine),
-                uExitCode,
-            );
+            let result = kernel32::misc::ExitProcess(sys, uExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1302,7 +1298,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::misc::FormatMessageA(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 dwFlags,
                 lpSource,
                 dwMessageId,
@@ -1348,7 +1344,7 @@ mod wrappers {
                 None
             };
             let result = kernel32::misc::FormatMessageW(
-                &mut *(sys.machine() as *mut crate::Machine),
+                sys,
                 dwFlags,
                 lpSource,
                 dwMessageId,
@@ -1724,8 +1720,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::thread::GetCurrentThread(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::thread::GetCurrentThread(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1747,8 +1742,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::thread::GetCurrentThreadId(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::thread::GetCurrentThreadId(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2202,7 +2196,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::misc::GetLastError(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::misc::GetLastError(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2933,11 +2927,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::misc::GetSystemDirectoryA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpBuffer,
-                uSize,
-            );
+            let result = kernel32::misc::GetSystemDirectoryA(sys, lpBuffer, uSize);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3189,11 +3179,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::misc::GetWindowsDirectoryA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpBuffer,
-                uSize,
-            );
+            let result = kernel32::misc::GetWindowsDirectoryA(sys, lpBuffer, uSize);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5516,10 +5502,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::misc::SetLastError(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwErrCode,
-            );
+            let result = kernel32::misc::SetLastError(sys, dwErrCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5873,7 +5856,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::thread::TlsAlloc(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::thread::TlsAlloc(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5896,8 +5879,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::thread::TlsFree(&mut *(sys.machine() as *mut crate::Machine), dwTlsIndex);
+            let result = kernel32::thread::TlsFree(sys, dwTlsIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5920,10 +5902,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::thread::TlsGetValue(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwTlsIndex,
-            );
+            let result = kernel32::thread::TlsGetValue(sys, dwTlsIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5947,11 +5926,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::thread::TlsSetValue(
-                &mut *(sys.machine() as *mut crate::Machine),
-                dwTlsIndex,
-                lpTlsValue,
-            );
+            let result = kernel32::thread::TlsSetValue(sys, dwTlsIndex, lpTlsValue);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

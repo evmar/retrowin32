@@ -5,7 +5,7 @@ use crate::Machine; // TODO(Machine): break_on_startup, exit_thread, file
 use crate::winapi::kernel32; // TODO: until we are in our own crate
 use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
 use memory::Extensions;
-use win32_system::memory::Memory;
+use win32_system::{System, memory::Memory};
 use win32_winapi::{DWORD, WORD};
 
 #[repr(C)]
@@ -178,9 +178,9 @@ pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
     }
 }
 
-pub fn peb_mut(machine: &mut Machine) -> &mut PEB {
-    let state = get_state(machine);
-    machine.mem().get_aligned_ref_mut::<PEB>(state.peb)
+pub fn peb_mut(sys: &dyn System) -> &mut PEB {
+    let state = get_state(sys);
+    sys.mem().get_aligned_ref_mut::<PEB>(state.peb)
 }
 
 #[repr(C)]

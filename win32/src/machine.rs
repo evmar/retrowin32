@@ -190,6 +190,9 @@ impl System for Machine {
     fn command_line(&self) -> &str {
         &self.process.cmdline.string
     }
+    fn teb_addr(&self) -> u32 {
+        self.teb_addr()
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
