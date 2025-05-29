@@ -1077,10 +1077,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::find::FindClose(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFindFile,
-            );
+            let result = kernel32::file::find::FindClose(sys, hFindFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1108,11 +1105,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::find::FindFirstFileA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpFileName,
-                lpFindFileData,
-            );
+            let result = kernel32::file::find::FindFirstFileA(sys, lpFileName, lpFindFileData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1168,11 +1161,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::file::find::FindNextFileA(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hFindFile,
-                lpFindFileData,
-            );
+            let result = kernel32::file::find::FindNextFileA(sys, hFindFile, lpFindFileData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

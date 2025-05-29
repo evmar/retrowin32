@@ -1,11 +1,4 @@
-use super::{
-    HEVENT, Thread, command_line,
-    file::{
-        HFILE,
-        find::{FindHandle, HFIND},
-    },
-    init::init_peb,
-};
+use super::{HEVENT, HFILE, Thread, command_line, init::init_peb};
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System, host, memory::Memory};
 use win32_winapi::{HANDLE, Handles};
@@ -45,8 +38,6 @@ pub struct State {
     pub objects: Handles<HANDLE<()>, KernelObject>,
 
     pub files: Handles<HFILE, Box<dyn host::File>>,
-
-    pub find_handles: Handles<HFIND, FindHandle>,
 
     /// If true, debug break when entering the exe entry point.
     pub break_on_startup: bool,
