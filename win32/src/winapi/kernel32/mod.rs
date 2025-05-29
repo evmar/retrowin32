@@ -10,6 +10,7 @@ pub mod file;
 mod ini;
 mod init;
 mod libc;
+pub mod loader;
 mod memory;
 mod misc;
 mod nls;
@@ -24,7 +25,7 @@ mod time;
 pub use builtin::DLL;
 
 pub use file::HFILE;
-pub use init::{peb_mut, retrowin32_main};
+pub use init::peb_mut;
 pub use misc::SECURITY_ATTRIBUTES;
 pub use process::CURRENT_PROCESS_HANDLE;
 pub use state::{KernelObject, KernelObjectsMethods, State, get_state};

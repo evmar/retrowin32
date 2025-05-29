@@ -4,6 +4,7 @@
 //! These call into a shared load_module, which does the PE loading
 //! as well as recursively resolving imported modules.
 
+use super::{get_state, init::retrowin32_main};
 use crate::{machine::Machine, winapi};
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::{HashMap, HashSet};
@@ -362,10 +363,10 @@ pub async fn start_exe(
     let hmodule = init_module(machine, &file, module).await.unwrap();
 
     let module = machine.process.modules.get(&hmodule).unwrap();
-    winapi::kernel32::get_state(machine).image_base = module.image_base;
+    get_state(machine).image_base = module.image_base;
 
     let entry_point = module.entry_point.unwrap();
-    winapi::kernel32::retrowin32_main(machine, entry_point).await;
+    retrowin32_main(machine, entry_point).await;
     Ok(())
 }
 
@@ -518,7 +519,7 @@ pub async fn load_dll(machine: &mut Machine, name: &str) -> anyhow::Result<HMODU
         }
         DLLResolution::External(filename) => {
             let mut buf = Vec::new();
-            let exe = winapi::kernel32::get_state(machine).cmdline.exe_name();
+            let exe = get_state(machine).cmdline.exe_name();
             let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
             let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
             for path in &dll_paths {

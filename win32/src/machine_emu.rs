@@ -1,7 +1,6 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
-    loader,
     machine::{MachineX, Process, Status},
     shims::{Shims, retrowin32_dll_module},
     winapi,
@@ -69,7 +68,7 @@ impl MachineX<Emulator> {
         let cpu = self.emu.x86.new_cpu();
         cpu.call_async(Box::pin(async move {
             let machine: &mut MachineX<Emulator> = unsafe { &mut *machine };
-            loader::start_exe(machine, exe_name, relocate)
+            winapi::kernel32::loader::start_exe(machine, exe_name, relocate)
                 .await
                 .unwrap();
             0

@@ -10,7 +10,7 @@
 //! 2. shims_raw.rs, which is used when executing x86 natively
 //! 3. shims_unicorn.rs, which is used with the Unicorn CPU emulator
 
-use crate::loader;
+use crate::winapi::kernel32::loader;
 use memory::ExtensionsMut;
 use std::collections::HashMap;
 use win32_system::{dll::Shim, memory::Memory};

@@ -1,5 +1,5 @@
+use crate::winapi;
 use crate::winapi::kernel32;
-use crate::{loader, winapi};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
@@ -27,7 +27,7 @@ pub struct MachineX<Emu> {
 }
 
 pub struct Process {
-    pub modules: HashMap<HMODULE, loader::Module>,
+    pub modules: HashMap<HMODULE, kernel32::loader::Module>,
 }
 
 impl<Emu> MachineX<Emu>
@@ -46,7 +46,7 @@ where
     pub fn set_external_dlls(&mut self, dlls: Vec<String>) {
         self.external_dlls = dlls
             .into_iter()
-            .map(|dll| loader::normalize_module_name(&dll))
+            .map(|dll| kernel32::loader::normalize_module_name(&dll))
             .collect();
     }
 
@@ -144,7 +144,7 @@ impl System for Machine {
     }
 
     fn get_library(&self, name: &str) -> HMODULE {
-        let name = loader::normalize_module_name(name);
+        let name = kernel32::loader::normalize_module_name(name);
 
         if let Some((hmodule, _)) = self
             .process
@@ -161,14 +161,14 @@ impl System for Machine {
     fn load_library(&mut self, dll: &str) -> std::pin::Pin<Box<dyn Future<Output = HMODULE> + '_>> {
         let dll = dll.to_string();
         Box::pin(async move {
-            let res = loader::load_dll(self, &dll).await;
+            let res = kernel32::loader::load_dll(self, &dll).await;
             // TODO: forward errors to caller?
             res.unwrap()
         })
     }
 
     fn get_symbol(&self, dll: &str, name: &str) -> u32 {
-        loader::get_symbol(self, dll, name)
+        kernel32::loader::get_symbol(self, dll, name)
     }
 
     fn get_resources(&self, module: HMODULE) -> Option<&[u8]> {

@@ -1,4 +1,3 @@
-pub mod loader;
 mod machine;
 mod segments;
 pub mod shims;
@@ -23,3 +22,4 @@ mod machine_unicorn;
 pub use machine::{Machine, Status};
 pub use win32_system::{host, trace};
 pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf};
+pub use winapi::kernel32::loader::Module;
