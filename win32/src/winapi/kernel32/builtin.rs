@@ -1530,9 +1530,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::command_line::GetCommandLineA(
-                &mut *(sys.machine() as *mut crate::Machine),
-            );
+            let result = kernel32::command_line::GetCommandLineA(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1554,9 +1552,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::command_line::GetCommandLineW(
-                &mut *(sys.machine() as *mut crate::Machine),
-            );
+            let result = kernel32::command_line::GetCommandLineW(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

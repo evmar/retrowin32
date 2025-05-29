@@ -66,4 +66,7 @@ pub trait System {
         id: &std::any::TypeId,
         init: fn() -> Box<dyn std::any::Any>,
     ) -> &dyn std::any::Any;
+
+    // TODO: added in kernel32 migration, need a better place.
+    fn command_line(&self) -> &str;
 }

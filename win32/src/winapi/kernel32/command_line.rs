@@ -1,9 +1,8 @@
 //! Process command line, as exposed in GetCommandLine() and also TEB.
 
 use super::{init::UNICODE_STRING, state::get_state};
-use crate::Machine;
 use memory::ExtensionsMut;
-use win32_system::memory::Memory;
+use win32_system::{System, memory::Memory};
 use win32_winapi::String16;
 
 /// Pointers returned by GetCommandLineA and GetCommandLineW.
@@ -69,15 +68,13 @@ impl State {
 }
 
 #[win32_derive::dllexport]
-pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
-    get_state(machine)
-        .cmdline
-        .cmdline8(&machine.process.cmdline.string, &machine.memory)
+pub fn GetCommandLineA(sys: &dyn System) -> u32 {
+    let mut state = get_state(sys);
+    state.cmdline.cmdline8(sys.command_line(), &sys.memory())
 }
 
 #[win32_derive::dllexport]
-pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
-    get_state(machine)
-        .cmdline
-        .cmdline16(&machine.process.cmdline.string, &machine.memory)
+pub fn GetCommandLineW(sys: &dyn System) -> u32 {
+    let mut state = get_state(sys);
+    state.cmdline.cmdline16(sys.command_line(), &sys.memory())
 }

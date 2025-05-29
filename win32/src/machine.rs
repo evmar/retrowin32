@@ -186,6 +186,10 @@ impl System for Machine {
         state2.insert(id.clone(), init());
         state2.get(id).unwrap().as_ref()
     }
+
+    fn command_line(&self) -> &str {
+        &self.process.cmdline.string
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
