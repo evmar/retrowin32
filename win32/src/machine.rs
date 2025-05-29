@@ -1,5 +1,5 @@
 use crate::winapi::kernel32;
-use crate::{command_line::CommandLine, loader, winapi};
+use crate::{loader, winapi};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::memory::Memory;
@@ -27,7 +27,6 @@ pub struct MachineX<Emu> {
 }
 
 pub struct Process {
-    pub cmdline: CommandLine,
     pub modules: HashMap<HMODULE, loader::Module>,
 }
 
@@ -189,9 +188,6 @@ impl System for Machine {
         state2.get(id).unwrap().as_ref()
     }
 
-    fn command_line(&self) -> &str {
-        &self.process.cmdline.string
-    }
     fn teb_addr(&self) -> u32 {
         self.teb_addr()
     }

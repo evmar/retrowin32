@@ -68,6 +68,5 @@ pub trait System {
     ) -> &dyn std::any::Any;
 
     // TODO: added in kernel32 migration, need a better place.
-    fn command_line(&self) -> &str;
     fn teb_addr(&self) -> u32;
 }

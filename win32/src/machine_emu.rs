@@ -1,7 +1,6 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
-    command_line::CommandLine,
     loader,
     machine::{MachineX, Process, Status},
     shims::{Shims, retrowin32_dll_module},
@@ -43,10 +42,7 @@ impl MachineX<Emulator> {
             state: Default::default(),
             state2: Default::default(),
             external_dlls: Default::default(),
-            process: Process {
-                cmdline: CommandLine::default(),
-                modules,
-            },
+            process: Process { modules },
         }
     }
 
@@ -55,8 +51,6 @@ impl MachineX<Emulator> {
     }
 
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
-        self.process.cmdline = CommandLine::new(cmdline);
-
         // Initialize the process heap.
         // We use this for misc allocations like per-thread TEBs,
         // so we need it to exist very early in process startup,
@@ -65,16 +59,19 @@ impl MachineX<Emulator> {
         // that the exe will be loaded into.
         self.memory.create_process_heap();
 
-        {
+        let exe_name = {
             let mut state = winapi::kernel32::get_state(self);
-            state.init_process(&self.memory, &self.process.cmdline.string);
+            state.init_process(&self.memory, cmdline);
+            state.cmdline.exe_name()
         };
 
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();
         cpu.call_async(Box::pin(async move {
-            let machine = unsafe { &mut *machine };
-            loader::start_exe(machine, relocate).await.unwrap();
+            let machine: &mut MachineX<Emulator> = unsafe { &mut *machine };
+            loader::start_exe(machine, exe_name, relocate)
+                .await
+                .unwrap();
             0
         }));
     }

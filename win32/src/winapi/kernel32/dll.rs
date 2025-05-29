@@ -62,7 +62,7 @@ fn get_module_file_name(
 ) -> u32 {
     let state = get_state(machine);
     if hModule.is_null() || hModule.to_raw() == state.image_base {
-        let exe = machine.process.cmdline.exe_name();
+        let exe = state.cmdline.exe_name();
         filename.write_nul(&exe);
         match filename.status() {
             Ok(n) => n - 1,

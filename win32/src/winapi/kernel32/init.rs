@@ -1,6 +1,6 @@
 //! Process initialization and startup.
 
-use super::{State, file::HFILE, get_state};
+use super::{State, command_line, file::HFILE, get_state};
 use crate::Machine; // TODO(Machine): break_on_startup, exit_thread, file
 use crate::winapi::kernel32; // TODO: until we are in our own crate
 use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
@@ -50,7 +50,7 @@ struct UserspaceData {
 }
 unsafe impl ::memory::Pod for UserspaceData {}
 
-pub fn init_peb(state: &mut State, memory: &Memory, cmdline: &str) {
+pub fn init_peb(state: &mut State, memory: &Memory, mut cmdline: command_line::State) {
     let user_data = memory.store(UserspaceData {
         peb: PEB {
             InheritedAddressSpace: 0,
@@ -78,10 +78,11 @@ pub fn init_peb(state: &mut State, memory: &Memory, cmdline: &str) {
             CurrentDirectory: memory::Pod::zeroed(),
             DllPath: memory::Pod::zeroed(),
             ImagePathName: memory::Pod::zeroed(),
-            CommandLine: state.cmdline.as_unicode_string(&cmdline, memory),
+            CommandLine: cmdline.as_unicode_string(memory),
         },
     });
     state.peb = user_data;
+    state.cmdline = cmdline;
     let peb = memory.mem().get_aligned_ref_mut::<PEB>(state.peb);
     peb.ProcessParameters = user_data;
 }

@@ -337,8 +337,11 @@ async fn load_module(
     init_module(machine, file, module).await
 }
 
-pub async fn start_exe(machine: &mut Machine, relocate: Option<Option<u32>>) -> anyhow::Result<()> {
-    let exe_name = machine.process.cmdline.exe_name();
+pub async fn start_exe(
+    machine: &mut Machine,
+    exe_name: String,
+    relocate: Option<Option<u32>>,
+) -> anyhow::Result<()> {
     let path = WindowsPath::new(&exe_name);
     let buf = read_file(&*machine.host, path)?; // TODO: .await
     let file = pe::File::parse(&buf)?;
@@ -514,7 +517,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
         }
         DLLResolution::External(filename) => {
             let mut buf = Vec::new();
-            let exe = machine.process.cmdline.exe_name();
+            let exe = winapi::kernel32::get_state(machine).cmdline.exe_name();
             let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
             let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
             for path in &dll_paths {

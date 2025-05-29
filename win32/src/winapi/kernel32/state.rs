@@ -54,7 +54,8 @@ pub struct State {
 }
 
 impl State {
-    pub fn init_process(&mut self, memory: &Memory, cmdline: &str) {
+    pub fn init_process(&mut self, memory: &Memory, cmdline: String) {
+        let cmdline = command_line::State::new(cmdline);
         init_peb(self, memory, cmdline);
     }
 }
