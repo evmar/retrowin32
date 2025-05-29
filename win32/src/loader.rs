@@ -157,7 +157,7 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             log::warn!("skipping non-ascii import {:?}", imports.image_name(image));
             continue;
         };
-        let res = resolve_dll(machine, dll_name);
+        let res = resolve_dll(&machine.external_dlls, dll_name);
         let mut module = {
             match load_dll(machine, &res).await {
                 Ok(hmodule) => machine.process.modules.get_mut(&hmodule),
@@ -439,7 +439,7 @@ impl DLLResolution {
 
 /// Given an imported DLL name, find the name of the DLL file we'll load for it.
 /// Handles normalizing the name, aliases, and builtins.
-pub fn resolve_dll(machine: &Machine, filename: &str) -> DLLResolution {
+pub fn resolve_dll(external_dlls: &[String], filename: &str) -> DLLResolution {
     let mut filename = normalize_module_name(filename);
     if filename.starts_with("api-") {
         match winapi::builtin::apiset(&filename) {
@@ -448,7 +448,7 @@ pub fn resolve_dll(machine: &Machine, filename: &str) -> DLLResolution {
         }
     }
 
-    let use_external = machine.external_dlls.contains(&filename);
+    let use_external = external_dlls.contains(&filename);
     if !use_external {
         if let Some(alias) = winapi::builtin::dll_alias(&filename) {
             filename = alias.to_string();
@@ -535,7 +535,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
 }
 
 pub fn get_symbol(machine: &Machine, dll: &str, name: &str) -> u32 {
-    let res = resolve_dll(machine, dll);
+    let res = resolve_dll(&machine.external_dlls, dll);
     let dll_name = res.name();
 
     let module = machine

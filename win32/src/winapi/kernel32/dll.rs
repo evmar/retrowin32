@@ -100,7 +100,7 @@ pub fn GetModuleFileNameW(
 }
 
 async fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
-    let res = loader::resolve_dll(machine, filename);
+    let res = loader::resolve_dll(&machine.external_dlls, filename);
     match loader::load_dll(machine, &res).await {
         Ok(hmodule) => hmodule,
         Err(e) => {
