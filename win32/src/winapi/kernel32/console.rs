@@ -1,5 +1,5 @@
 use super::file::HFILE;
-use crate::Machine;
+use crate::Machine; // TODO(Machine): uses file API
 use crate::winapi::kernel32;
 use win32_system::System;
 use win32_winapi::{DWORD, HANDLE, WORD, calling_convention::Array};

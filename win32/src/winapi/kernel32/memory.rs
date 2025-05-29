@@ -1,4 +1,3 @@
-use crate::Machine;
 use bitflags::bitflags;
 use memory::{ExtensionsMut, Mem};
 use std::cmp::max;
@@ -16,7 +15,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn HeapAlloc(
-    machine: &mut Machine,
+    sys: &dyn System,
     hHeap: u32,
     dwFlags: Result<HeapAllocFlags, u32>,
     dwBytes: u32,
@@ -27,19 +26,20 @@ pub fn HeapAlloc(
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let heap = match machine.memory.heaps.get(&hHeap) {
+    let memory = sys.memory();
+    let heap = match memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    let addr = heap.alloc(machine.memory.mem(), dwBytes);
+    let addr = heap.alloc(memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        machine.mem().sub32_mut(addr, dwBytes).fill(0);
+        memory.mem().sub32_mut(addr, dwBytes).fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
     }
     if !flags.is_empty() {
@@ -49,32 +49,29 @@ pub fn HeapAlloc(
 }
 
 #[win32_derive::dllexport]
-pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
+pub fn HeapFree(sys: &dyn System, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    machine
-        .memory
-        .heaps
-        .get(&hHeap)
-        .unwrap()
-        .free(machine.memory.mem(), lpMem);
+    let memory = sys.memory();
+    memory.heaps.get(&hHeap).unwrap().free(memory.mem(), lpMem);
     true
 }
 
 #[win32_derive::dllexport]
-pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+pub fn HeapSize(sys: &dyn System, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match machine.memory.heaps.get(&hHeap) {
+    let memory = sys.memory();
+    let heap = match memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    heap.size(machine.memory.mem(), lpMem)
+    heap.size(memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -89,28 +86,24 @@ pub fn HeapSetInformation(
 }
 
 #[win32_derive::dllexport]
-pub fn HeapReAlloc(
-    machine: &mut Machine,
-    hHeap: u32,
-    dwFlags: u32,
-    lpMem: u32,
-    dwBytes: u32,
-) -> u32 {
+pub fn HeapReAlloc(sys: &dyn System, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let heap = match machine.memory.heaps.get(&hHeap) {
+    let memory = sys.memory();
+    let heap = match memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    let old_size = heap.size(machine.memory.mem(), lpMem);
-    let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
+    let mem = memory.mem();
+    let old_size = heap.size(mem, lpMem);
+    let new_addr = heap.alloc(mem, dwBytes);
     assert!(dwBytes >= old_size);
-    heap.free(machine.memory.mem(), lpMem);
-    machine.mem().copy(lpMem, new_addr, old_size);
+    heap.free(mem, lpMem);
+    sys.mem().copy(lpMem, new_addr, old_size);
     new_addr
 }
 
@@ -125,7 +118,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn HeapCreate(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     flOptions: Result<HeapCreateFlags, u32>,
     dwInitialSize: u32,
     dwMaximumSize: u32,
@@ -134,7 +127,7 @@ pub fn HeapCreate(
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
     let size = max(dwInitialSize as usize, 20 << 20);
-    machine.memory.new_heap(size, "HeapCreate".into()).addr
+    sys.memory_mut().new_heap(size, "HeapCreate".into()).addr
 }
 
 #[win32_derive::dllexport]
@@ -195,16 +188,16 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn VirtualAlloc(
-    machine: &mut Machine,
+    machine: &mut dyn System,
     lpAddress: u32,
     dwSize: u32,
     flAllocationType: Result<MEM, u32>,
     flProtec: Result<PAGE, u32>,
 ) -> u32 {
+    let memory = machine.memory_mut();
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
-        match machine
-            .memory
+        match memory
             .mappings
             .vec()
             .iter()
@@ -222,11 +215,9 @@ pub fn VirtualAlloc(
     }
     // TODO round dwSize to page boundary
 
-    let mapping =
-        machine
-            .memory
-            .mappings
-            .alloc(machine.memory.imp.mem(), dwSize, "VirtualAlloc".into());
+    let mapping = memory
+        .mappings
+        .alloc(memory.imp.mem(), dwSize, "VirtualAlloc".into());
     mapping.addr
 }
 
@@ -290,21 +281,19 @@ impl<'a> calling_convention::FromArg<'a> for GMEM {
     }
 }
 
-fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
+fn alloc(sys: &mut dyn System, uFlags: GMEM, dwBytes: u32) -> u32 {
     // We ignore GMEM::MOVEABLE; see comments on HGLOBAL.
-    let addr = machine
-        .memory
-        .process_heap
-        .alloc(machine.memory.mem(), dwBytes);
+    let memory = sys.memory_mut();
+    let addr = memory.process_heap.alloc(memory.imp.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
-        machine.mem().sub32_mut(addr, dwBytes).fill(0);
+        memory.mem().sub32_mut(addr, dwBytes).fill(0);
     }
     addr
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
-    alloc(machine, uFlags, dwBytes)
+pub fn GlobalAlloc(sys: &mut dyn System, uFlags: GMEM, dwBytes: u32) -> u32 {
+    alloc(sys, uFlags, dwBytes)
 }
 
 // In principle, callers can GlobalAlloc a handle that they then GlobalLock
@@ -326,7 +315,7 @@ pub fn GlobalLock(sys: &dyn System, hMem: HGLOBAL) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
+pub fn GlobalReAlloc(sys: &dyn System, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
     // Note that ReAlloc is not allowed to return a new address.
     // The passed value must be a "movable" HGLOBAL handle, which we do not implement.
     return 0; // fail
@@ -355,13 +344,14 @@ pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
     true // success
 }
 
-fn free(machine: &mut Machine, hMem: u32) -> u32 {
-    machine.memory.process_heap.free(machine.memory.mem(), hMem);
+fn free(machine: &dyn System, hMem: u32) -> u32 {
+    let memory = machine.memory();
+    memory.process_heap.free(memory.mem(), hMem);
     return 0; // success
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+pub fn GlobalFree(machine: &dyn System, hMem: u32) -> u32 {
     free(machine, hMem)
 }
 
@@ -371,14 +361,14 @@ pub fn GlobalFlags(sys: &dyn System, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LocalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
+pub fn LocalAlloc(sys: &mut dyn System, uFlags: GMEM, dwBytes: u32) -> u32 {
     // In theory this takes LMEM_* flags, but they are the same as GMEM_*.
-    alloc(machine, uFlags, dwBytes)
+    alloc(sys, uFlags, dwBytes)
 }
 
 #[win32_derive::dllexport]
-pub fn LocalFree(machine: &mut Machine, hMem: u32) -> u32 {
-    free(machine, hMem)
+pub fn LocalFree(sys: &mut dyn System, hMem: u32) -> u32 {
+    free(sys, hMem)
 }
 
 #[win32_derive::dllexport]
@@ -393,6 +383,6 @@ pub fn VirtualProtect(
 }
 
 #[win32_derive::dllexport]
-pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine.memory.process_heap.addr
+pub fn GetProcessHeap(sys: &dyn System) -> u32 {
+    sys.memory().process_heap.addr
 }

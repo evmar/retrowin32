@@ -1,5 +1,5 @@
 use super::{file::HFILE, get_state};
-use crate::{Machine, loader};
+use crate::{Machine, loader}; // TODO(Machine): uses modules, loader
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -214,7 +214,7 @@ pub fn GetStartupInfoA(sys: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA
 }
 
 #[win32_derive::dllexport]
-pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+pub fn GetStartupInfoW(machine: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
     GetStartupInfoA(machine, lpStartupInfo)
 }

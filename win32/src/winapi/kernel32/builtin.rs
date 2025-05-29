@@ -2748,8 +2748,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::memory::GetProcessHeap(&mut *(sys.machine() as *mut crate::Machine));
+            let result = kernel32::memory::GetProcessHeap(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2861,10 +2860,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::dll::GetStartupInfoW(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpStartupInfo,
-            );
+            let result = kernel32::dll::GetStartupInfoW(sys, lpStartupInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3285,11 +3281,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::GlobalAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                uFlags,
-                dwBytes,
-            );
+            let result = kernel32::memory::GlobalAlloc(sys, uFlags, dwBytes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3335,8 +3327,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::memory::GlobalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
+            let result = kernel32::memory::GlobalFree(sys, hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3407,12 +3398,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::GlobalReAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hMem,
-                dwBytes,
-                uFlags,
-            );
+            let result = kernel32::memory::GlobalReAlloc(sys, hMem, dwBytes, uFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3464,12 +3450,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::HeapAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hHeap,
-                dwFlags,
-                dwBytes,
-            );
+            let result = kernel32::memory::HeapAlloc(sys, hHeap, dwFlags, dwBytes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3522,12 +3503,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::HeapCreate(
-                &mut *(sys.machine() as *mut crate::Machine),
-                flOptions,
-                dwInitialSize,
-                dwMaximumSize,
-            );
+            let result = kernel32::memory::HeapCreate(sys, flOptions, dwInitialSize, dwMaximumSize);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3575,12 +3551,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::HeapFree(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hHeap,
-                dwFlags,
-                lpMem,
-            );
+            let result = kernel32::memory::HeapFree(sys, hHeap, dwFlags, lpMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3611,13 +3582,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::HeapReAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hHeap,
-                dwFlags,
-                lpMem,
-                dwBytes,
-            );
+            let result = kernel32::memory::HeapReAlloc(sys, hHeap, dwFlags, lpMem, dwBytes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3679,12 +3644,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::HeapSize(
-                &mut *(sys.machine() as *mut crate::Machine),
-                hHeap,
-                dwFlags,
-                lpMem,
-            );
+            let result = kernel32::memory::HeapSize(sys, hHeap, dwFlags, lpMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4417,11 +4377,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::LocalAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                uFlags,
-                dwBytes,
-            );
+            let result = kernel32::memory::LocalAlloc(sys, uFlags, dwBytes);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4471,8 +4427,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                kernel32::memory::LocalFree(&mut *(sys.machine() as *mut crate::Machine), hMem);
+            let result = kernel32::memory::LocalFree(sys, hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6168,13 +6123,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = kernel32::memory::VirtualAlloc(
-                &mut *(sys.machine() as *mut crate::Machine),
-                lpAddress,
-                dwSize,
-                flAllocationType,
-                flProtec,
-            );
+            let result =
+                kernel32::memory::VirtualAlloc(sys, lpAddress, dwSize, flAllocationType, flProtec);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
