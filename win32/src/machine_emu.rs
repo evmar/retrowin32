@@ -2,7 +2,7 @@
 
 use crate::{
     machine::{MachineX, Status},
-    shims::{Shims, retrowin32_dll_module},
+    shims::Shims,
 };
 use builtin_kernel32 as kernel32;
 use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
@@ -53,11 +53,10 @@ impl MachineX<Emulator> {
         self.memory.create_process_heap();
 
         let retrowin32_syscall = b"\x0f\x34\xc3"; // sysenter; ret
-        let module = retrowin32_dll_module(&mut self.memory, retrowin32_syscall);
 
         let exe_name = {
             let mut state = kernel32::get_state(self);
-            state.init_process(&self.memory, module, cmdline);
+            state.init_process(&self.memory, retrowin32_syscall, cmdline);
             state.cmdline.exe_name()
         };
 

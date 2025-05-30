@@ -60,8 +60,7 @@ impl CPU {
 
     /// Jump to an address, verifying it's within valid bounds.
     pub fn jmp(&mut self, mem: Mem, addr: u32) {
-        // TODO: retrowin32_syscall shows up on the first page, avoid it specifically
-        if addr < 0x1000 - 8 {
+        if addr < 0x1000 {
             self.err(format!("jmp to null page addr={addr:x}"));
             return;
         }

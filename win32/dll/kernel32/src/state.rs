@@ -1,4 +1,5 @@
 use super::{HEVENT, Thread, command_line, init::init_peb, loader::Module};
+use crate::loader;
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 use win32_system::{Event, System, generic_get_state, memory::Memory};
 use win32_winapi::{HANDLE, HMODULE, Handles};
@@ -54,15 +55,33 @@ pub struct State {
 }
 
 impl State {
-    pub fn init_process(&mut self, memory: &Memory, builtin_module: Module, cmdline: String) {
+    pub fn init_process(&mut self, memory: &Memory, retrowin32_syscall: &[u8], cmdline: String) {
         let cmdline = command_line::State::new(cmdline);
+        let syscall_addr = init_peb(self, memory, retrowin32_syscall, cmdline);
+        let module = retrowin32_dll_module(syscall_addr);
         self.modules
-            .insert(HMODULE::from_raw(builtin_module.image_base), builtin_module);
-        init_peb(self, memory, cmdline);
+            .insert(HMODULE::from_raw(module.image_base), module);
     }
 }
 
 #[inline]
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
     generic_get_state::<State>(sys)
+}
+
+/// Return the Module for the magic retrowin32.dll module, which
+/// provides the retrowin32_syscall function needed for x86<->win32 calls.
+fn retrowin32_dll_module(addr: u32) -> Module {
+    let names = HashMap::from([("retrowin32_syscall".into(), addr)]);
+    let exports = loader::Exports {
+        names,
+        ..Default::default()
+    };
+    Module {
+        name: "retrowin32.dll".into(),
+        // use a non-zero base address so it doesn't register as the null HMODULE
+        image_base: 1,
+        exports,
+        ..Default::default() // rest of fields unused
+    }
 }

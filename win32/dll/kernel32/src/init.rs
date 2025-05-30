@@ -39,17 +39,32 @@ struct RTL_USER_PROCESS_PARAMETERS {
 }
 unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
-/// We stamp one of these into a process's memory to expose all the data structures
+/// We stamp one of these into a process's memory to expose all the data
 /// that the kernel32 APIs need to access.
 #[repr(C)]
 struct UserspaceData {
     peb: PEB,
     params: RTL_USER_PROCESS_PARAMETERS,
+    retrowin32_syscall: [u8; 8],
 }
 unsafe impl ::memory::Pod for UserspaceData {}
 
-pub fn init_peb(state: &mut State, memory: &Memory, mut cmdline: command_line::State) {
-    let user_data = memory.store(UserspaceData {
+pub fn init_peb(
+    state: &mut State,
+    memory: &Memory,
+    retrowin32_syscall: &[u8],
+    mut cmdline: command_line::State,
+) -> u32 {
+    // Always use the same amount of memory for the syscall stub,
+    // so different emulators match on memory layout.
+    assert!(retrowin32_syscall.len() <= 8);
+    let retrowin32_syscall = {
+        let mut buf = [0; 8];
+        buf[..retrowin32_syscall.len()].copy_from_slice(retrowin32_syscall);
+        buf
+    };
+
+    let user_data_addr = memory.store(UserspaceData {
         peb: PEB {
             InheritedAddressSpace: 0,
             ReadImageFileExecOptions: 0,
@@ -78,11 +93,17 @@ pub fn init_peb(state: &mut State, memory: &Memory, mut cmdline: command_line::S
             ImagePathName: memory::Pod::zeroed(),
             CommandLine: cmdline.as_unicode_string(memory),
         },
+        retrowin32_syscall,
     });
-    state.peb = user_data;
+    let user_data = memory
+        .mem()
+        .get_aligned_ref_mut::<UserspaceData>(user_data_addr);
+    state.peb = user_data_addr;
     state.cmdline = cmdline;
-    let peb = memory.mem().get_aligned_ref_mut::<PEB>(state.peb);
-    peb.ProcessParameters = user_data;
+    user_data.peb.ProcessParameters = user_data_addr;
+    let syscall_addr =
+        user_data_addr + std::mem::offset_of!(UserspaceData, retrowin32_syscall) as u32;
+    syscall_addr
 }
 
 pub fn peb_mut(sys: &dyn System) -> &mut PEB {
