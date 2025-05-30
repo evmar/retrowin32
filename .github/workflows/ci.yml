@@ -64,3 +64,12 @@ jobs:
         run: cd web && npm ci
       - name: Build TypeScript
         run: make -C web web-check
+
+  build-unicorn:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        # Use no-default-features to avoid the SDL dependency.
+        run: cargo build --no-default-features -F x86-unicorn -p retrowin32 --release
