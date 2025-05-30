@@ -315,14 +315,17 @@ pub fn GlobalLock(sys: &dyn System, hMem: HGLOBAL) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalReAlloc(sys: &dyn System, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
-    // Note that ReAlloc is not allowed to return a new address.
-    // The passed value must be a "movable" HGLOBAL handle, which we do not implement.
-    return 0; // fail
+pub fn GlobalReAlloc(sys: &mut dyn System, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
+    if uFlags.contains(GMEM::MODIFY) {
+        todo!("GMEM_MODIFY");
+    }
 
-    // if uFlags.contains(GMEM::MODIFY) {
-    //     todo!("GMEM_MODIFY");
-    // }
+    // Otherwise, we are just reallocating the memory from scratch.
+    // TODO: It's not clear what it means if you pass GMEM::MOVEABLE on a fixed block;
+    // does that mean free the old block and allocate a new block with a moveable handle?
+    GlobalFree(sys, hMem);
+    return GlobalAlloc(sys, uFlags, dwBytes);
+
     // let heap = &sys.memory.process_heap;
     // let mem = sys.memory.mem();
     // let old_size = heap.size(mem, hMem);
@@ -367,7 +370,7 @@ pub fn LocalAlloc(sys: &mut dyn System, uFlags: GMEM, dwBytes: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LocalFree(sys: &mut dyn System, hMem: u32) -> u32 {
+pub fn LocalFree(sys: &dyn System, hMem: u32) -> u32 {
     free(sys, hMem)
 }
 
