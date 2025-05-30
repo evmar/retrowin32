@@ -1,5 +1,5 @@
 use std::ops::Range;
-use win32_system::{System, resource::find_resource};
+use win32_system::{System, generic_get_state, resource::find_resource};
 use win32_winapi::{HANDLE, HMODULE, Handles, Str16};
 
 pub use win32_system::resource::ResourceKey;
@@ -12,14 +12,9 @@ pub struct ResourceHandle(Range<u32>);
 
 type State = Handles<HRSRC, ResourceHandle>;
 
-fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
-    type SysState = std::cell::RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(SysState::default())
-    })
-    .downcast_ref::<SysState>()
-    .unwrap()
-    .borrow_mut()
+#[inline]
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    generic_get_state::<State>(sys)
 }
 
 #[win32_derive::dllexport]

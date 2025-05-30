@@ -6,12 +6,8 @@ use super::{ddraw1, ddraw7, palette::Palette};
 use builtin_gdi32::bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut};
 use builtin_user32 as user32;
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::{
-    cell::{RefCell, RefMut},
-    collections::HashMap,
-    rc::Rc,
-};
-use win32_system::{Heap, System, host};
+use std::{cell::RefMut, collections::HashMap, rc::Rc};
+use win32_system::{Heap, System, generic_get_state, host};
 use win32_winapi::{HWND, RECT, com::GUID};
 
 pub struct Surface {
@@ -224,13 +220,9 @@ impl Default for State {
     }
 }
 
+#[inline]
 pub fn get_state(sys: &dyn System) -> RefMut<State> {
-    sys.state(&std::any::TypeId::of::<RefCell<State>>(), || {
-        Box::new(RefCell::new(State::default()))
-    })
-    .downcast_ref::<RefCell<State>>()
-    .unwrap()
-    .borrow_mut()
+    generic_get_state::<State>(sys)
 }
 
 #[win32_derive::dllexport]
