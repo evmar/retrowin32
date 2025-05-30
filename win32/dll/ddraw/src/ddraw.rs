@@ -224,7 +224,7 @@ impl Default for State {
     }
 }
 
-pub(crate) fn get_state(sys: &dyn System) -> RefMut<State> {
+pub fn get_state(sys: &dyn System) -> RefMut<State> {
     sys.state(&std::any::TypeId::of::<RefCell<State>>(), || {
         Box::new(RefCell::new(State::default()))
     })

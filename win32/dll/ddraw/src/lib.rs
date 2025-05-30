@@ -14,6 +14,6 @@ mod types;
 
 pub use builtin::DLL;
 
-pub use ddraw::State;
+pub use ddraw::{State, get_state};
 pub use types::*;
 pub use win32_winapi::com::GUID;

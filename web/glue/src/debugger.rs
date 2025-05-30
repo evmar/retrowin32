@@ -2,6 +2,7 @@
 
 use tsify::{JsValueSerdeExt, Tsify};
 use wasm_bindgen::prelude::*;
+use win32::ddraw;
 
 #[wasm_bindgen]
 pub enum Register {
@@ -125,10 +126,7 @@ pub struct DirectDrawSurfaceMeta {
 }
 
 pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
-    machine
-        .state
-        .ddraw
-        .borrow()
+    ddraw::get_state(machine)
         .surfaces
         .iter()
         .map(|(&ptr, s)| {
