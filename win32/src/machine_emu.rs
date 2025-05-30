@@ -219,6 +219,28 @@ impl MachineX<Emulator> {
         x86::debug::dump_fpu_state(cpu);
     }
 
+    /// Print a one-line trace of the current CPU state, intended for matching across emulator backends.
+    pub fn print_trace(&self) {
+        let regs = &self.emu.x86.cpu().regs;
+        print!(
+            "@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x}",
+            eip = regs.eip,
+            eax = regs.get32(x86::Register::EAX),
+            ebx = regs.get32(x86::Register::EBX),
+            ecx = regs.get32(x86::Register::ECX),
+            edx = regs.get32(x86::Register::EDX),
+            esi = regs.get32(x86::Register::ESI),
+            edi = regs.get32(x86::Register::EDI),
+            esp = regs.get32(x86::Register::ESP),
+            ebp = regs.get32(x86::Register::EBP),
+        );
+        let st_top = self.emu.x86.cpu().fpu.st_top;
+        if st_top != 8 {
+            print!(" st_top:{st_top:x}");
+        }
+        println!();
+    }
+
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
         assert!(addr != 0);

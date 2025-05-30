@@ -381,7 +381,26 @@ impl MachineX<Emulator> {
         }
     }
 
-    pub fn dump_regs(&self) {
+    /// Print a one-line trace of the current CPU state, intended for matching across emulator backends.
+    pub fn print_trace(&self) {
+        use RegisterX86::*;
+        print!(
+            "@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x}",
+            eax = self.emu.unicorn.reg_read(EAX).unwrap() as u32,
+            ecx = self.emu.unicorn.reg_read(ECX).unwrap() as u32,
+            edx = self.emu.unicorn.reg_read(EDX).unwrap() as u32,
+            ebx = self.emu.unicorn.reg_read(EBX).unwrap() as u32,
+            esi = self.emu.unicorn.reg_read(ESI).unwrap() as u32,
+            edi = self.emu.unicorn.reg_read(EDI).unwrap() as u32,
+            esp = self.emu.unicorn.reg_read(ESP).unwrap() as u32,
+            ebp = self.emu.unicorn.reg_read(EBP).unwrap() as u32,
+            eip = self.emu.unicorn.reg_read(EIP).unwrap() as u32,
+        );
+        // TODO: st_top
+        println!();
+    }
+
+    fn dump_regs(&self) {
         use RegisterX86::*;
         println!(
             "\
