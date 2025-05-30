@@ -225,7 +225,7 @@ pub struct State {
 impl State {
     pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
         let mut mappings = Mappings::new();
-        let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
+        let mapping = mappings.alloc(0x4000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);
 
         let env = b"WINDIR=C:\\Windows\0\0";
