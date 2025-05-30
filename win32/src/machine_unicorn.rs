@@ -11,7 +11,7 @@ use std::collections::{hash_map, HashMap};
 use std::path::Path;
 use std::pin::Pin;
 use unicorn_engine::unicorn_const::{uc_error, Arch, Mode, Permission};
-use unicorn_engine::{RegisterX86, Unicorn, X86Mmr};
+use unicorn_engine::{RegisterX86, UcHookId, Unicorn, X86Mmr};
 
 pub struct MemImpl(Pin<Box<[u8]>>);
 
@@ -38,7 +38,7 @@ pub struct Emulator {
     pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
     pub memory: MemImpl,
-    breakpoints: HashMap<u32, *mut core::ffi::c_void>,
+    breakpoints: HashMap<u32, UcHookId>,
     exit_code: Option<u32>,
 }
 
