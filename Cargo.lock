@@ -183,6 +183,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "builtin-ntdll"
+version = "0.1.0"
+dependencies = [
+ "builtin-kernel32",
+ "memory",
+ "win32-derive",
+ "win32-system",
+ "win32-winapi",
+]
+
+[[package]]
 name = "builtin-ole32"
 version = "0.1.0"
 dependencies = [
@@ -806,6 +817,7 @@ dependencies = [
  "builtin-dsound",
  "builtin-gdi32",
  "builtin-kernel32",
+ "builtin-ntdll",
  "builtin-ole32",
  "builtin-oleaut32",
  "builtin-retrowin32_test",

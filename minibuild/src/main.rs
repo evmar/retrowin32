@@ -84,7 +84,7 @@ fn main() -> anyhow::Result<()> {
         ("dsound", true),
         ("gdi32", true),
         ("kernel32", true),
-        ("ntdll", false),
+        ("ntdll", true),
         ("ole32", true),
         ("oleaut32", true),
         ("retrowin32_test", true),

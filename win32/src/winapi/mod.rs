@@ -1,5 +1,4 @@
 pub mod builtin;
-mod ntdll;
 
 #[derive(Default)]
 pub struct State {

@@ -20,6 +20,7 @@ members = [
   "win32/dll/dsound",
   "win32/dll/gdi32",
   "win32/dll/kernel32",
+  "win32/dll/ntdll",
   "win32/dll/ole32",
   "win32/dll/oleaut32",
   "win32/dll/retrowin32_test",

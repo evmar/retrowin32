@@ -1,0 +1,12 @@
+[package]
+name = "builtin-ntdll"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+memory = { workspace = true }
+win32-derive = { workspace = true }
+win32-system = { workspace = true }
+win32-winapi = { workspace = true }
+
+builtin-kernel32 = { path = "../kernel32" }

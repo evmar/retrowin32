@@ -3,7 +3,8 @@
 #![allow(unused_variables)]
 use win32_system::dll::*;
 mod wrappers {
-    use crate::winapi::ntdll::{self, *};
+    use crate as ntdll;
+    use crate::*;
     use ::memory::Extensions;
     use win32_system::{System, trace};
     use win32_winapi::{calling_convention::*, *};
@@ -119,5 +120,5 @@ const SHIMS: [Shim; 3usize] = [
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "ntdll.dll",
     shims: &SHIMS,
-    raw: std::include_bytes!("../../../dll/ntdll.dll"),
+    raw: std::include_bytes!("../ntdll.dll"),
 };
