@@ -19,6 +19,9 @@ mod shims_raw;
 #[cfg(feature = "x86-unicorn")]
 mod machine_unicorn;
 
+#[cfg(feature = "x86-unicorn")]
+mod gdt;
+
 pub use builtin_ddraw as ddraw; // exposed so debugger can poke at internal state
 pub use builtin_kernel32 as kernel32;
 pub use kernel32::loader::Module;

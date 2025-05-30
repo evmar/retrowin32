@@ -1,5 +1,8 @@
 use crate::Mem;
 
+// TODO: Unicorn needs this to be Pin.
+// In theory x86-emu could work with it not being pinned, not sure.
+// Maybe make a different impl?
 pub struct BoxMem(Box<[u8]>);
 
 impl BoxMem {

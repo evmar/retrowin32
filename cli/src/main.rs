@@ -217,7 +217,7 @@ fn main() -> anyhow::Result<ExitCode> {
             machine.print_trace();
             todo!();
         } else {
-            match machine.main(entry_point) {
+            match machine.run() {
                 win32::Status::Exit(code) => {
                     exit_code = *code;
                 }

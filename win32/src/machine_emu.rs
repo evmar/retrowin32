@@ -322,4 +322,8 @@ impl MachineX<Emulator> {
     pub fn exit(&mut self, exit_code: u32) {
         self.status = Status::Exit(exit_code);
     }
+
+    pub fn debug_break(&mut self) {
+        self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+    }
 }

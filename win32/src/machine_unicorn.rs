@@ -1,37 +1,18 @@
 use crate::{
-    host, loader,
+    gdt::create_gdt,
+    host,
     machine::{MachineX, Status},
-    memory::Memory,
-    shims::{Handler, Shims},
-    winapi::{self, kernel32::CommandLine},
+    shims::Shims,
 };
-use memory::{Extensions, ExtensionsMut, Mem};
+use builtin_kernel32 as kernel32;
+use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::{collections::HashMap, future::Future, pin::Pin};
 use unicorn_engine::{
     RegisterX86, Unicorn, X86Mmr,
     unicorn_const::{Arch, Mode, Permission},
 };
-
-pub struct MemImpl(Pin<Box<[u8]>>);
-
-impl MemImpl {
-    pub fn new(size: usize) -> Self {
-        let mut v = Vec::with_capacity(size);
-        v.resize(size, 0);
-        Self(Pin::from(v.into_boxed_slice()))
-    }
-
-    pub fn len(&self) -> u32 {
-        self.0.len() as u32
-    }
-    pub fn mem(&self) -> Mem {
-        Mem::from_slice(&self.0)
-    }
-
-    pub fn ptr(&mut self) -> *mut u8 {
-        self.0.as_mut_ptr()
-    }
-}
+use win32_system::{dll::Handler, memory::Memory};
+use win32_winapi::calling_convention::ABIReturn;
 
 /// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
 /// This is a u64 only because Unicorn wants u64s for registers/addresses.
@@ -40,27 +21,27 @@ const MAGIC_ADDR: u64 = 0xFFFF_FFF0;
 pub struct Emulator {
     pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
+    // For now, we only support one thread, so stash the singular TEB address here.
+    teb_addr: u32,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
-    futures: Vec<Pin<Box<dyn Future<Output = ()>>>>,
+    futures: Vec<Pin<Box<dyn Future<Output = u32>>>>,
 }
 
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = Memory::new(MemImpl::new(32 << 20));
-        let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-        let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
+        let memory = Memory::new(MemImpl::new(32 << 20));
 
         let mut unicorn = Unicorn::new(Arch::X86, Mode::MODE_32).unwrap();
         unsafe {
-            let offset = 0x1000usize; // Leave the first 4k of memory unmapped
+            let offset = 0x1000; // Leave the first 4k of memory unmapped
             unicorn
                 .mem_map_ptr(
                     offset as u64,
                     (memory.len() as usize) - offset,
                     Permission::ALL,
-                    memory.imp.ptr().add(offset) as *mut _,
+                    memory.imp.as_ptr().add(offset) as *mut _,
                 )
                 .unwrap();
         };
@@ -83,21 +64,19 @@ impl MachineX<Emulator> {
         //     })
         //     .unwrap();
 
-        let state = winapi::State::new(&mut memory, kernel32);
-
         Machine {
+            status: Default::default(),
             emu: Emulator {
                 unicorn,
                 shims: Shims::default(),
+                teb_addr: 0,
                 breakpoints: Default::default(),
                 futures: Default::default(),
             },
             memory,
             host,
-            state,
-            labels: HashMap::new(),
+            state: Default::default(),
             external_dlls: Default::default(),
-            status: Default::default(),
         }
     }
 
@@ -105,32 +84,44 @@ impl MachineX<Emulator> {
         self.memory.mem()
     }
 
-    /// Initialize a memory mapping for the stack and set the stack pointers.
-    fn setup_stack(&mut self, stack_size: u32) {
-        let stack = self
-            .memory
-            .mappings
-            .alloc(stack_size, "stack".into(), &mut self.memory.imp);
-        let stack_pointer = stack.addr + stack.size - 4;
+    pub fn new_thread_impl(
+        &mut self,
+        new_cpu: bool,
+        stack_size: u32,
+        start_addr: u32,
+        args: &[u32],
+    ) -> u32 {
+        // We only support one thread for now, so assert these parameters.
+        assert_eq!(new_cpu, false);
+        assert_eq!(start_addr, 0);
+        assert_eq!(args.len(), 0);
 
-        // TODO: put this init somewhere better.
+        let thread = kernel32::create_thread(self, stack_size);
         self.emu
             .unicorn
-            .reg_write(RegisterX86::ESP, stack_pointer as u64)
+            .reg_write(RegisterX86::ESP, thread.stack_pointer as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(RegisterX86::EBP, stack_pointer as u64)
+            .reg_write(RegisterX86::EBP, thread.stack_pointer as u64)
             .unwrap();
+
+        self.emu.teb_addr = thread.thread.teb;
+
+        // We create the whole GDT here, including the FS segment.
+        // If we supported multiple threads we'd need to figure out how to adjust GDT here instead.
+        self.setup_segments(self.emu.teb_addr);
+
+        thread.thread.handle.to_raw()
     }
 
     /// Initialize segment registers.  In particular, we need FS to point at the kernel32 TEB.
-    fn setup_segments(&mut self) {
+    fn setup_segments(&mut self, fs_addr: u32) {
         // To be able to set FS, we need to create a GDT, which then requires entries
         // for the code and data segments too.
         // https://scoding.de/setting-global-descriptor-table-unicorn
         // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
-        let gdt = self.state.kernel32.create_gdt(self.memory.mem());
+        let gdt = create_gdt(&self.memory, fs_addr);
 
         let gdtr = X86Mmr {
             selector: 0, // unused
@@ -168,46 +159,39 @@ impl MachineX<Emulator> {
             .unwrap();
     }
 
-    #[allow(non_snake_case)]
-    pub fn load_exe(
-        &mut self,
-        buf: &[u8],
-        cmdline: String,
-        relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<u32> {
-        self.state
-            .kernel32
-            .init_process(self.memory.mem(), CommandLine::new(cmdline));
-        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
+    pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
+        self.memory.create_process_heap();
 
-        self.setup_stack(exe.stack_size);
-        self.setup_segments();
+        let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
 
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EAX, 0xdeadbeea)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EBX, 0xdeadbeeb)
-            .unwrap();
+        let exe_name = {
+            let mut state = kernel32::get_state(self);
+            state.init_process(&self.memory, retrowin32_syscall, cmdline);
+            state.cmdline.exe_name()
+        };
 
-        Ok(exe.entry_point)
+        let machine = self as *mut Machine;
+        self.call_async(Box::pin(async move {
+            let machine: &mut MachineX<Emulator> = unsafe { &mut *machine };
+            kernel32::loader::start_exe(machine, exe_name, relocate)
+                .await
+                .unwrap();
+            0
+        }));
     }
 
-    fn handle_shim_call(&mut self) {
-        // See doc/shims.md for the state of the stack when we get here.
-        // It explains the below accesses relative to esp.
+    fn syscall(&mut self) {
+        // See machine_emu's syscall() for a more detailed explanation of how this works.
+        // It is the same here except we poke Unicorn registers instead of Emulator registers.
 
         let eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
         assert!(eip != MAGIC_ADDR); // sanity check
 
-        // address of shim = return address - length of call instruction
         let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
         assert!(esp != 0);
-        let return_addr = self.memory.mem().get_pod::<u32>(esp);
-        assert!(return_addr != 0);
-        let shim = match self.emu.shims.get(return_addr - 6) {
+        let shim_addr = self.memory.mem().get_pod::<u32>(esp) - 6;
+        assert!(shim_addr != 0);
+        let shim = match self.emu.shims.get(shim_addr) {
             Ok(shim) => shim,
             Err(name) => unimplemented!("shim call to {name}"),
         };
@@ -216,47 +200,44 @@ impl MachineX<Emulator> {
         match shim.func {
             Handler::Sync(func) => {
                 let ret = unsafe { func(self, stack_args) };
-
-                self.emu.unicorn.reg_write(RegisterX86::EAX, ret).unwrap();
-                self.emu
-                    .unicorn
-                    .reg_write(RegisterX86::EDX, ret >> 32)
-                    .unwrap();
-
-                // After call, attempt to clear registers to make execution traces easier to match.
-                // eax: holds return value
-                self.emu.unicorn.reg_write(RegisterX86::ECX, 0).unwrap();
-                // edx: sometimes used for 64-bit returns
-                // ebx: callee-saved
+                self.post_syscall(ret);
             }
-            Handler::Async(func) => {
-                let return_address = eip;
-                let future = unsafe { func(self, stack_args) };
-                self.call_async(future, return_address as u32);
+            Handler::Async(_func) => {
+                todo!();
+                // let return_address = eip;
+                // let future = unsafe { func(self, stack_args) };
+                // self.call_async(future, return_address as u32);
             }
         };
     }
 
+    /// Update registers after a syscall; shared by sync and async codepaths.
+    fn post_syscall(&mut self, ret: ABIReturn) {
+        let (eax, edx) = match ret {
+            ABIReturn::U32(ret) => (ret, 0),
+            ABIReturn::U64(ret) => (ret as u32, (ret >> 32) as u32),
+            ABIReturn::F64(_) => todo!(),
+        };
+        self.emu
+            .unicorn
+            .reg_write(RegisterX86::EAX, eax as u64)
+            .unwrap();
+        self.emu.unicorn.reg_write(RegisterX86::ECX, 0).unwrap();
+        self.emu
+            .unicorn
+            .reg_write(RegisterX86::EDX, edx as u64)
+            .unwrap();
+        // ebx: callee-saved
+    }
+
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future.
-    /// When it finishes we will return to return_address.
-    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u64>>>, return_address: u32) {
+    /// It resolves to the return address of the call.
+    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u32>>>) {
         self.emu
             .unicorn
             .reg_write(RegisterX86::EIP, MAGIC_ADDR)
             .unwrap();
-
-        let emu: *mut Emulator = &mut self.emu;
-        self.emu.futures.push(Box::pin(async move {
-            let emu = unsafe { &mut *emu };
-            let ret = future.await;
-            emu.unicorn.reg_write(RegisterX86::EAX, ret as u64).unwrap();
-            if ret > 0xFFFF_FFFF {
-                todo!();
-            }
-            emu.unicorn
-                .reg_write(RegisterX86::EIP, return_address as u64)
-                .unwrap();
-        }));
+        self.emu.futures.push(future);
     }
 
     /// Poll the current future, removing it from the queue if it's done.
@@ -269,8 +250,12 @@ impl MachineX<Emulator> {
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
         let poll = future.as_mut().poll(context);
         match poll {
-            std::task::Poll::Ready(()) => {
+            std::task::Poll::Ready(addr) => {
                 self.emu.futures.pop();
+                self.emu
+                    .unicorn
+                    .reg_write(RegisterX86::EIP, addr as u64)
+                    .unwrap();
             }
             std::task::Poll::Pending => {}
         }
@@ -278,11 +263,13 @@ impl MachineX<Emulator> {
 
     /// Set up the CPU as if a function was just called with arguments,
     /// with return address and arguments on the stack.
-    fn setup_call_x86(&mut self, func: u32, args: Vec<u32>) {
+    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl Future<Output = u32> {
+        let orig_esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+
         let mem = self.memory.mem();
 
-        let ret_addr = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap() as u32;
-        let mut esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+        let ret_addr = MAGIC_ADDR as u32; //self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap() as u32;
+        let mut esp = orig_esp;
         for &arg in args.iter().rev() {
             esp -= 4;
             mem.put_pod::<u32>(esp, arg);
@@ -298,43 +285,34 @@ impl MachineX<Emulator> {
             .unicorn
             .reg_write(RegisterX86::EIP, func as u64)
             .unwrap();
+
+        UnicornFuture {
+            machine: self,
+            esp: orig_esp,
+        }
     }
 
-    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl Future<Output = u32> {
-        let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
-        self.setup_call_x86(func, args);
-        // setup_call_x86 pushed data on the stack; the future completes once that is all popped
-        // back to the original esp.
-        UnicornFuture { machine: self, esp }
-    }
-
-    fn run(&mut self, eip: u32) {
-        let mut eip = eip as u64;
+    pub fn run(&mut self) -> &Status {
+        let mut eip: u64;
         while self.status.is_running() {
+            // self.print_trace();
+            eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
             if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR, 0, 0) {
                 self.status = Status::Error {
                     message: format!("unicorn: {:?}", err),
                 };
-                return;
+                break;
             }
             eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
 
             // There are two reasons Unicorn might have stopped:
-            // either we hit the magic address, or we hit a shim call.
+            // either we hit the magic address, or we hit a system call.
             if eip == MAGIC_ADDR as u64 {
                 self.async_executor();
             } else {
-                self.handle_shim_call();
+                self.syscall();
             }
-            eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
         }
-    }
-
-    pub fn main(&mut self, entry_point: u32) -> &Status {
-        self.emu.unicorn.reg_write(RegisterX86::EIP, 0).unwrap();
-        let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
-        self.setup_call_x86(retrowin32_main, vec![entry_point]);
-        self.run(retrowin32_main);
         &self.status
     }
 
@@ -429,6 +407,15 @@ impl MachineX<Emulator> {
     pub fn exit(&mut self, exit_code: u32) {
         self.status = Status::Exit(exit_code);
     }
+
+    pub fn teb_addr(&self) -> u32 {
+        self.emu.teb_addr
+    }
+    pub async fn block(&mut self, _wait: Option<u32>) {
+        todo!()
+    }
+    pub fn exit_thread(&mut self, _status: u32) {}
+    pub fn debug_break(&mut self) {}
 }
 
 struct UnicornFuture {

@@ -266,7 +266,7 @@ pub fn write_file(sys: &dyn System, hFile: HFILE, mut buf: &[u8]) -> Result<usiz
 
     let mut state = get_state(sys);
     let Some(file) = state.files.get_mut(hFile) else {
-        log::debug!("WriteFile({hFile:?}) unknown handle");
+        log::warn!("WriteFile({hFile:?}) unknown handle");
         return Err(ERROR::INVALID_HANDLE);
     };
     let mut written = 0;

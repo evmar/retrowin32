@@ -1,8 +1,10 @@
 //! GDT setup, needed for running under Unicorn.
 //! This module is currently unused and bitrotting.
 
+use crate::segments::SegmentDescriptor;
+use win32_system::memory::Memory;
+
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
-#[cfg(feature = "x86-unicorn")]
 pub struct GDTEntries {
     /// Address of GDT itself.
     pub addr: u32,
@@ -12,12 +14,13 @@ pub struct GDTEntries {
     pub ss: u16,
 }
 
-#[cfg(feature = "x86-unicorn")]
-pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
-    use segments::SegmentDescriptor;
+pub fn create_gdt(memory: &Memory, fs_addr: u32) -> GDTEntries {
+    use memory::ExtensionsMut;
+
     const COUNT: usize = 5;
-    let addr = self.arena.alloc(COUNT as u32 * 8, 8);
-    let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };
+
+    let addr = memory.alloc(8 * COUNT as u32);
+    let gdt: &mut [u64; COUNT] = unsafe { &mut *(memory.mem().get_ptr_mut::<u64>(addr) as *mut _) };
 
     gdt[0] = 0;
 
@@ -53,7 +56,7 @@ pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
 
     let fs = (3 << 3) | 0b011;
     gdt[3] = SegmentDescriptor {
-        base: 0, // TODO: get teb into here
+        base: fs_addr,
         limit: 0x1000,
         granularity: false,
         db: true, // 32 bit

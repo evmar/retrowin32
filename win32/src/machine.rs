@@ -176,7 +176,7 @@ impl System for Machine {
     }
 
     fn debug_break(&mut self) {
-        self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+        Machine::debug_break(self);
     }
 
     fn resolve_dll(&self, filename: &str) -> DLLResolution {
