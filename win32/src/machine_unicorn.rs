@@ -15,8 +15,7 @@ use win32_system::{dll::Handler, memory::Memory};
 use win32_winapi::calling_convention::ABIReturn;
 
 /// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
-/// This is a u64 only because Unicorn wants u64s for registers/addresses.
-const MAGIC_ADDR: u64 = 0xFFFF_FFF0;
+const MAGIC_ADDR: u32 = 0xFFFF_FFF0u32;
 
 pub struct Emulator {
     pub unicorn: Unicorn<'static, ()>,
@@ -84,6 +83,10 @@ impl MachineX<Emulator> {
         self.memory.mem()
     }
 
+    fn write_reg(&mut self, reg: RegisterX86, value: u32) {
+        self.emu.unicorn.reg_write(reg, value as u64).unwrap();
+    }
+
     pub fn new_thread_impl(
         &mut self,
         new_cpu: bool,
@@ -97,14 +100,8 @@ impl MachineX<Emulator> {
         assert_eq!(args.len(), 0);
 
         let thread = kernel32::create_thread(self, stack_size);
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::ESP, thread.stack_pointer as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EBP, thread.stack_pointer as u64)
-            .unwrap();
+        self.write_reg(RegisterX86::ESP, thread.stack_pointer as u32);
+        self.write_reg(RegisterX86::EBP, thread.stack_pointer as u32);
 
         self.emu.teb_addr = thread.thread.teb;
 
@@ -141,22 +138,10 @@ impl MachineX<Emulator> {
             .unicorn
             .reg_write_long(RegisterX86::GDTR, gdtr_slice)
             .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::CS, gdt.cs as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::DS, gdt.ds as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::SS, gdt.ss as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::FS, gdt.fs as u64)
-            .unwrap();
+        self.write_reg(RegisterX86::CS, gdt.cs as u32);
+        self.write_reg(RegisterX86::DS, gdt.ds as u32);
+        self.write_reg(RegisterX86::SS, gdt.ss as u32);
+        self.write_reg(RegisterX86::FS, gdt.fs as u32);
     }
 
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
@@ -184,7 +169,7 @@ impl MachineX<Emulator> {
         // It is the same here except we poke Unicorn registers instead of Emulator registers.
 
         let eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
-        assert!(eip != MAGIC_ADDR); // sanity check
+        assert!(eip != MAGIC_ADDR as u64); // sanity check
 
         let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
         assert!(esp != 0);
@@ -202,17 +187,13 @@ impl MachineX<Emulator> {
                 self.post_syscall(ret);
             }
             Handler::Async(func) => {
-                let return_address = eip;
+                let return_address = eip as u32;
                 let machine = self as *mut Machine;
                 let future = Box::pin(async move {
                     let machine: &mut Machine = unsafe { &mut *machine };
                     let ret = unsafe { func(machine, stack_args).await };
                     machine.post_syscall(ret);
-                    machine
-                        .emu
-                        .unicorn
-                        .reg_write(RegisterX86::EIP, return_address as u64)
-                        .unwrap();
+                    machine.write_reg(RegisterX86::EIP, return_address);
                 });
                 self.call_async(future);
             }
@@ -226,25 +207,16 @@ impl MachineX<Emulator> {
             ABIReturn::U64(ret) => (ret as u32, (ret >> 32) as u32),
             ABIReturn::F64(_) => todo!(),
         };
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EAX, eax as u64)
-            .unwrap();
-        self.emu.unicorn.reg_write(RegisterX86::ECX, 0).unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EDX, edx as u64)
-            .unwrap();
+        self.write_reg(RegisterX86::EAX, eax);
+        self.write_reg(RegisterX86::ECX, 0);
+        self.write_reg(RegisterX86::EDX, edx);
         // ebx: callee-saved
     }
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future.
     /// It resolves to the return address of the call.
     fn call_async(&mut self, future: Pin<Box<dyn Future<Output = ()>>>) {
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EIP, MAGIC_ADDR)
-            .unwrap();
+        self.write_reg(RegisterX86::EIP, MAGIC_ADDR);
         self.emu.futures.push(future);
     }
 
@@ -281,14 +253,8 @@ impl MachineX<Emulator> {
         esp -= 4;
         mem.put_pod::<u32>(esp, ret_addr);
 
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::ESP, esp as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EIP, func as u64)
-            .unwrap();
+        self.write_reg(RegisterX86::ESP, esp);
+        self.write_reg(RegisterX86::EIP, func);
 
         UnicornFuture {
             machine: self,
@@ -301,7 +267,7 @@ impl MachineX<Emulator> {
         while self.status.is_running() {
             // self.print_trace();
             eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
-            if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR, 0, 0) {
+            if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR as u64, 0, 0) {
                 self.status = Status::Error {
                     message: format!("unicorn: {:?}", err),
                 };
