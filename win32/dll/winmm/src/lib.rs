@@ -40,8 +40,10 @@ pub struct State {
 pub fn get_state(sys: &dyn System) -> RefMut<State> {
     // TODO: we could have separate state for wave and time.
     type SysState = RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>())
-        .downcast_ref::<SysState>()
-        .unwrap()
-        .borrow_mut()
+    sys.state(&std::any::TypeId::of::<SysState>(), || {
+        Box::new(RefCell::new(State::default()))
+    })
+    .downcast_ref::<SysState>()
+    .unwrap()
+    .borrow_mut()
 }

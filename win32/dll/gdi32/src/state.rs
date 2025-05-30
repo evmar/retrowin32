@@ -62,8 +62,10 @@ impl State {
 
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
     type SysState = std::cell::RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>())
-        .downcast_ref::<SysState>()
-        .unwrap()
-        .borrow_mut()
+    sys.state(&std::any::TypeId::of::<SysState>(), || {
+        Box::new(RefCell::new(State::default()))
+    })
+    .downcast_ref::<SysState>()
+    .unwrap()
+    .borrow_mut()
 }

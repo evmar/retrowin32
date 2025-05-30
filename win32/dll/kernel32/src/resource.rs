@@ -14,7 +14,7 @@ type State = Handles<HRSRC, ResourceHandle>;
 
 fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
     type SysState = std::cell::RefCell<State>;
-    sys.state2(&std::any::TypeId::of::<SysState>(), || {
+    sys.state(&std::any::TypeId::of::<SysState>(), || {
         Box::new(SysState::default())
     })
     .downcast_ref::<SysState>()

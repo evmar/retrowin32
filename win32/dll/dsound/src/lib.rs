@@ -45,9 +45,11 @@ impl State {
 }
 
 fn get_state(sys: &dyn System) -> &RefCell<State> {
-    sys.state(&std::any::TypeId::of::<RefCell<State>>())
-        .downcast_ref::<RefCell<State>>()
-        .unwrap()
+    sys.state(&std::any::TypeId::of::<RefCell<State>>(), || {
+        Box::new(RefCell::new(State::default()))
+    })
+    .downcast_ref::<RefCell<State>>()
+    .unwrap()
 }
 
 #[derive(Default)]

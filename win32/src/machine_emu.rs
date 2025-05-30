@@ -35,7 +35,6 @@ impl MachineX<Emulator> {
             memory,
             host,
             state: Default::default(),
-            state2: Default::default(),
             external_dlls: Default::default(),
         }
     }

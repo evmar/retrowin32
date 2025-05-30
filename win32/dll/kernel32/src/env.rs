@@ -9,7 +9,7 @@ fn initial_environment() -> State {
 
 fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
     type SysState = std::cell::RefCell<State>;
-    sys.state2(&std::any::TypeId::of::<SysState>(), || {
+    sys.state(&std::any::TypeId::of::<SysState>(), || {
         Box::new(std::cell::RefCell::new(initial_environment()))
     })
     .downcast_ref::<SysState>()

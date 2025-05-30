@@ -32,7 +32,6 @@ impl KernelObjectsMethods for KernelObjects {
 }
 
 /// State held via the sys.get_state() interface.
-// TODO: move all State to State2, rename to State.
 #[derive(Default)]
 pub struct State {
     /// If true, debug break when entering the exe entry point.
@@ -65,7 +64,7 @@ impl State {
 
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
     type SysState = std::cell::RefCell<State>;
-    sys.state2(&std::any::TypeId::of::<SysState>(), || {
+    sys.state(&std::any::TypeId::of::<SysState>(), || {
         Box::new(std::cell::RefCell::new(State::default()))
     })
     .downcast_ref::<SysState>()

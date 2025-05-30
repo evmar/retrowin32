@@ -1,5 +1,6 @@
-use crate::builtin_dlls::{self, resolve_dll};
+use crate::builtin_dlls::resolve_dll;
 use builtin_kernel32 as kernel32;
+use builtin_winmm as winmm;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::dll::{DLLResolution, Shim};
@@ -20,8 +21,7 @@ pub struct MachineX<Emu> {
     pub emu: Emu,
     pub memory: Memory,
     pub host: Box<dyn host::Host>,
-    pub state: builtin_dlls::State,
-    pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
+    pub state: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
 }
 
@@ -43,6 +43,10 @@ where
             .into_iter()
             .map(|dll| kernel32::loader::normalize_module_name(&dll))
             .collect();
+    }
+
+    pub fn set_audio(&mut self, enabled: bool) {
+        winmm::get_state(self).audio_enabled = enabled;
     }
 
     pub fn break_on_startup(&mut self) {
@@ -178,32 +182,16 @@ impl System for Machine {
         Machine::exit_thread(self, status);
     }
 
-    fn state(&self, id: &TypeId) -> &dyn Any {
-        if id == &TypeId::of::<std::cell::RefCell<builtin_user32::State>>() {
-            &self.state.user32
-        } else if id == &TypeId::of::<std::cell::RefCell<builtin_gdi32::State>>() {
-            &self.state.gdi32
-        } else if id == &TypeId::of::<std::cell::RefCell<builtin_dsound::State>>() {
-            &self.state.dsound
-        } else if id == &TypeId::of::<std::cell::RefCell<builtin_ddraw::State>>() {
-            &self.state.ddraw
-        } else if id == &TypeId::of::<std::cell::RefCell<builtin_winmm::State>>() {
-            &self.state.winmm
-        } else {
-            panic!()
-        }
-    }
-
-    fn state2(&self, id: &TypeId, init: fn() -> Box<dyn std::any::Any>) -> &dyn Any {
+    fn state(&self, id: &TypeId, init: fn() -> Box<dyn std::any::Any>) -> &dyn Any {
         // Safety: we only ever insert into this hashmap, so existing references
         // to values remain valid even though here we mutate it.
-        let state2 = unsafe { &mut *self.state2.get() };
-        if let Some(state) = state2.get(id) {
+        let state = unsafe { &mut *self.state.get() };
+        if let Some(state) = state.get(id) {
             return state.as_ref();
         }
-        let state2 = unsafe { &mut *self.state2.get() };
-        state2.insert(id.clone(), init());
-        state2.get(id).unwrap().as_ref()
+        let state = unsafe { &mut *self.state.get() };
+        state.insert(id.clone(), init());
+        state.get(id).unwrap().as_ref()
     }
 
     fn teb_addr(&self) -> u32 {

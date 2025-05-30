@@ -225,10 +225,12 @@ impl Default for State {
 }
 
 pub(crate) fn get_state(sys: &dyn System) -> RefMut<State> {
-    sys.state(&std::any::TypeId::of::<RefCell<State>>())
-        .downcast_ref::<RefCell<State>>()
-        .unwrap()
-        .borrow_mut()
+    sys.state(&std::any::TypeId::of::<RefCell<State>>(), || {
+        Box::new(RefCell::new(State::default()))
+    })
+    .downcast_ref::<RefCell<State>>()
+    .unwrap()
+    .borrow_mut()
 }
 
 #[win32_derive::dllexport]

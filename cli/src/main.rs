@@ -177,7 +177,7 @@ fn main() -> anyhow::Result<ExitCode> {
     }
 
     machine.set_external_dlls(args.external_dll);
-    machine.state.winmm.borrow_mut().audio_enabled = args.audio;
+    machine.set_audio(args.audio);
     machine.start_exe(cmdline, None);
 
     let exit_code: u32;

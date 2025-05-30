@@ -61,12 +61,10 @@ pub trait System {
     fn exit(&mut self, status: u32);
     fn exit_thread(&mut self, status: u32);
 
-    /// Get a per-subcomponent state object.  The idea is each library (e.g. gdi32)
+    /// Get an arbitrary state object.  The idea is each library (e.g. gdi32)
     /// can store its own state in the system, without this API needing to depend
     /// on the gdi32 library.
-    fn state(&self, id: &std::any::TypeId) -> &dyn std::any::Any;
-    // TODO: migrate to this new API.
-    fn state2(
+    fn state(
         &self,
         id: &std::any::TypeId,
         init: fn() -> Box<dyn std::any::Any>,
