@@ -1,4 +1,5 @@
 use super::{file::HFILE, get_state};
+use crate::loader::{load_dll, normalize_module_name};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 use win32_system::System;
@@ -10,18 +11,18 @@ use win32_winapi::{
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(sys: &dyn System, lpModuleName: Option<&str>) -> HMODULE {
-    let name = {
-        let state = get_state(sys);
-        match lpModuleName {
-            None => return HMODULE::from_raw(state.image_base),
-            Some(name) => name,
-        }
+    let state = get_state(sys);
+    let Some(name) = lpModuleName else {
+        return HMODULE::from_raw(state.image_base);
     };
-    let hmodule = sys.get_library(name);
-    if hmodule.is_null() {
+    let name = normalize_module_name(name);
+
+    let Some((&hmodule, _)) = state.modules.iter().find(|(_, dll)| dll.name == name) else {
         sys.set_last_error(ERROR::MOD_NOT_FOUND);
-    }
-    return HMODULE::null();
+        return HMODULE::null();
+    };
+
+    hmodule
 }
 
 #[win32_derive::dllexport]
@@ -79,12 +80,15 @@ pub fn GetModuleFileNameW(sys: &dyn System, hModule: HMODULE, lpFilename: u32, n
 }
 
 async fn load_library(sys: &mut dyn System, filename: &str) -> HMODULE {
-    let hmodule = sys.load_library(filename).await;
-    if hmodule.is_null() {
-        // TODO: other error codes?
-        sys.set_last_error(ERROR::MOD_NOT_FOUND);
+    match load_dll(sys, filename).await {
+        Ok(hmodule) => hmodule,
+        Err(err) => {
+            log::warn!("LoadLibrary({}) failed: {}", filename, err);
+            // TODO: error codes, sys.set_last_error(err.into());
+            sys.set_last_error(ERROR::MOD_NOT_FOUND);
+            HMODULE::null()
+        }
     }
-    hmodule
 }
 
 #[win32_derive::dllexport]

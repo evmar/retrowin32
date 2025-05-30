@@ -64,10 +64,6 @@ pub trait System {
     /// Handles normalizing the name, aliases, and builtins.
     fn resolve_dll(&self, filename: &str) -> DLLResolution;
 
-    // TODO: remove these, they're kernel32-internal.
-    fn load_library(&mut self, dll: &str) -> Pin<Box<dyn Future<Output = HMODULE> + '_>>;
-    fn get_library(&self, dll: &str) -> HMODULE;
-
     /// Look up a symbol from a DLL; DLL must have already been loaded.
     /// (This is a convenience around kernel32 API because it's needed by most DLLs.)
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
