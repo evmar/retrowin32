@@ -1,7 +1,7 @@
+mod builtin_dlls;
 mod machine;
 mod segments;
 pub mod shims;
-pub mod winapi;
 
 #[cfg(feature = "x86-emu")]
 mod machine_emu;

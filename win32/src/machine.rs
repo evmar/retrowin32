@@ -1,4 +1,4 @@
-use crate::winapi;
+use crate::builtin_dlls::{self, resolve_dll};
 use builtin_kernel32 as kernel32;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
@@ -20,7 +20,7 @@ pub struct MachineX<Emu> {
     pub emu: Emu,
     pub memory: Memory,
     pub host: Box<dyn host::Host>,
-    pub state: winapi::State,
+    pub state: builtin_dlls::State,
     pub state2: std::cell::UnsafeCell<HashMap<TypeId, Box<dyn Any>>>,
     pub external_dlls: Vec<String>,
 }
@@ -219,7 +219,7 @@ impl System for Machine {
     }
 
     fn resolve_dll(&self, filename: &str) -> DLLResolution {
-        winapi::builtin::resolve_dll(&self.external_dlls, &filename)
+        resolve_dll(&self.external_dlls, &filename)
     }
 
     fn register_shims(&mut self, export_to_shim: &[(u32, &'static Shim)]) {

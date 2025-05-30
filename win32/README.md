@@ -4,8 +4,9 @@ This directory contains retrowin32's implementation of Windows and win32 API.
 
 ## Windows API
 
-The Windows API mostly lives in crates found in `dll/`. (Previously it was in
-`src/winapi/` and some haven't fully moved.)
+The Windows API lives in crates found in `dll/`. These crates attempt to be
+independent from one another and from the outer win32's definition of the
+emulator machinery; see the `System` trait described below.
 
 Each given Windows function like `CreateWindowA()` is written in Rust. A custom
 `dllexport` attribute is then picked up by a code generator to generate the
@@ -54,7 +55,7 @@ DLLs together along with the actual implementation of `System`
   the win32 API, implements the `System` interface, ties in the x86 emulator
 - [`derive/`](derive/) -- macro implementations, primarily `dllexport`
   annotations on functions, see README
-- `dll/` -- win32 dlls used for builtin APIs; generated, mostly empty, mostly
-  hooks that map to retrowin32 internal implementations
+- `dll/` -- implementation of the win32 API, split by underlying DLL; also,
+  generated, mostly empty `.dll` files that map to the above
 - [`lib/`](lib/) -- support machinery to generate a DLL used in test, see README
 - [`extract/`](extract/) -- tool to generate win32 API definitions, see README
