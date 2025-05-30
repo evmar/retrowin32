@@ -15,8 +15,6 @@ pub trait System {
     fn memory(&self) -> &crate::memory::Memory;
     fn memory_mut(&mut self) -> &mut crate::memory::Memory;
 
-    /// Escape hatch for users that haven't yet moved to this interface.
-    fn machine(&mut self) -> *mut ();
     fn host(&self) -> &dyn host::Host;
 
     // TODO: I'd like this to just return a future, but because we make System a trait object

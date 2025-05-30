@@ -61,10 +61,6 @@ impl System for Machine {
         &mut self.memory
     }
 
-    fn machine(&mut self) -> *mut () {
-        self as *mut _ as *mut _
-    }
-
     fn host(&self) -> &dyn host::Host {
         self.host.as_ref()
     }
