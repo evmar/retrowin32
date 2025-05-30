@@ -135,7 +135,7 @@ fn fn_wrapper(dllexport: &parse::DllExport) -> (TokenStream, TokenStream) {
 }
 
 /// Generate one module (e.g. kernel32) of shim functions.
-pub fn shims_module(dll_name: &str, is_split: bool, dllexports: parse::DllExports) -> TokenStream {
+pub fn shims_module(dll_name: &str, dllexports: parse::DllExports) -> TokenStream {
     let module = quote::format_ident!("{}", dll_name);
     let dll_name = format!("{}.dll", dll_name);
 
@@ -147,23 +147,13 @@ pub fn shims_module(dll_name: &str, is_split: bool, dllexports: parse::DllExport
         shims.push(shim);
     }
 
-    let self_import = if is_split {
-        quote! {
-            use crate as #module;
-            use crate::*;
-        }
-    } else {
-        quote! {
-            use crate::winapi::#module::{self, *};
-        }
+    let self_import = quote! {
+        use crate as #module;
+        use crate::*;
     };
 
     let shims_count = shims.len();
-    let raw_dll_path = if is_split {
-        format!("../{}", dll_name)
-    } else {
-        format!("../../../dll/{}", dll_name)
-    };
+    let raw_dll_path = format!("../{}", dll_name);
     quote! {
         //! Generated code, do not edit.  See winapi/builtin.rs for an overview.
 

@@ -102,20 +102,10 @@ fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_builtin_dll(src_dir: &Path, out_dir: &Path) -> anyhow::Result<()> {
-    let mut dll_name = src_dir.file_name().unwrap().to_string_lossy();
-    let mut is_split = false;
-    if dll_name == "src" {
-        dll_name = src_dir
-            .parent()
-            .unwrap()
-            .file_name()
-            .unwrap()
-            .to_string_lossy();
-        is_split = true;
-    }
+fn process_builtin_dll(dll_dir: &Path) -> anyhow::Result<()> {
+    let dll_name = dll_dir.file_name().unwrap().to_string_lossy();
 
-    let files = parse_files(&dll_name, src_dir)?;
+    let files = parse_files(&dll_name, &dll_dir.join("src"))?;
     let mut dllexports = parse::DllExports::default();
     for (module_name, file) in &files {
         if let Err(err) = parse::gather_dllexports(module_name, &file.items, &mut dllexports) {
@@ -132,33 +122,21 @@ fn process_builtin_dll(src_dir: &Path, out_dir: &Path) -> anyhow::Result<()> {
     dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 
     dll::generate_dll(&dll_name, &dllexports, |name, content| {
-        write_if_changed(&out_dir.join(name), &content)
+        write_if_changed(&dll_dir.join(name), &content)
     })?;
 
-    let builtins_module = generate::shims_module(&dll_name, is_split, dllexports);
+    let builtins_module = generate::shims_module(&dll_name, dllexports);
     let text = rustfmt(&builtins_module.to_string())?;
-    write_if_changed(&src_dir.join("builtin.rs"), text.as_bytes())?;
+    write_if_changed(&dll_dir.join("src/builtin.rs"), text.as_bytes())?;
 
     Ok(())
 }
 
-#[derive(argh::FromArgs, Debug)]
-/// dllexport generator
-struct Args {
-    /// dir to write asm files
-    #[argh(option)]
-    out_dir: String,
-
-    /// files to process
-    #[argh(positional)]
-    inputs: Vec<String>,
-}
-
 fn main() -> anyhow::Result<()> {
-    let args: Args = argh::from_env();
+    let args = std::env::args().skip(1);
 
-    for src_dir in &args.inputs {
-        process_builtin_dll(src_dir.as_ref(), args.out_dir.as_ref())
+    for src_dir in args {
+        process_builtin_dll(src_dir.as_ref())
             .map_err(|err| anyhow::anyhow!("processing module: {}", err))?;
     }
 
