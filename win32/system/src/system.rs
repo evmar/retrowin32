@@ -10,23 +10,34 @@ use win32_winapi::{ERROR, HANDLE, HMODULE};
 
 /// The interface for the system beneath all the Windows DLLs, providing the lowest-level
 /// functionality that the DLLs cannot implement themselves.  See discussion in win32/README.md.
+// TODO: this interface is a grab bag of goop, mostly whatever was needed to get the
+// existing DLLs migrated to it, without much attention paid to the right API.
+// TODO: I'd like to make the various Future-returning APIs to just return a future, but because we
+// make System a trait object we use the workaround from https://github.com/dtolnay/async-trait.
 pub trait System {
     fn mem(&self) -> Mem;
     fn memory(&self) -> &crate::memory::Memory;
+    // TODO: this is ugly, and only needed in a few places, revisit.
     fn memory_mut(&mut self) -> &mut crate::memory::Memory;
 
     fn host(&self) -> &dyn host::Host;
 
-    // TODO: I'd like this to just return a future, but because we make System a trait object
-    // we use the workaround from https://github.com/dtolnay/async-trait.
     fn call_x86(&mut self, func: u32, args: Vec<u32>) -> Pin<Box<dyn Future<Output = u32> + '_>>;
 
+    // Thread control functions.
     fn new_thread(&mut self, new_cpu: bool, stack_size: u32, start_addr: u32, args: &[u32]) -> u32;
+    fn exit_thread(&mut self, status: u32);
+    fn teb_addr(&self) -> u32;
 
-    // TODO: remove blocking API in favor of event objects.
+    // Process control functions.
+    fn debug_break(&mut self);
+    fn exit(&mut self, status: u32);
+
+    // TODO: remove block/unblock API in favor of event objects.
     fn block(&mut self, wait: Option<u32>) -> Pin<Box<dyn Future<Output = ()> + '_>>;
     fn unblock(&mut self);
 
+    // TODO: remove in favor of an Event?
     fn sleep(&mut self, ms: u32) -> Pin<Box<dyn Future<Output = ()> + '_>>;
 
     fn wait_for_events(
@@ -43,23 +54,29 @@ pub trait System {
         wait: Wait,
     ) -> Pin<Box<dyn Future<Output = WaitResult> + '_>>;
 
+    // This is kernel32 API, but it's used so often we put it here so that
+    // every other library doesn't need to depend on kernel32.
     fn set_last_error(&self, err: ERROR);
 
-    /// Get an already-loaded library by name.
-    fn get_library(&self, dll: &str) -> HMODULE;
-    /// Load a library by name.
+    fn register_shims(&mut self, export_to_shim: &[(u32, &'static Shim)]);
+
+    /// Given an imported DLL name, find the DLL file we'll load for it.
+    /// Handles normalizing the name, aliases, and builtins.
+    fn resolve_dll(&self, filename: &str) -> DLLResolution;
+
+    // TODO: remove these, they're kernel32-internal.
     fn load_library(&mut self, dll: &str) -> Pin<Box<dyn Future<Output = HMODULE> + '_>>;
+    fn get_library(&self, dll: &str) -> HMODULE;
 
     /// Look up a symbol from a DLL; DLL must have already been loaded.
+    /// (This is a convenience around kernel32 API because it's needed by most DLLs.)
     fn get_symbol(&self, dll: &str, name: &str) -> u32;
 
+    // These two functions are kernel32 API used by user32;
+    // maybe we should just have the dependency?
     /// Get the resources section of a given module handle.
     fn get_resources(&self, module: HMODULE) -> Option<&[u8]>;
-
     fn get_thread_id(&self) -> u32;
-
-    fn exit(&mut self, status: u32);
-    fn exit_thread(&mut self, status: u32);
 
     /// Get an arbitrary state object.  The idea is each library (e.g. gdi32)
     /// can store its own state in the system, without this API needing to depend
@@ -69,12 +86,4 @@ pub trait System {
         id: &std::any::TypeId,
         init: fn() -> Box<dyn std::any::Any>,
     ) -> &dyn std::any::Any;
-
-    // TODO: added in kernel32 migration, need a better place.
-    fn teb_addr(&self) -> u32;
-    fn debug_break(&mut self);
-    /// Given an imported DLL name, find the name of the DLL file we'll load for it.
-    /// Handles normalizing the name, aliases, and builtins.
-    fn resolve_dll(&self, filename: &str) -> DLLResolution;
-    fn register_shims(&mut self, export_to_shim: &[(u32, &'static Shim)]);
 }
