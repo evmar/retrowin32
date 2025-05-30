@@ -100,7 +100,8 @@ pub fn init_peb(
         .get_aligned_ref_mut::<UserspaceData>(user_data_addr);
     state.peb = user_data_addr;
     state.cmdline = cmdline;
-    user_data.peb.ProcessParameters = user_data_addr;
+    user_data.peb.ProcessParameters =
+        user_data_addr + std::mem::offset_of!(UserspaceData, params) as u32;
     let syscall_addr =
         user_data_addr + std::mem::offset_of!(UserspaceData, retrowin32_syscall) as u32;
     syscall_addr
