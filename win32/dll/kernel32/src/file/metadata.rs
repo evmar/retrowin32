@@ -1,8 +1,7 @@
 use super::get_state;
 use super::stdio::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
-use crate::winapi::kernel32; // TODO: until we are in our own crate
+use crate::FILETIME;
 use bitflags::bitflags;
-use kernel32::FILETIME;
 use win32_system::{System, host};
 use win32_winapi::{ERROR, Str16, WindowsPath, calling_convention::ABIReturn};
 

@@ -1,5 +1,5 @@
 use crate::winapi;
-use crate::winapi::kernel32;
+use builtin_kernel32 as kernel32;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use win32_system::dll::{DLLResolution, Shim};

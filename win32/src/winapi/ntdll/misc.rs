@@ -1,4 +1,4 @@
-use crate::winapi::kernel32;
+use builtin_kernel32 as kernel32;
 pub use kernel32::file::HFILE;
 use win32_system::System;
 use win32_winapi::calling_convention::ArrayOut;

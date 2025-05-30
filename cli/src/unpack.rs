@@ -1,7 +1,7 @@
 use std::{io::Write, ops::Range};
 
 use memory::{Extensions, ExtensionsMut, Pod};
-use win32::{Machine, Module, winapi::kernel32};
+use win32::{Machine, Module, kernel32};
 
 /// Load and run the exe until we've hit the "real" (unpacked) entry point.
 /// This means eip is the real entry point, and all the exe's code/data is unpacked in memory.

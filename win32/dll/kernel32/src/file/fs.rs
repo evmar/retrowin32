@@ -1,5 +1,4 @@
-use crate::winapi::kernel32; // TODO: until we are in our own crate
-use kernel32::SECURITY_ATTRIBUTES;
+use crate::SECURITY_ATTRIBUTES;
 use win32_system::System;
 use win32_winapi::{ERROR, Str16, WindowsPath, encoding::*};
 

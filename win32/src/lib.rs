@@ -19,7 +19,8 @@ mod shims_raw;
 #[cfg(feature = "x86-unicorn")]
 mod machine_unicorn;
 
+pub use builtin_kernel32 as kernel32;
+pub use kernel32::loader::Module;
 pub use machine::{Machine, Status};
 pub use win32_system::{host, trace};
 pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf};
-pub use winapi::kernel32::loader::Module;

@@ -1,8 +1,7 @@
 //! Process initialization and startup.
 
+use super::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
 use super::{State, command_line, file::HFILE, get_state};
-use crate::winapi::kernel32; // TODO: until we are in our own crate
-use kernel32::file::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE};
 use memory::Extensions;
 use win32_system::{System, memory::Memory};
 use win32_winapi::{DWORD, WORD};
@@ -84,98 +83,6 @@ pub fn init_peb(state: &mut State, memory: &Memory, mut cmdline: command_line::S
     state.cmdline = cmdline;
     let peb = memory.mem().get_aligned_ref_mut::<PEB>(state.peb);
     peb.ProcessParameters = user_data;
-}
-
-/// Result of setting up the GDT, with initial values for all the relevant segment registers.
-#[cfg(feature = "x86-unicorn")]
-pub struct GDTEntries {
-    /// Address of GDT itself.
-    pub addr: u32,
-    pub cs: u16,
-    pub ds: u16,
-    pub fs: u16,
-    pub ss: u16,
-}
-
-#[cfg(feature = "x86-unicorn")]
-pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
-    use segments::SegmentDescriptor;
-    const COUNT: usize = 5;
-    let addr = self.arena.alloc(COUNT as u32 * 8, 8);
-    let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };
-
-    gdt[0] = 0;
-
-    let cs = (1 << 3) | 0b011;
-    gdt[1] = SegmentDescriptor {
-        base: 0x0000_0000,
-        limit: 0xFFFF_FFFF,
-        granularity: true,
-        db: true, // 32 bit
-        long: false,
-        available: false,
-        present: true,
-        dpl: 3,
-        system: true,  // code/data
-        type_: 0b1011, // code, execute/read, accessed
-    }
-    .encode();
-
-    let ds = (2 << 3) | 0b011;
-    gdt[2] = SegmentDescriptor {
-        base: 0x0000_0000,
-        limit: 0xFFFF_FFFF,
-        granularity: true,
-        db: true, // 32 bit
-        long: false,
-        available: false,
-        present: true,
-        dpl: 3,
-        system: true,  // code/data
-        type_: 0b0011, // data, read/write, accessed
-    }
-    .encode();
-
-    let fs = (3 << 3) | 0b011;
-    gdt[3] = SegmentDescriptor {
-        base: 0, // TODO: get teb into here
-        limit: 0x1000,
-        granularity: false,
-        db: true, // 32 bit
-        long: false,
-        available: false,
-        present: true,
-        dpl: 3,
-        system: true,  // code/data
-        type_: 0b0011, // data, read/write, accessed
-    }
-    .encode();
-
-    // unicorn test says: "when setting SS, need rpl == cpl && dpl == cpl",
-    // which is to say because the system is level 0 (cpl) we need the descriptor
-    // to also be zero (dpl) and the selector to also be zero (rpl, the 0b000 here).
-    let ss = (4 << 3) | 0b000;
-    gdt[4] = SegmentDescriptor {
-        base: 0x0000_0000,
-        limit: 0xFFFF_FFFF,
-        granularity: true,
-        db: true, // 32 bit
-        long: false,
-        available: false,
-        present: true,
-        dpl: 0,        // NOTE: this is different from others
-        system: true,  // code/data
-        type_: 0b0011, // data, read/write, accessed
-    }
-    .encode();
-
-    GDTEntries {
-        addr,
-        cs,
-        ds,
-        fs,
-        ss,
-    }
 }
 
 pub fn peb_mut(sys: &dyn System) -> &mut PEB {

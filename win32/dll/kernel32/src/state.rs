@@ -45,7 +45,7 @@ pub struct State {
     pub peb: u32,
 
     /// Process command line.
-    pub(crate) cmdline: command_line::State,
+    pub cmdline: command_line::State,
 
     pub modules: HashMap<HMODULE, Module>,
 

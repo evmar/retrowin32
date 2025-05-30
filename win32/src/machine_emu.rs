@@ -3,8 +3,8 @@
 use crate::{
     machine::{MachineX, Status},
     shims::{Shims, retrowin32_dll_module},
-    winapi,
 };
+use builtin_kernel32 as kernel32;
 use memory::{Extensions, ExtensionsMut, Mem, MemImpl};
 use std::collections::HashMap;
 use win32_system::{dll::Handler, host, memory::Memory};
@@ -57,7 +57,7 @@ impl MachineX<Emulator> {
         let module = retrowin32_dll_module(&mut self.memory, retrowin32_syscall);
 
         let exe_name = {
-            let mut state = winapi::kernel32::get_state(self);
+            let mut state = kernel32::get_state(self);
             state.init_process(&self.memory, module, cmdline);
             state.cmdline.exe_name()
         };
@@ -66,7 +66,7 @@ impl MachineX<Emulator> {
         let cpu = self.emu.x86.new_cpu();
         cpu.call_async(Box::pin(async move {
             let machine: &mut MachineX<Emulator> = unsafe { &mut *machine };
-            winapi::kernel32::loader::start_exe(machine, exe_name, relocate)
+            kernel32::loader::start_exe(machine, exe_name, relocate)
                 .await
                 .unwrap();
             0
@@ -261,7 +261,7 @@ impl MachineX<Emulator> {
         start_addr: u32,
         args: &[u32],
     ) -> u32 {
-        let thread = winapi::kernel32::create_thread(self, stack_size);
+        let thread = kernel32::create_thread(self, stack_size);
         let cpu = if new_cpu {
             self.emu.x86.new_cpu()
         } else {

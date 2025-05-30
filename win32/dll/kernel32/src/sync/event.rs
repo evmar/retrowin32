@@ -1,5 +1,4 @@
-use crate::winapi::kernel32;
-use kernel32::{KernelObject, KernelObjectsMethods, get_state};
+use crate::{KernelObject, KernelObjectsMethods, get_state};
 use win32_system::{Event, System};
 use win32_winapi::HANDLE;
 

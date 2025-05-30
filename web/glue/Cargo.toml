@@ -12,7 +12,7 @@ win32 = { workspace = true }
 x86 = { workspace = true }
 
 anyhow = "1.0"
-chrono = "0.4.38"
+chrono = { workspace = true }
 js-sys = "0.3.69"
 serde = "1.0"
 serde_json = "1.0"

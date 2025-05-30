@@ -1,6 +1,5 @@
 use super::FileAttribute;
-use crate::winapi::kernel32; // TODO: until we are in our own crate
-use kernel32::FILETIME;
+use crate::FILETIME;
 use win32_system::{System, host};
 use win32_winapi::{DWORD, ERROR, HANDLE, Handles, Str16, WindowsPath};
 

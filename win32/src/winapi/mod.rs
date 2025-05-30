@@ -1,8 +1,5 @@
 pub mod builtin;
-pub mod kernel32;
 mod ntdll;
-
-pub use kernel32::file::HFILE;
 
 #[derive(Default)]
 pub struct State {

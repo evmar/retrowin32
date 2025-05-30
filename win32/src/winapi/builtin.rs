@@ -2,9 +2,8 @@
 //! Each winapi DLL contains a generated 'builtin.rs',
 //! which joins the raw DLL bytes with emulator-side implementation.
 
+use builtin_kernel32 as kernel32;
 use win32_system::dll::{BuiltinDLL, DLLResolution};
-
-use super::kernel32;
 
 pub const DLLS: [BuiltinDLL; 19] = [
     builtin_advapi32::DLL,
@@ -14,7 +13,7 @@ pub const DLLS: [BuiltinDLL; 19] = [
     builtin_dinput::DLL,
     builtin_dsound::DLL,
     builtin_gdi32::DLL,
-    crate::winapi::kernel32::DLL,
+    builtin_kernel32::DLL,
     crate::winapi::ntdll::DLL,
     builtin_ole32::DLL,
     builtin_oleaut32::DLL,

@@ -1,6 +1,6 @@
 //! WaitFor* functions that can block on various types of kernel objects.
 
-use crate::winapi::kernel32::{KernelObject, get_state};
+use crate::{KernelObject, get_state};
 use memory::Extensions;
 use win32_system::{ArcEvent, System, Wait, WaitResult};
 use win32_winapi::HANDLE;
