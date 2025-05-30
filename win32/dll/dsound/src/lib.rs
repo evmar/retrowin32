@@ -5,8 +5,8 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
-use win32_system::{Heap, System};
+use std::{collections::HashMap, rc::Rc};
+use win32_system::{Heap, System, generic_get_state};
 use win32_winapi::{com::GUID, vtable};
 
 /// Set to true to make DirectSoundCreate report no sound device available.
@@ -37,19 +37,16 @@ impl State {
             128 << 10, // chillin needs a 64kb buffer
             "dsound.dll heap".into(),
         );
-        *get_state(sys).borrow_mut() = State {
+        *get_state(sys) = State {
             heap,
             buffers: Default::default(),
         };
     }
 }
 
-fn get_state(sys: &dyn System) -> &RefCell<State> {
-    sys.state(&std::any::TypeId::of::<RefCell<State>>(), || {
-        Box::new(RefCell::new(State::default()))
-    })
-    .downcast_ref::<RefCell<State>>()
-    .unwrap()
+#[inline]
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+    generic_get_state::<State>(sys)
 }
 
 #[derive(Default)]
@@ -145,7 +142,7 @@ pub mod IDirectSound {
         assert!(desc.dwSize == std::mem::size_of::<DSBUFFERDESC>() as u32);
         *lplpDirectSoundBuffer.unwrap() = x86_buffer;
 
-        let mut dsound = get_state(sys).borrow_mut();
+        let mut dsound = get_state(sys);
         let mut buffer = Buffer::default();
         if !desc.dwFlags.contains(DSBCAPS::PRIMARYBUFFER) {
             buffer.addr = dsound.heap.alloc(sys.mem(), desc.dwBufferBytes);
@@ -227,7 +224,7 @@ pub mod IDirectSoundBuffer {
         lpdwAudioBytes2: Option<&mut u32>,
         dwFlags: Result<DSBLOCK, u32>,
     ) -> u32 {
-        let mut dsound = get_state(sys).borrow_mut();
+        let mut dsound = get_state(sys);
         let flags = dwFlags.unwrap();
         if flags.contains(DSBLOCK::ENTIREBUFFER) {
             let buf = dsound.buffers.get_mut(&this).unwrap();
@@ -284,7 +281,7 @@ pub mod IDirectSoundBuffer {
         lpvAudioPtr2: u32,
         dwAudioBytes2: u32,
     ) -> u32 {
-        let mut dsound = get_state(sys).borrow_mut();
+        let mut dsound = get_state(sys);
         let buf = dsound.buffers.get_mut(&this).unwrap();
         let lock = buf.lock.take().unwrap();
 
@@ -334,7 +331,7 @@ pub fn DirectSoundCreate(
     if DISABLE {
         return DSERR_NODRIVER;
     }
-    if get_state(sys).borrow().heap.size == 0 {
+    if get_state(sys).heap.size == 0 {
         State::init(sys);
     }
     let lpDirectSound = IDirectSound::new(sys);

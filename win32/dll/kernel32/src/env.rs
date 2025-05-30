@@ -1,20 +1,21 @@
-use win32_system::System;
+use win32_system::{System, generic_get_state};
 use win32_winapi::{Str16, calling_convention::ArrayOut, encoding::*};
 
-type State = Vec<(String, String)>;
-
-fn initial_environment() -> State {
-    vec![(String::from("WINDIR"), String::from("C:\\Windows"))]
+struct State {
+    env: Vec<(String, String)>,
 }
 
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            env: vec![(String::from("WINDIR"), String::from("C:\\Windows"))],
+        }
+    }
+}
+
+#[inline]
 fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
-    type SysState = std::cell::RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(std::cell::RefCell::new(initial_environment()))
-    })
-    .downcast_ref::<SysState>()
-    .unwrap()
-    .borrow_mut()
+    generic_get_state::<State>(sys)
 }
 
 /// Encode environment variables in the environment block format.
@@ -36,14 +37,14 @@ pub fn GetEnvironmentStrings(sys: &dyn System) -> u32 {
     // Yes, this function without "A" suffix exists:
     // https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533
     let mut measure = EncoderAnsi::new(&mut []);
-    let env = get_state(sys);
-    encode_env(&mut measure, &env);
+    let state = get_state(sys);
+    encode_env(&mut measure, &state.env);
     let len = measure.status().unwrap_err();
 
     let addr = sys.memory().process_heap.alloc(sys.mem(), len as u32);
 
     let mut encoder = EncoderAnsi::from_mem(sys.mem(), addr, len as u32);
-    encode_env(&mut encoder, &env);
+    encode_env(&mut encoder, &state.env);
     encoder.status().unwrap();
 
     addr
@@ -59,14 +60,14 @@ pub fn FreeEnvironmentStringsA(sys: &dyn System, penv: u32) -> bool {
 pub fn GetEnvironmentStringsW(sys: &dyn System) -> u32 {
     // Yuck, this is copy of GetEnvironmentStringsA, because we need to create two Encoder types.
     let mut measure = EncoderWide::new(&mut []);
-    let env = get_state(sys);
-    encode_env(&mut measure, &env);
+    let state = get_state(sys);
+    encode_env(&mut measure, &state.env);
     let len = measure.status().unwrap_err();
 
     let addr = sys.memory().process_heap.alloc(sys.mem(), len as u32);
 
     let mut encoder = EncoderWide::from_mem(sys.mem(), addr, len as u32);
-    encode_env(&mut encoder, &env);
+    encode_env(&mut encoder, &state.env);
     encoder.status().unwrap();
 
     addr

@@ -6,7 +6,7 @@ use crate::{
     wndclass::{CS, WndClass, WndClasses},
 };
 use std::{cell::RefCell, rc::Rc};
-use win32_system::System;
+use win32_system::{System, generic_get_state};
 use win32_winapi::{HWND, Handles};
 
 pub struct State {
@@ -65,12 +65,7 @@ impl State {
     }
 }
 
+#[inline]
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
-    type SysState = std::cell::RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(RefCell::new(State::default()))
-    })
-    .downcast_ref::<SysState>()
-    .unwrap()
-    .borrow_mut()
+    generic_get_state::<State>(sys)
 }

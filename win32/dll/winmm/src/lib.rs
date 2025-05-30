@@ -12,10 +12,10 @@ mod time;
 mod wave;
 
 pub use builtin::DLL;
-use std::cell::{RefCell, RefMut};
+use std::cell::RefMut;
 use time::TimeThread;
 use wave::WaveState;
-use win32_system::System;
+use win32_system::{System, generic_get_state};
 use win32_winapi::calling_convention::ABIReturn;
 
 #[derive(Copy, Clone, Debug)]
@@ -30,6 +30,7 @@ impl Into<ABIReturn> for MMRESULT {
     }
 }
 
+// TODO: we could have separate state for wave and time.
 #[derive(Default)]
 pub struct State {
     pub audio_enabled: bool,
@@ -37,13 +38,7 @@ pub struct State {
     pub wave: WaveState,
 }
 
+#[inline]
 pub fn get_state(sys: &dyn System) -> RefMut<State> {
-    // TODO: we could have separate state for wave and time.
-    type SysState = RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(RefCell::new(State::default()))
-    })
-    .downcast_ref::<SysState>()
-    .unwrap()
-    .borrow_mut()
+    generic_get_state::<State>(sys)
 }

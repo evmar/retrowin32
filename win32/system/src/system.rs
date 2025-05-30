@@ -83,3 +83,15 @@ pub trait System {
         init: fn() -> Box<dyn std::any::Any>,
     ) -> &dyn std::any::Any;
 }
+
+pub fn generic_get_state<T>(sys: &dyn System) -> std::cell::RefMut<T>
+where
+    T: 'static + Default,
+{
+    sys.state(&std::any::TypeId::of::<T>(), || {
+        Box::new(std::cell::RefCell::new(T::default()))
+    })
+    .downcast_ref::<std::cell::RefCell<T>>()
+    .unwrap()
+    .borrow_mut()
+}

@@ -10,5 +10,5 @@ mod wait;
 
 pub use event::{ArcEvent, Event};
 pub use heap::Heap;
-pub use system::System;
+pub use system::{System, generic_get_state};
 pub use wait::{Wait, WaitResult};

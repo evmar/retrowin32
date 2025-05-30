@@ -1,6 +1,6 @@
 use super::{HEVENT, Thread, command_line, init::init_peb, loader::Module};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
-use win32_system::{Event, System, memory::Memory};
+use win32_system::{Event, System, generic_get_state, memory::Memory};
 use win32_winapi::{HANDLE, HMODULE, Handles};
 
 /// Objects identified by kernel handles, all of which can be passed to Wait* functions.
@@ -62,12 +62,7 @@ impl State {
     }
 }
 
+#[inline]
 pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
-    type SysState = std::cell::RefCell<State>;
-    sys.state(&std::any::TypeId::of::<SysState>(), || {
-        Box::new(std::cell::RefCell::new(State::default()))
-    })
-    .downcast_ref::<SysState>()
-    .unwrap()
-    .borrow_mut()
+    generic_get_state::<State>(sys)
 }
