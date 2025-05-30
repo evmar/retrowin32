@@ -24,7 +24,7 @@ pub struct Emulator {
     // For now, we only support one thread, so stash the singular TEB address here.
     teb_addr: u32,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
-    futures: Vec<Pin<Box<dyn Future<Output = u32>>>>,
+    futures: Vec<Pin<Box<dyn Future<Output = ()>>>>,
 }
 
 pub type Machine = MachineX<Emulator>;
@@ -176,7 +176,6 @@ impl MachineX<Emulator> {
             kernel32::loader::start_exe(machine, exe_name, relocate)
                 .await
                 .unwrap();
-            0
         }));
     }
 
@@ -202,11 +201,20 @@ impl MachineX<Emulator> {
                 let ret = unsafe { func(self, stack_args) };
                 self.post_syscall(ret);
             }
-            Handler::Async(_func) => {
-                todo!();
-                // let return_address = eip;
-                // let future = unsafe { func(self, stack_args) };
-                // self.call_async(future, return_address as u32);
+            Handler::Async(func) => {
+                let return_address = eip;
+                let machine = self as *mut Machine;
+                let future = Box::pin(async move {
+                    let machine: &mut Machine = unsafe { &mut *machine };
+                    let ret = unsafe { func(machine, stack_args).await };
+                    machine.post_syscall(ret);
+                    machine
+                        .emu
+                        .unicorn
+                        .reg_write(RegisterX86::EIP, return_address as u64)
+                        .unwrap();
+                });
+                self.call_async(future);
             }
         };
     }
@@ -232,7 +240,7 @@ impl MachineX<Emulator> {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future.
     /// It resolves to the return address of the call.
-    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u32>>>) {
+    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = ()>>>) {
         self.emu
             .unicorn
             .reg_write(RegisterX86::EIP, MAGIC_ADDR)
@@ -250,12 +258,8 @@ impl MachineX<Emulator> {
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
         let poll = future.as_mut().poll(context);
         match poll {
-            std::task::Poll::Ready(addr) => {
+            std::task::Poll::Ready(_) => {
                 self.emu.futures.pop();
-                self.emu
-                    .unicorn
-                    .reg_write(RegisterX86::EIP, addr as u64)
-                    .unwrap();
             }
             std::task::Poll::Pending => {}
         }
