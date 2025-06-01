@@ -1,3 +1,4 @@
+mod fs;
 mod host;
 mod logging;
 
