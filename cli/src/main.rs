@@ -258,7 +258,7 @@ fn main() -> anyhow::Result<ExitCode> {
                                     break ExitCode::SUCCESS;
                                 }
                             } else {
-                                log::info!("Breakpoint hit @ {eip:x}");
+                                log::debug!("Breakpoint hit @ {eip:x}");
                                 debugger.breakpoint(&mut target)?;
                                 MachineState::Stopped
                             }

@@ -716,7 +716,7 @@ impl SwBreakpoint for MachineTarget {
         addr: <Self::Arch as Arch>::Usize,
         kind: <Self::Arch as Arch>::BreakpointKind,
     ) -> TargetResult<bool, Self> {
-        log::info!("add_sw_breakpoint: {:#x} {}", addr, kind);
+        log::debug!("add_sw_breakpoint: {:#x} {}", addr, kind);
         Ok(self.machine.add_breakpoint(addr))
     }
 
@@ -725,7 +725,7 @@ impl SwBreakpoint for MachineTarget {
         addr: <Self::Arch as Arch>::Usize,
         kind: <Self::Arch as Arch>::BreakpointKind,
     ) -> TargetResult<bool, Self> {
-        log::info!("remove_sw_breakpoint: {:#x} {}", addr, kind);
+        log::debug!("remove_sw_breakpoint: {:#x} {}", addr, kind);
         Ok(self.machine.clear_breakpoint(addr))
     }
 }
