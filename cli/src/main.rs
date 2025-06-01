@@ -118,7 +118,7 @@ fn main() -> anyhow::Result<ExitCode> {
         .map(|s| escape_arg(s))
         .collect::<Vec<_>>()
         .join(" ");
-    let mut machine = win32::Machine::new(Box::new(host.clone()));
+    let mut machine = win32::Machine::new(Box::new(host));
 
     #[cfg(feature = "x86-64")]
     {

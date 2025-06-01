@@ -1,13 +1,12 @@
 //! Implementation of the `win32::host::FileSystem` trait.
 
+use crate::host::Env;
 use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
 use win32::host::ERROR;
 use win32::{UnixPath, WindowsPath, WindowsPathBuf};
-
-use crate::host::EnvRef;
 
 struct File {
     f: std::fs::File,
@@ -89,7 +88,7 @@ impl win32::host::ReadDir for ReadDirFile {
     }
 }
 
-impl win32::host::FileSystem for EnvRef {
+impl win32::host::FileSystem for Env {
     fn current_dir(&self) -> Result<WindowsPathBuf, ERROR> {
         let path = std::env::current_dir()?;
         Ok(host_to_windows_path(&path))
