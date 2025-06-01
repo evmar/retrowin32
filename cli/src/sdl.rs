@@ -1,5 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
+use crate::time::Time;
+
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
@@ -81,31 +83,26 @@ pub struct GUI {
     sdl: sdl2::Sdl,
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
-    timer: sdl2::TimerSubsystem,
+    time: Time,
     win: Option<WindowRef>,
     msg_queue: Option<win32::host::Message>,
 }
 
 impl GUI {
-    pub fn new() -> anyhow::Result<Self> {
+    pub fn new(time: Time) -> anyhow::Result<Self> {
         assert!(sdl2::hint::set("SDL_NO_SIGNAL_HANDLERS", "1"));
         let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
         let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
         let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
-        let timer = sdl.timer().map_err(|err| anyhow::anyhow!(err))?;
 
         Ok(GUI {
             sdl,
             video,
             pump,
-            timer,
+            time,
             win: None,
             msg_queue: None,
         })
-    }
-
-    pub fn time(&self) -> u32 {
-        self.timer.ticks()
     }
 
     pub fn get_message(&mut self) -> Option<win32::host::Message> {
@@ -126,7 +123,7 @@ impl GUI {
         };
         let msg = match wait {
             Some(until) => message_from_events(hwnd, || {
-                let now = self.time();
+                let now = self.time.ticks();
                 if now >= until {
                     return None;
                 }

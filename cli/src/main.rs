@@ -1,6 +1,7 @@
 mod fs;
 mod host;
 mod logging;
+mod time;
 
 #[cfg(feature = "x86-emu")]
 mod unpack;
