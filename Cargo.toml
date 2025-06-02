@@ -42,7 +42,7 @@ win32-system = { path = "win32/system" }
 win32-winapi = { path = "win32/winapi" }
 x86 = { path = "x86" }
 
-bitflags = { version = "2.9.0", features = ["serde"] }
+bitflags = { version = "2.9.0" }
 chrono = "0.4.38"
 log = "0.4"
 num-traits = "0.2"

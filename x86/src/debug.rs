@@ -6,15 +6,13 @@ use iced_x86::{Formatter, IntelFormatter};
 use memory::{Extensions, Mem};
 use std::{collections::HashMap, fmt::Write};
 
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
-#[derive(serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize))]
 pub struct CodePart {
     pub kind: String,
     pub text: String,
 }
 
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
-#[derive(serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize))]
 pub struct Instruction {
     pub addr: u32,
     pub bytes: String,

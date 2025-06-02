@@ -10,10 +10,10 @@ pe = { workspace = true }
 win32-winapi = { workspace = true }
 
 chrono = "0.4.38"
-serde = { version = "1.0", features = ["derive"] }
 
+serde = { version = "1.0", optional = true, features = ["derive"] }
 tsify = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 
 [features]
-wasm = ["dep:tsify", "dep:wasm-bindgen"]
+wasm = ["dep:tsify", "dep:wasm-bindgen", "dep:serde", "pe/serde"]
