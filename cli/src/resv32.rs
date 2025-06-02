@@ -23,11 +23,7 @@ pub unsafe fn init_resv32() {
     unsafe {
         let ptr = libc::munmap(PAGEZERO_END as *mut libc::c_void, RESV32_SIZE);
         if ptr < 0 {
-            panic!(
-                "munmap: {:?} {}",
-                std::io::Error::last_os_error(),
-                *libc::__error()
-            );
+            panic!("munmap: {:?}", std::io::Error::last_os_error());
         }
 
         let ptr = libc::mmap(
@@ -39,11 +35,7 @@ pub unsafe fn init_resv32() {
             0,
         );
         if (ptr as i64) < 0 {
-            panic!(
-                "mmap: {:?} {}",
-                std::io::Error::last_os_error(),
-                *libc::__error()
-            );
+            panic!("mmap: {:?}", std::io::Error::last_os_error());
         }
         if ptr as usize != PAGEZERO_END {
             panic!("unable to mmap at {:x?}", ptr as usize);
