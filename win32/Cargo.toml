@@ -32,8 +32,10 @@ builtin-version = { path = "dll/version" }
 builtin-wininet = { path = "dll/wininet" }
 builtin-winmm = { path = "dll/winmm" }
 
+futures = { version = "0.3.31", optional = true }
+
 [features]
 x86-emu = ["dep:x86", "memory/mem-box", "builtin-kernel32/x86-emu"]
-x86-64 = ["memory/mem-raw"]
+x86-64 = ["memory/mem-raw", "dep:futures"]
 x86-unicorn = ["dep:unicorn-engine", "memory/mem-box"]
 wasm = ["win32-system/wasm"]

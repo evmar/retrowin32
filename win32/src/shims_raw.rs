@@ -278,8 +278,8 @@ pub fn call_sync<T, F>(future: std::pin::Pin<&mut F>) -> T
 where
     F: std::future::Future<Output = T> + ?Sized,
 {
-    let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-    match future.poll(context) {
+    let mut context = std::task::Context::from_waker(futures::task::noop_waker_ref());
+    match future.poll(&mut context) {
         std::task::Poll::Pending => unreachable!(),
         std::task::Poll::Ready(t) => t,
     }
