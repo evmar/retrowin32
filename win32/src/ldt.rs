@@ -2,6 +2,10 @@
 //!
 //! See https://en.wikipedia.org/wiki/Global_Descriptor_Table
 //! and doc/x86-64.md section "LDT".
+//!
+//! This module does not run on Linux.  Linux has a modify_ldt syscall, but it can
+//! be disabled in the kernel, and we end up not needing to poke at the LDT anyway
+//! because the kernel preconfigures the selectors we need.
 
 use crate::segments::SegmentDescriptor;
 use std::ffi::c_int;
@@ -83,4 +87,23 @@ pub fn dump() {
         }
         println!("#{}: {:#x?}", i, entry);
     }
+}
+
+/// Set up ds/es and return a selector for cs for 32-bit code jumps.
+pub fn init() -> u16 {
+    // Set up ds/es to just point at flat address 0.
+    // Rosetta doesn't appear to care about ds/es, but native x86 needs them.
+    let data_sel = add_entry(0, 0xFFFF_FFFF, false);
+    unsafe {
+        std::arch::asm!(
+            "mov ds, {data_sel:x}",
+            "mov es, {data_sel:x}",
+            data_sel = in(reg) data_sel,
+        );
+    }
+
+    // Get a selector for 32-bit code jumps.
+    // For execution purposes, we treat the entire 4gb range as 32-bit code.
+    let code32_selector = add_entry(0, 0xFFFF_FFFF, true);
+    code32_selector
 }

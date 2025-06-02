@@ -9,9 +9,6 @@ memory = { workspace = true }
 win32-system = { workspace = true }
 win32-winapi = { workspace = true }
 
-unicorn-engine = { version = "2.0.0", optional = true }
-x86 = { workspace = true, optional = true }
-
 builtin-advapi32 = { path = "dll/advapi32" }
 builtin-bass = { path = "dll/bass" }
 builtin-comctl32 = { path = "dll/comctl32" }
@@ -33,9 +30,12 @@ builtin-wininet = { path = "dll/wininet" }
 builtin-winmm = { path = "dll/winmm" }
 
 futures = { version = "0.3.31", optional = true }
+libc = { version = "0.2", optional = true }
+unicorn-engine = { version = "2.0.0", optional = true }
+x86 = { workspace = true, optional = true }
 
 [features]
 x86-emu = ["dep:x86", "memory/mem-box", "builtin-kernel32/x86-emu"]
-x86-64 = ["memory/mem-raw", "dep:futures"]
+x86-64 = ["memory/mem-raw", "dep:futures", "dep:libc"]
 x86-unicorn = ["dep:unicorn-engine", "memory/mem-box"]
 wasm = ["win32-system/wasm"]

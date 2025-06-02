@@ -9,7 +9,7 @@ mod machine_emu;
 #[cfg(feature = "x86-emu")]
 pub use x86;
 
-#[cfg(feature = "x86-64")]
+#[cfg(all(feature = "x86-64", not(target_os = "linux")))]
 mod ldt;
 #[cfg(feature = "x86-64")]
 mod machine_raw;

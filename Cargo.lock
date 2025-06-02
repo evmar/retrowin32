@@ -926,6 +926,7 @@ dependencies = [
  "builtin-wininet",
  "builtin-winmm",
  "futures",
+ "libc",
  "log",
  "memory",
  "unicorn-engine",

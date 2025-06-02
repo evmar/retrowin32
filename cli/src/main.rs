@@ -92,7 +92,7 @@ fn parse_hex(param: &str) -> Result<u32, String> {
 fn main() -> anyhow::Result<ExitCode> {
     #[cfg(feature = "x86-64")]
     unsafe {
-        crate::resv32::init_resv32();
+        resv32::init_resv32();
     }
 
     let args: Args = argh::from_env();

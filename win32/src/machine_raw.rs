@@ -1,5 +1,5 @@
 use crate::{
-    host, ldt,
+    host,
     machine::{MachineX, Status},
     shims::Shims,
     shims_raw::{self, call_sync, retrowin32_syscall},
@@ -90,11 +90,18 @@ impl MachineX<Emulator> {
             // Set up fs to point at the TEB.
             // NOTE: OSX seems extremely sensitive to the values used here, where like
             // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-            let fs_sel = ldt::add_entry(thread.thread.teb, 0xFFF, false);
-            std::arch::asm!(
-                "mov fs, {fs_sel:x}",
-                fs_sel = in(reg) fs_sel
-            );
+            #[cfg(not(target_os = "linux"))]
+            {
+                let fs_sel = crate::ldt::add_entry(thread.thread.teb, 0xFFF, false);
+                std::arch::asm!(
+                    "mov fs, {fs_sel:x}",
+                    fs_sel = in(reg) fs_sel
+                );
+            }
+            #[cfg(target_os = "linux")]
+            {
+                log::warn!("not initializing fs; TEB access will be wrong");
+            }
         }
         0
     }
