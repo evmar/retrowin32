@@ -114,6 +114,8 @@ impl MachineX<Emulator> {
     }
 
     pub fn debug_break(&mut self) {
-        todo!();
+        unsafe {
+            std::arch::asm!("int3");
+        }
     }
 }
