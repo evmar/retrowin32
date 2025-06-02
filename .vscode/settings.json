@@ -1,8 +1,16 @@
 {
   "rust-analyzer.cargo.noDefaultFeatures": true,
+  // x86-emu build, include wasm for coverage
   "rust-analyzer.cargo.features": [
+    "wasm",
     "x86-emu",
     "sdl"
   ],
+  //
+  // x86-64 build
+  // "rust-analyzer.cargo.features": [
+  //   "x86-64",
+  // ],
+  //
   "typescript.tsdk": "./web/node_modules/typescript/lib"
 }

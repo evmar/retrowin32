@@ -8,8 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = { workspace = true }
-win32 = { workspace = true }
-x86 = { workspace = true }
+win32 = { workspace = true, features = ["wasm"] }
+x86 = { workspace = true, features = ["wasm"] }
 
 anyhow = "1.0"
 chrono = { workspace = true }

@@ -39,15 +39,15 @@ num-derive = "0.4"
 num-traits = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 
+tsify = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+
 [dependencies.unicorn-engine]
 version = "2.0.0"
 optional = true
-
-[target.'cfg(target_family = "wasm")'.dependencies]
-tsify = { workspace = true }
-wasm-bindgen = { workspace = true }
 
 [features]
 x86-emu = ["dep:x86", "memory/mem-box", "builtin-kernel32/x86-emu"]
 x86-64 = ["memory/mem-raw"]
 x86-unicorn = ["dep:unicorn-engine", "memory/mem-box"]
+wasm = ["win32-system/wasm"]
