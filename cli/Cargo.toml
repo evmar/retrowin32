@@ -11,7 +11,7 @@ pe = { workspace = true }
 win32 = { workspace = true }
 
 anyhow = "1.0"
-argh = "0.1.10"
+argh = { version = "0.1.13", default-features = false, features = ["help"] }
 libc = "0.2"
 
 [dependencies.sdl2]
