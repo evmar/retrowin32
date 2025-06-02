@@ -103,10 +103,8 @@ impl CPU {
         let future = self.futures.last_mut().unwrap();
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
-        //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
-        #[allow(deref_nullptr)]
-        let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-        let poll = future.as_mut().poll(context);
+        let mut context = Context::from_waker(futures::task::noop_waker_ref());
+        let poll = future.as_mut().poll(&mut context);
         match poll {
             Poll::Ready(eip) => {
                 self.futures.pop();
