@@ -1,13 +1,14 @@
 use crate::{
-    host, ldt, loader,
+    host, ldt,
     machine::{MachineX, Status},
     shims::Shims,
     shims_raw::{self, call_sync, retrowin32_syscall},
-    winapi::{self, kernel32::CommandLine},
 };
+use builtin_kernel32 as kernel32;
 use memory::{Mem, MemImpl};
 use win32_system::memory::Memory;
 
+#[derive(Default)]
 pub struct Emulator {
     pub shims: Shims,
 }
@@ -16,16 +17,14 @@ pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = Memory::new(MemImpl::default());
-        let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
-        let shims = Shims::new();
-        let state = winapi::State::new(kernel32);
+        let memory = Memory::new(MemImpl::default());
+        Shims::init();
 
         Machine {
-            emu: Emulator { shims },
+            emu: Default::default(),
             memory,
             host,
-            state,
+            state: Default::default(),
             external_dlls: Default::default(),
             status: Default::default(),
         }
@@ -36,10 +35,15 @@ impl MachineX<Emulator> {
     }
 
     pub fn start_exe(&mut self, cmdline: String, relocate: Option<Option<u32>>) {
-        self.state
-            .kernel32
-            .init_process(self.memory.mem(), CommandLine::new(cmdline));
-        let start = std::pin::pin!(loader::start_exe(self, relocate));
+        self.memory.create_process_heap();
+
+        let exe_name = {
+            let mut state = kernel32::get_state(self);
+            state.init_process(&self.memory, &retrowin32_syscall(), cmdline);
+            state.cmdline.exe_name()
+        };
+
+        let start = std::pin::pin!(kernel32::loader::start_exe(self, exe_name, relocate));
         call_sync(start).unwrap();
     }
 
@@ -78,7 +82,7 @@ impl MachineX<Emulator> {
         assert_eq!(start_addr, 0);
         let _ = args;
 
-        let thread = winapi::kernel32::create_thread(self, stack_size);
+        let thread = kernel32::create_thread(self, stack_size);
         unsafe {
             shims_raw::set_stack32(thread.stack_pointer);
             assert!(thread.thread.teb != 0);
@@ -95,7 +99,7 @@ impl MachineX<Emulator> {
         0
     }
 
-    pub fn exit_thread(&mut self) {
+    pub fn exit_thread(&mut self, _status: u32) {
         todo!();
     }
 
@@ -107,5 +111,9 @@ impl MachineX<Emulator> {
         if !self.host.block(wait) {
             panic!("host must support blocking");
         }
+    }
+
+    pub fn debug_break(&mut self) {
+        todo!();
     }
 }

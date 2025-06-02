@@ -161,7 +161,7 @@ impl Shims {
         code32_selector
     }
 
-    pub fn new() -> Self {
+    pub fn init() {
         let code32_selector = Self::init_ldt();
 
         let tramp32_addr = tramp32 as u64;
@@ -169,8 +169,6 @@ impl Shims {
         unsafe {
             TRAMP32_M1632 = ((code32_selector as u64) << 32) | tramp32_addr;
         }
-
-        Shims::default()
     }
 
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
@@ -186,6 +184,8 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
     // TODO: x86_64-apple-darwin vs x86_64-pc-windows-msvc calling conventions differ!
     #[cfg(target_arch = "x86_64")]
     unsafe {
+        debug_assert!(TRAMP32_M1632 != 0);
+
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
         // be able to return to our 64-bit RIP we put it on the stack and lret to it.
         //
