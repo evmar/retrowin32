@@ -12,7 +12,7 @@ win32 = { workspace = true }
 
 anyhow = "1.0"
 argh = { version = "0.1.13", default-features = false, features = ["help"] }
-libc = "0.2"
+libc = { version = "0.2", optional = true }
 
 [dependencies.sdl2]
 version = "0.35.2"
@@ -23,5 +23,5 @@ optional = true
 default = ["x86-emu", "sdl"]
 sdl = ["dep:sdl2"]
 x86-emu = ["win32/x86-emu"]
-x86-64 = ["win32/x86-64"]
+x86-64 = ["win32/x86-64", "dep:libc"]
 x86-unicorn = ["win32/x86-unicorn"]

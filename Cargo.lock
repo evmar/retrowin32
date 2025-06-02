@@ -580,17 +580,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-derive"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "num-traits"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -917,8 +906,6 @@ dependencies = [
 name = "win32"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "bitflags 2.9.0",
  "builtin-advapi32",
  "builtin-bass",
  "builtin-comctl32",
@@ -938,17 +925,9 @@ dependencies = [
  "builtin-version",
  "builtin-wininet",
  "builtin-winmm",
- "chrono",
  "log",
  "memory",
- "num-derive",
- "num-traits",
- "pe",
- "serde",
- "tsify",
  "unicorn-engine",
- "wasm-bindgen",
- "win32-derive",
  "win32-system",
  "win32-winapi",
  "x86",
@@ -983,7 +962,6 @@ dependencies = [
  "serde",
  "tsify",
  "wasm-bindgen",
- "win32-derive",
  "win32-winapi",
 ]
 

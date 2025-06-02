@@ -7,7 +7,6 @@ edition = "2024"
 log = { workspace = true }
 memory = { workspace = true }
 pe = { workspace = true }
-win32-derive = { workspace = true }
 win32-winapi = { workspace = true }
 
 chrono = "0.4.38"
