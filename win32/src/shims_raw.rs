@@ -5,8 +5,7 @@
 //! See doc/x86-64.md for an overview.
 
 use crate::{Machine, shims::Shims};
-#[cfg(target_arch = "x86_64")]
-use memory::ExtensionsMut;
+use memory::{Extensions, ExtensionsMut, Mem};
 use win32_system::dll::Handler;
 use win32_winapi::calling_convention::ABIReturn;
 
@@ -172,6 +171,80 @@ impl Shims {
             MACHINE = machine;
         }
     }
+}
+
+/// Set up a segment selector fo the FS segment.
+/// Returns a segment selector that points at fs_addr.
+pub fn init_fs(mem: Mem, fs_addr: u32) -> u16 {
+    // see alloc_fs_sel in wine
+
+    #[repr(C)]
+    #[allow(non_camel_case_types)]
+    #[derive(Debug, Default)]
+    struct user_desc {
+        entry_number: u32,
+        base_addr: u32,
+        limit: u32,
+        /*
+        unsigned int  seg_32bit:1;
+        unsigned int  contents:2;
+        unsigned int  read_exec_only:1;
+        unsigned int  limit_in_pages:1;
+        unsigned int  seg_not_present:1;
+        unsigned int  useable:1;
+        */
+        flags: u8,
+    }
+    unsafe impl ::memory::Pod for user_desc {}
+
+    let gdt_index = unsafe {
+        // Call syscall(SYS_set_thread_area) to allocate a GDT entry for the FS segment.
+
+        // let SYS_get_thread_area = 0xf4u32;
+        #[allow(non_snake_case)]
+        let SYS_set_thread_area = 0xf3u32;
+
+        // We need to pass a user_desc* to the syscall, and it needs to
+        // be within the 32-bit address space.
+        // Use the 32-bit stack as scratch space.
+        //
+        // TODO: wine actually adjusts esp before making this syscall, but it seems to me
+        // that the kernel already has its own separate stack?
+        let user_desc_addr = STACK32 - std::mem::size_of::<user_desc>() as u32;
+        mem.put_pod::<user_desc>(
+            user_desc_addr,
+            user_desc {
+                entry_number: -1i32 as u32, // -1 means auto-allocate
+                base_addr: fs_addr,
+                limit: 0xFFF,
+                flags: 0b0100_0001, // useable | 32bit
+            },
+        );
+
+        let mut ret: u32;
+        std::arch::asm!(
+            "push rbx",
+            "mov ebx, {addr:e}",
+            "int 0x80", // 32-bit syscall
+            "pop rbx",
+            inout("eax") SYS_set_thread_area => ret,
+            addr = in(reg) user_desc_addr,
+        );
+        if ret != 0 {
+            let err = std::io::Error::last_os_error();
+            panic!("SYS_set_thread_area failed: {err}");
+        }
+
+        let user_desc = mem.get_pod::<user_desc>(user_desc_addr);
+        log::info!("set_thread_area: {user_desc:#x?}");
+        user_desc.entry_number as u16
+    };
+    if gdt_index != 12 {
+        // See Linux kernel /arch/x86/include/asm/segment.h, definition of GS_TLS_SEL.
+        // They are hardcoded values.
+        panic!("expected GDT entry for FS to be 12, got {gdt_index}");
+    }
+    (gdt_index << 3) | 0b011 // selector: index << 3 | RPL
 }
 
 pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
