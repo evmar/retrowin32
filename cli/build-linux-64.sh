@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Builds retrowin32 binary as a x86-64 Linux executable
+# using the CPU's existing support for 32-bit code.
+#
+# The binary needs particular flags and layout for this to work.
+
 set -e
 
 linker_args="-Ttext-segment=0x7f000000"

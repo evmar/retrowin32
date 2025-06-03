@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# Builds retrowin32 as a x86_64 Darwin exe.
+# Builds retrowin32 as a x86_64 Darwin executable
+# using the CPU's (or Rosetta's) existing support for 32-bit code.
+#
+# The binary needs particular flags and layout for this to work.
 
 # Arguments passed through to the underlying linker.
 linker_args=""
