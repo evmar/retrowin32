@@ -56,6 +56,10 @@ struct Args {
     #[argh(switch)]
     debug: bool,
 
+    /// debugger break right when we call exe entry point
+    #[argh(switch)]
+    break_on_startup: bool,
+
     /// enable audio output
     #[argh(switch)]
     audio: bool,
@@ -130,6 +134,9 @@ fn main() -> anyhow::Result<ExitCode> {
         }
     }
 
+    if args.break_on_startup {
+        machine.break_on_startup();
+    }
     machine.set_external_dlls(args.external_dll);
     machine.set_audio(args.audio);
     machine.start_exe(cmdline, None);
