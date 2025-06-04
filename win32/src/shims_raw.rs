@@ -5,17 +5,54 @@
 //! See doc/x86-64.md for an overview.
 
 use crate::{Machine, shims::Shims};
+use builtin_kernel32 as kernel32;
 use memory::{Extensions, ExtensionsMut, Mem};
 use win32_system::dll::Handler;
 use win32_winapi::calling_convention::ABIReturn;
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
-static mut STACK32: u32 = 0;
-static mut STACK64: u64 = 0;
 
-pub unsafe fn set_stack32(esp: u32) {
+/// The desired state of registers when entering 32-bit mode.
+#[repr(C)]
+#[derive(Debug)]
+pub struct Context32 {
+    pub esp: u32,
+    pub ds: u16,
+    pub fs: u16,
+}
+static mut CONTEXT32: Context32 = Context32 {
+    esp: 0,
+    ds: 0,
+    fs: 0,
+};
+
+/// The desired state of registers when returning to 64-bit mode.
+#[repr(C)]
+#[derive(Debug)]
+pub struct Context64 {
+    pub rsp: u64,
+    pub ds: u16,
+    pub fs: u16,
+}
+static mut CONTEXT64: Context64 = Context64 {
+    rsp: 0,
+    ds: 0,
+    fs: 0,
+};
+
+pub unsafe fn init_context32(mem: Mem, thread: &kernel32::thread::NewThread) {
+    let ds = 0x2b;
     unsafe {
-        STACK32 = esp;
+        let fs = init_fs(mem, thread.stack_pointer, thread.thread.teb);
+        CONTEXT32 = Context32 {
+            esp: thread.stack_pointer,
+            ds,
+            fs,
+        };
+    }
+    #[allow(static_mut_refs)]
+    unsafe {
+        log::info!("c32 {:x?}", CONTEXT32);
     }
 }
 
@@ -38,13 +75,13 @@ unsafe extern "C" fn call64() -> u64 {
         //   stack[3]: return address in exe
         //   stack[4]: first arg to WindowsFunc
 
-        let stack32 = STACK32 as *const u32;
+        let stack32 = CONTEXT32.esp as *const u32;
         let ret_addr = *stack32.offset(2);
         let shim = match machine.emu.shims.get(ret_addr - 6) {
             Ok(shim) => shim,
             Err(name) => unimplemented!("{}", name),
         };
-        let stack_args = STACK32 + 16; // stack[4]
+        let stack_args = CONTEXT32.esp + 16; // stack[4]
         let ret = match shim.func {
             Handler::Sync(func) => func(machine, stack_args),
             Handler::Async(func) => call_sync(func(machine, stack_args).as_mut()),
@@ -66,25 +103,34 @@ unsafe extern "C" fn call64() -> u64 {
 std::arch::global_asm!(
     "trans64:",
     "_trans64:", // label needs _ prefix on Mac, no prefix on Linux
-    "movl %esp, {stack32}(%rip)",  // save 32-bit stack
-    "movq {stack64}(%rip), %rsp",  // switch to 64-bit stack
-    "pushq %rdi",                  // preserve edi
-    "pushq %rsi",                  // preserve esi
-    "call {call64}",               // call 64-bit Rust
+
+    "movl %esp, {context32}(%rip)",  // save 32-bit stack
+    "leaq {context64}(%rip), %rdx",
+    "movq 0x0(%rdx), %rsp", // CONTEXT64.rsp
+    "movw 0x8(%rdx), %ds",  // CONTEXT64.ds
+    "movw 0xa(%rdx), %fs",  // CONTEXT64.fs
+
+    // Preserve callee-saved registers.
+    "pushq %rdi",
+    "pushq %rsi",
+
+    "call {call64}", // call 64-bit Rust
+
     // After call, attempt to clear registers to make execution traces easier to match.
     // eax: holds return value
     "xorl %ecx, %ecx",
     // edx: sometimes used for 64-bit returns
     // ebx: callee-saved
-    "popq %rsi",                   // restore esi
-    "popq %rdi",                   // restore edi
+    "popq %rsi",
+    "popq %rdi",
     // ebp: callee-saved
-    "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
-    "movl {stack32}(%rip), %esp",  // restore 32-bit stack
+
+    "movq %rsp, {context64}(%rip)",  // save 64-bit stack
+    "movl {context32}(%rip), %esp",  // restore 32-bit stack
     "lret",                        // back to 32-bit
     options(att_syntax),
-    stack32 = sym STACK32,
-    stack64 = sym STACK64,
+    context32 = sym CONTEXT32,
+    context64 = sym CONTEXT64,
     call64 = sym call64,
 );
 
@@ -102,10 +148,7 @@ std::arch::global_asm!(
     "trans32:",
     "_trans32:",
     "movl %ebp, %esp", // STACK32 passed from caller in ebp
-    // XXX Linux needs ds (and likely others) set up as well, figure out how we should do this.
-    "movw $0x2b, %cx",
-    "movw %cx, %ds",
-    "calll *%eax", // regular call to user 32-bit code
+    "calll *%eax",     // regular call to user 32-bit code
     // The user 32-bit code will ret, popping off both the return address pushed by calll
     // and any stdcall args.  What's left on the stack is the far address of 64-bit mode.
     "lretl", // long ret to 64-bit mode
@@ -176,7 +219,7 @@ impl Shims {
 
 /// Set up a segment selector fo the FS segment.
 /// Returns a segment selector that points at fs_addr.
-pub fn init_fs(mem: Mem, fs_addr: u32) -> u16 {
+fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
     // see alloc_fs_sel in wine
 
     #[repr(C)]
@@ -207,11 +250,10 @@ pub fn init_fs(mem: Mem, fs_addr: u32) -> u16 {
 
         // We need to pass a user_desc* to the syscall, and it needs to
         // be within the 32-bit address space.
-        // Use the 32-bit stack as scratch space.
         //
         // TODO: wine actually adjusts esp before making this syscall, but it seems to me
         // that the kernel already has its own separate stack?
-        let user_desc_addr = STACK32 - std::mem::size_of::<user_desc>() as u32;
+        let user_desc_addr = scratch_addr - std::mem::size_of::<user_desc>() as u32;
         mem.put_pod::<user_desc>(
             user_desc_addr,
             user_desc {
@@ -271,13 +313,13 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
         let mem = machine.memory.mem();
 
-        let initial_esp = STACK32;
-        STACK32 -= 8; // Space for m16:32 return address
+        let initial_esp = CONTEXT32.esp;
+        CONTEXT32.esp -= 8; // Space for m16:32 return address
 
         // Push arguments in reverse order.
         for &arg in args.iter().rev() {
-            STACK32 -= 4;
-            mem.put_pod::<u32>(STACK32, arg);
+            CONTEXT32.esp -= 4;
+            mem.put_pod::<u32>(CONTEXT32.esp, arg);
         }
 
         let mut ret;
@@ -289,9 +331,13 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             "pushq %rbx",
             "pushq %rbp",
 
-            "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
-            "movl %ecx, %esp",             // switch to 32-bit stack
-            "movl {stack32}(%rip), %ebp",  // pass STACK32 to trans32
+            "movq %rsp, {context64}(%rip)",  // save 64-bit stack
+            "movl %ecx, %esp",               // switch to 32-bit stack
+
+            "leaq {context32}(%rip), %rdx",
+            "movl (%rdx), %ebp", // CONTEXT32.esp
+            "movw 4(%rdx), %ds", // CONTEXT32.ds
+            "movw 6(%rdx), %fs", // CONTEXT32.fs
 
             // Clear registers to make execution traces easier to match.
             // eax: parameter to trans32
@@ -305,8 +351,11 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
             "lcall *{trans32_m1632}(%rip)", // call 32-bit trans32
 
-            "movl %esp, {stack32}(%rip)",  // save 32-bit stack
-            "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
+            "movl %esp, {context32}(%rip)",  // save 32-bit stack
+
+            "leaq {context64}(%rip), %rdx",
+            "movq (%rdx), %rsp",   // CONTEXT64.rsp
+            "movw 0xa(%rdx), %fs", // CONTEXT64.fs
 
             "popq %rbp",
             "popq %rbx",
@@ -327,8 +376,8 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             // ebp is preserved/restored
             // esp is preserved/restored
             trans32_m1632 = sym TRANS32_M1632,
-            stack64 = sym STACK64,
-            stack32 = sym STACK32,
+            context64 = sym CONTEXT64,
+            context32 = sym CONTEXT32,
         );
 
         ret
@@ -339,7 +388,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         _ = machine;
         _ = func;
         _ = args;
-        _ = STACK64;
+        _ = CONTEXT64;
         _ = trans32;
         call64();
         todo!()

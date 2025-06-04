@@ -84,29 +84,24 @@ impl MachineX<Emulator> {
 
         let thread = kernel32::create_thread(self, stack_size);
         unsafe {
-            shims_raw::set_stack32(thread.stack_pointer);
             assert!(thread.thread.teb != 0);
 
-            // Set up fs to point at the TEB.
-            let fs_sel = {
+            #[cfg(not(target_os = "linux"))]
+            {
+                // Set up fs to point at the TEB.
                 // NOTE: OSX seems extremely sensitive to the values used here, where like
                 // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-                #[cfg(not(target_os = "linux"))]
-                {
-                    crate::ldt::add_entry(thread.thread.teb, 0xFFF, false)
-                }
+                let fs = crate::ldt::add_entry(thread.thread.teb, 0xFFF, false);
+                std::arch::asm!(
+                    "mov fs, {fs:x}",
+                    fs = in(reg) fs
+                );
+            }
 
-                #[cfg(target_os = "linux")]
-                {
-                    shims_raw::init_fs(self.mem(), thread.thread.teb)
-                }
-            };
-            // TODO: do not set fs here; 64-bit Linux is using it already.
-            // Instead swap fs every time we do an emulator->exe switch.
-            std::arch::asm!(
-                "mov fs, {fs_sel:x}",
-                fs_sel = in(reg) fs_sel
-            );
+            #[cfg(target_os = "linux")]
+            {
+                shims_raw::init_context32(self.mem(), &thread);
+            }
         }
         0 // no thread id
     }

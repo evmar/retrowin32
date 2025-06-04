@@ -19,7 +19,7 @@ mod process;
 mod resource;
 mod state;
 mod sync;
-mod thread;
+pub mod thread;
 mod time;
 
 pub use builtin::DLL;
