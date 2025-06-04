@@ -57,7 +57,7 @@ unsafe extern "C" fn call64() -> u64 {
     }
 }
 
-// trans64 is the code we jump to when transitioning from 32->64-bit.
+// 64-bit code target for 32->64bit transition.
 // It's responsible for switching to the 64-bit stack and backing up the appropriate
 // registers to transition from stdcall ABI to SysV AMD64 ABI.
 // See "Calling conventions" in doc/x86-64.md; the summary is we only need to preserve
@@ -92,15 +92,15 @@ unsafe extern "C" {
     fn trans64();
 }
 
-// Target for 64->32bit transition.
+// 32-bit code target for 64->32bit transition.
 // Takes function to call in eax.
 #[cfg(target_arch = "x86_64")]
 std::arch::global_asm!(
     ".code32", // 32-bit x86 code
-    ".global tramp32",
-    ".global _tramp32", // symbol needs _ prefix on Mac, no prefix on Linux
-    "tramp32:",
-    "_tramp32:",
+    ".global trans32",
+    ".global _trans32", // symbol needs _ prefix on Mac, no prefix on Linux
+    "trans32:",
+    "_trans32:",
     "movl %ebp, %esp", // STACK32 passed from caller in ebp
     // XXX Linux needs ds (and likely others) set up as well, figure out how we should do this.
     "movw $0x2b, %cx",
@@ -113,11 +113,11 @@ std::arch::global_asm!(
 );
 
 unsafe extern "C" {
-    fn tramp32();
+    fn trans32();
 }
 
-/// A known m16:32 selector+address for the tramp32 function.
-static mut TRAMP32_M1632: u64 = 0;
+/// A known m16:32 selector+address for the trans32 function.
+static mut TRANS32_M1632: u64 = 0;
 
 /// Get the segment selector for 64-bit mode,
 /// which in other words is the current code segment value.
@@ -158,10 +158,10 @@ impl Shims {
         #[cfg(not(target_os = "linux"))]
         let code32_selector = crate::ldt::init();
 
-        let tramp32_addr = tramp32 as u64;
-        assert!(tramp32_addr < 0x1_0000_0000);
+        let trans32_addr = trans32 as u64;
+        assert!(trans32_addr < 0x1_0000_0000);
         unsafe {
-            TRAMP32_M1632 = ((code32_selector as u64) << 32) | tramp32_addr;
+            TRANS32_M1632 = ((code32_selector as u64) << 32) | trans32_addr;
         }
     }
 
@@ -252,22 +252,22 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
     // TODO: x86_64-apple-darwin vs x86_64-pc-windows-msvc calling conventions differ!
     #[cfg(target_arch = "x86_64")]
     unsafe {
-        debug_assert!(TRAMP32_M1632 != 0);
+        debug_assert!(TRANS32_M1632 != 0);
 
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
         // be able to return to our 64-bit RIP we put it on the stack and lret to it.
         //
         // So we lay out the 32-bit stack like this before calling the executable:
-        //   return address (in tramp32)
+        //   return address (in trans32)
         //   arg0
         //   ...
         //   argN
         //   return address (in here)  \_ these two are the m16:32 far return address
         //   segment selector          /
         //
-        // lcall tramp32 pushes m16:32 to the saved spot,
-        // and then tramp32 switches esp to point to the top of this stack.
-        // When tramp32 returns it pops the m16:32.
+        // lcall trans32 pushes m16:32 to the saved spot,
+        // and then trans32 switches esp to point to the top of this stack.
+        // When trans32 returns it pops the m16:32.
 
         let mem = machine.memory.mem();
 
@@ -291,19 +291,19 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
             "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
             "movl %ecx, %esp",             // switch to 32-bit stack
-            "movl {stack32}(%rip), %ebp",  // pass STACK32 to tramp32
+            "movl {stack32}(%rip), %ebp",  // pass STACK32 to trans32
 
             // Clear registers to make execution traces easier to match.
-            // eax: parameter to tramp32
+            // eax: parameter to trans32
             "xorl %ecx, %ecx",
             "xorl %edx, %edx",
             "xorl %ebx, %ebx",
             "xorl %esi, %esi",
             "xorl %edi, %edi",
-            // esp: set for tramp32
-            // ebp: parameter to tramp32
+            // esp: set for trans32
+            // ebp: parameter to trans32
 
-            "lcall *{tramp32_m1632}(%rip)", // call 32-bit tramp32
+            "lcall *{trans32_m1632}(%rip)", // call 32-bit trans32
 
             "movl %esp, {stack32}(%rip)",  // save 32-bit stack
             "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
@@ -318,7 +318,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
             // We try to clear all registers so that traces line up across invocations,
             // so mark each one as clobbered and use them above explicitly.
-            inout("eax") func => ret,  // passed to tramp32
+            inout("eax") func => ret,  // passed to trans32
             inout("ecx") initial_esp as u32 => _,
             out("edx") _,
             // ebx is preserved/restored
@@ -326,7 +326,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             out("edi") _,
             // ebp is preserved/restored
             // esp is preserved/restored
-            tramp32_m1632 = sym TRAMP32_M1632,
+            trans32_m1632 = sym TRANS32_M1632,
             stack64 = sym STACK64,
             stack32 = sym STACK32,
         );
@@ -340,7 +340,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         _ = func;
         _ = args;
         _ = STACK64;
-        _ = tramp32;
+        _ = trans32;
         call64();
         todo!()
     }
