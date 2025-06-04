@@ -101,6 +101,7 @@ std::arch::global_asm!(
     ".global _tramp32", // symbol needs _ prefix on Mac, no prefix on Linux
     "tramp32:",
     "_tramp32:",
+    "movl %ebp, %esp", // STACK32 passed from caller in ebp
     // XXX Linux needs ds (and likely others) set up as well, figure out how we should do this.
     "movw $0x2b, %cx",
     "movw %cx, %ds",
@@ -256,13 +257,13 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
         // be able to return to our 64-bit RIP we put it on the stack and lret to it.
         //
-        // So we lay out the 32-bit stack like this before going into assembly:
-        //   return address (tramp32ret)
+        // So we lay out the 32-bit stack like this before calling the executable:
+        //   return address (in tramp32)
         //   arg0
         //   ...
         //   argN
-        //   64-bit return address
-        //   64-bit segment selector
+        //   return address (in here)  \_ these two are the m16:32 far return address
+        //   segment selector          /
         //
         // lcall tramp32 pushes m16:32 to the saved spot,
         // and then tramp32 switches esp to point to the top of this stack.
@@ -270,19 +271,14 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
         let mem = machine.memory.mem();
 
-        // Push selector and reserve space for return address.
-        let mut esp = STACK32;
-        esp -= 4;
-        mem.put_pod::<u32>(esp, get_code64_selector() as u32);
-        esp -= 4;
-        let return_addr = esp;
+        let initial_esp = STACK32;
+        STACK32 -= 8; // Space for m16:32 return address
 
         // Push arguments in reverse order.
         for &arg in args.iter().rev() {
-            esp -= 4;
-            mem.put_pod::<u32>(esp, arg);
+            STACK32 -= 4;
+            mem.put_pod::<u32>(STACK32, arg);
         }
-        STACK32 = esp;
 
         let mut ret;
         std::arch::asm!(
@@ -292,19 +288,30 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             // In particular getting this wrong manifests as rbp losing its high bits after this call.
             "pushq %rbx",
             "pushq %rbp",
-            "movl $2f, (%rcx)",            // after jmp, ret to the "2" label below
+
             "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
-            "movl {stack32}(%rip), %esp",  // switch to 32-bit stack
-            "xorl %ebx, %ebx",
+            "movl %ecx, %esp",             // switch to 32-bit stack
+            "movl {stack32}(%rip), %ebp",  // pass STACK32 to tramp32
+
+            // Clear registers to make execution traces easier to match.
+            // eax: parameter to tramp32
             "xorl %ecx, %ecx",
-            "ljmpl *{tramp32_m1632}(%rip)",            // jump to 32-bit tramp32
-            // It will return here (set above in return_addr):
-            "2:",
+            "xorl %edx, %edx",
+            "xorl %ebx, %ebx",
+            "xorl %esi, %esi",
+            "xorl %edi, %edi",
+            // esp: set for tramp32
+            // ebp: parameter to tramp32
+
+            "lcall *{tramp32_m1632}(%rip)", // call 32-bit tramp32
+
             "movl %esp, {stack32}(%rip)",  // save 32-bit stack
             "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
+
             "popq %rbp",
             "popq %rbx",
             options(att_syntax),
+
             // A 32-bit call may call back into 64-bit Rust code, so it may clobber
             // 64-bit registers.  Mark this code as if it's a 64-bit call.
             clobber_abi("system"),
@@ -312,11 +319,11 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             // We try to clear all registers so that traces line up across invocations,
             // so mark each one as clobbered and use them above explicitly.
             inout("eax") func => ret,  // passed to tramp32
-            inout("ecx") return_addr as u32 => _,
+            inout("ecx") initial_esp as u32 => _,
+            out("edx") _,
             // ebx is preserved/restored
-            inout("edx") 0 => _,
-            inout("esi") 0 => _,
-            inout("edi") 0 => _,
+            out("esi") _,
+            out("edi") _,
             // ebp is preserved/restored
             // esp is preserved/restored
             tramp32_m1632 = sym TRAMP32_M1632,
