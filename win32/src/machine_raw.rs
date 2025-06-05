@@ -5,7 +5,7 @@ use crate::{
     shims_raw::{self, call_sync, retrowin32_syscall},
 };
 use builtin_kernel32 as kernel32;
-use memory::{Mem, MemImpl};
+use memory::{Extensions, Mem, MemImpl};
 use win32_system::memory::Memory;
 
 #[derive(Default)]
@@ -52,19 +52,8 @@ impl MachineX<Emulator> {
     }
 
     pub fn teb_addr(&self) -> u32 {
-        let teb_addr: u32;
-        #[cfg(target_arch = "x86_64")]
-        unsafe {
-            std::arch::asm!(
-                "mov {teb_addr:e}, dword ptr fs:[0x18]",
-                teb_addr = out(reg) teb_addr,
-            );
-        }
-        #[cfg(not(target_arch = "x86_64"))]
-        {
-            teb_addr = 0;
-        }
-        teb_addr
+        let fs = shims_raw::get_fs_addr_32();
+        self.mem().get_pod::<u32>(fs + 0x18)
     }
 
     pub fn new_thread_impl(
@@ -85,23 +74,7 @@ impl MachineX<Emulator> {
         let thread = kernel32::create_thread(self, stack_size);
         unsafe {
             assert!(thread.thread.teb != 0);
-
-            #[cfg(not(target_os = "linux"))]
-            {
-                // Set up fs to point at the TEB.
-                // NOTE: OSX seems extremely sensitive to the values used here, where like
-                // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-                let fs = crate::ldt::add_entry(thread.thread.teb, 0xFFF, false);
-                std::arch::asm!(
-                    "mov fs, {fs:x}",
-                    fs = in(reg) fs
-                );
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                shims_raw::init_context32(self.mem(), &thread);
-            }
+            shims_raw::init_thread(self.mem(), &thread);
         }
         0 // no thread id
     }

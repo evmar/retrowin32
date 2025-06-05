@@ -4,6 +4,9 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
+// Don't complain when we println!(..., STATIC.foo) in an unsafe block.
+#![allow(static_mut_refs)]
+
 use crate::{Machine, shims::Shims};
 use builtin_kernel32 as kernel32;
 use memory::{Extensions, ExtensionsMut, Mem};
@@ -12,47 +15,61 @@ use win32_winapi::calling_convention::ABIReturn;
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
 
-/// The desired state of registers when entering 32-bit mode.
+/// The desired CPU state when entering 32-bit mode.
 #[repr(C)]
 #[derive(Debug)]
 pub struct Context32 {
     pub esp: u32,
     pub ds: u16,
     pub fs: u16,
+    /// Used for Windows APIs that require a pointer to the TEB.
+    #[cfg(target_os = "linux")]
+    pub fs_addr: u32,
 }
 static mut CONTEXT32: Context32 = Context32 {
     esp: 0,
     ds: 0,
     fs: 0,
+    #[cfg(target_os = "linux")]
+    fs_addr: 0,
 };
 
-/// The desired state of registers when returning to 64-bit mode.
+/// The desired CPU state when returning to 64-bit mode.
 #[repr(C)]
 #[derive(Debug)]
 pub struct Context64 {
     pub rsp: u64,
-    pub ds: u16,
-    pub fs: u16,
+    #[cfg(target_os = "linux")]
+    pub fs_addr: u64,
+    // Segment registers in 64-bit mode are always 0.
 }
 static mut CONTEXT64: Context64 = Context64 {
     rsp: 0,
-    ds: 0,
-    fs: 0,
+    #[cfg(target_os = "linux")]
+    fs_addr: 0,
 };
 
-pub unsafe fn init_context32(mem: Mem, thread: &kernel32::thread::NewThread) {
-    let ds = 0x2b;
-    unsafe {
-        let fs = init_fs(mem, thread.stack_pointer, thread.thread.teb);
-        CONTEXT32 = Context32 {
-            esp: thread.stack_pointer,
-            ds,
-            fs,
-        };
+pub unsafe fn init_thread(mem: Mem, thread: &kernel32::thread::NewThread) {
+    #[cfg(not(target_os = "linux"))]
+    {
+        // Set up fs to point at the TEB.
+        // NOTE: OSX seems extremely sensitive to the values used here, where like
+        // using a span size that is not exactly 0xFFF causes the entry to be rejected.
+        let fs = crate::ldt::add_entry(thread.thread.teb, 0xFFF, false);
+        std::arch::asm!(
+            "mov fs, {fs:x}",
+            fs = in(reg) fs
+        );
     }
-    #[allow(static_mut_refs)]
-    unsafe {
-        log::info!("c32 {:x?}", CONTEXT32);
+
+    #[cfg(target_os = "linux")]
+    {
+        let fs_sel = init_fs(mem, thread.stack_pointer - 0x1000, thread.thread.teb as u32);
+        unsafe {
+            CONTEXT32.esp = thread.stack_pointer;
+            CONTEXT32.fs_addr = thread.thread.teb;
+            CONTEXT32.fs = fs_sel;
+        }
     }
 }
 
@@ -60,7 +77,7 @@ unsafe extern "C" fn call64() -> u64 {
     unsafe {
         let machine: &mut Machine = &mut *MACHINE;
 
-        // call sequence:
+        // 32-bit call sequence:
         //   exe:
         //     call WindowsFunc
         //   dll!WindowsFunc:
@@ -82,10 +99,13 @@ unsafe extern "C" fn call64() -> u64 {
             Err(name) => unimplemented!("{}", name),
         };
         let stack_args = CONTEXT32.esp + 16; // stack[4]
+
+        set_fs_addr_64(CONTEXT64.fs_addr as u64);
         let ret = match shim.func {
             Handler::Sync(func) => func(machine, stack_args),
             Handler::Async(func) => call_sync(func(machine, stack_args).as_mut()),
         };
+
         match ret {
             ABIReturn::U32(ret) => ret as u64,
             ABIReturn::U64(_) => todo!(),
@@ -95,39 +115,52 @@ unsafe extern "C" fn call64() -> u64 {
 }
 
 // 64-bit code target for 32->64bit transition.
-// It's responsible for switching to the 64-bit stack and backing up the appropriate
-// registers to transition from stdcall ABI to SysV AMD64 ABI.
-// See "Calling conventions" in doc/x86-64.md; the summary is we only need to preserve
-// ESI/EDI.
 #[cfg(target_arch = "x86_64")]
 std::arch::global_asm!(
     "trans64:",
     "_trans64:", // label needs _ prefix on Mac, no prefix on Linux
 
-    "movl %esp, {context32}(%rip)",  // save 32-bit stack
-    "leaq {context64}(%rip), %rdx",
-    "movq 0x0(%rdx), %rsp", // CONTEXT64.rsp
-    "movw 0x8(%rdx), %ds",  // CONTEXT64.ds
-    "movw 0xa(%rdx), %fs",  // CONTEXT64.fs
+     // 64-bit segment registers: all 0
+    "xorl %ecx, %ecx",
+    "movw %cx, %ds",
+    "movw %cx, %fs",
 
-    // Preserve callee-saved registers.
+    // save 32-bit context
+    "movl %esp, {context32}(%rip)", // CONTEXT32.esp
+
+    // restore 64-bit context
+    "movq {context64}(%rip), %rsp", // CONTEXT64.rsp
+    // fs_addr restored in call64()
+
+    // Preserve callee-saved registers, as expected by win32 ABI.
+    // See "Calling conventions" in doc/x86-64.md: preserve EBX, ESI, EDI, and EBP.
+    // When we call into Rust, it will preserve following sysV: RBX, RBP, and some r*.
+    // So we only need to save ESI and EDI.
     "pushq %rdi",
     "pushq %rsi",
 
-    "call {call64}", // call 64-bit Rust
+    "call {call64}", // call into Rust
+
+    "popq %rsi",
+    "popq %rdi",
+
+    // save 64-bit context
+    "movq %rsp, {context64}(%rip)",  // CONTEXT64.rsp
+
+    // restore 32-bit context
+    "leaq {context32}(%rip), %rcx",
+    "movl 0x0(%rcx), %esp", // CONTEXT32.esp
+    "movw 0x4(%rcx), %ds",  // CONTEXT32.ds
+    "movw 0x6(%rcx), %fs",  // CONTEXT32.fs
 
     // After call, attempt to clear registers to make execution traces easier to match.
     // eax: holds return value
     "xorl %ecx, %ecx",
     // edx: sometimes used for 64-bit returns
-    // ebx: callee-saved
-    "popq %rsi",
-    "popq %rdi",
-    // ebp: callee-saved
+    // ebx, ebp: callee-saved
+    // esi, edi: restored above
 
-    "movq %rsp, {context64}(%rip)",  // save 64-bit stack
-    "movl {context32}(%rip), %esp",  // restore 32-bit stack
-    "lret",                        // back to 32-bit
+    "lret", // back to 32-bit
     options(att_syntax),
     context32 = sym CONTEXT32,
     context64 = sym CONTEXT64,
@@ -193,13 +226,32 @@ pub fn retrowin32_syscall() -> Vec<u8> {
 
 impl Shims {
     pub fn init() {
-        #[cfg(target_os = "linux")]
+        unsafe {
+            CONTEXT64.fs_addr = get_fs_addr_64();
+        }
         let code32_selector = {
-            let index = 4; // GDT_ENTRY_DEFAULT_USER32_CS in the kernel
-            (index << 3) | 0b011
+            #[cfg(target_os = "linux")]
+            {
+                // See doc/x86-64.md's discussion of segmentation for where these constants come from.
+                let cs = {
+                    const GDT_ENTRY_DEFAULT_USER32_CS: u16 = 4;
+                    (GDT_ENTRY_DEFAULT_USER32_CS << 3) | 0b011
+                };
+                let ds = {
+                    const GDT_ENTRY_DEFAULT_USER_DS: u16 = 5;
+                    (GDT_ENTRY_DEFAULT_USER_DS << 3) | 0b011
+                };
+                unsafe { CONTEXT32.ds = ds };
+                cs
+            }
+
+            #[cfg(not(target_os = "linux"))]
+            {
+                let code32_selector = crate::ldt::init();
+                todo!("context32 init");
+                code32_selector
+            }
         };
-        #[cfg(not(target_os = "linux"))]
-        let code32_selector = crate::ldt::init();
 
         let trans32_addr = trans32 as u64;
         assert!(trans32_addr < 0x1_0000_0000);
@@ -217,7 +269,33 @@ impl Shims {
     }
 }
 
-/// Set up a segment selector fo the FS segment.
+/// Set the address fs points to, 64-bit mode only.
+fn set_fs_addr_64(fs_addr: u64) {
+    const ARCH_SET_FS: u64 = 0x1002;
+    let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_SET_FS, fs_addr) };
+    if ret != 0 {
+        let err = std::io::Error::last_os_error();
+        panic!("SYS_arch_prctl(ARCH_SET_FS) failed: {err}");
+    }
+}
+
+/// Get the address fs points to, 64-bit mode only.
+fn get_fs_addr_64() -> u64 {
+    let mut fs: u64 = 0;
+    const ARCH_GET_FS: u64 = 0x1003;
+    let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_GET_FS, &raw mut fs) };
+    if ret != 0 {
+        let err = std::io::Error::last_os_error();
+        panic!("SYS_arch_prctl(ARCH_GET_FS) failed: {err}");
+    }
+    fs
+}
+
+pub fn get_fs_addr_32() -> u32 {
+    unsafe { CONTEXT32.fs_addr }
+}
+
+/// Set up a segment selector for the FS segment.
 /// Returns a segment selector that points at fs_addr.
 fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
     // see alloc_fs_sel in wine
@@ -253,7 +331,7 @@ fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
         //
         // TODO: wine actually adjusts esp before making this syscall, but it seems to me
         // that the kernel already has its own separate stack?
-        let user_desc_addr = scratch_addr - std::mem::size_of::<user_desc>() as u32;
+        let user_desc_addr = scratch_addr;
         mem.put_pod::<user_desc>(
             user_desc_addr,
             user_desc {
@@ -279,14 +357,8 @@ fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
         }
 
         let user_desc = mem.get_pod::<user_desc>(user_desc_addr);
-        log::info!("set_thread_area: {user_desc:#x?}");
         user_desc.entry_number as u16
     };
-    if gdt_index != 12 {
-        // See Linux kernel /arch/x86/include/asm/segment.h, definition of GS_TLS_SEL.
-        // They are hardcoded values.
-        panic!("expected GDT entry for FS to be 12, got {gdt_index}");
-    }
     (gdt_index << 3) | 0b011 // selector: index << 3 | RPL
 }
 
@@ -322,22 +394,26 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             mem.put_pod::<u32>(CONTEXT32.esp, arg);
         }
 
-        let mut ret;
+        let mut x86_ret;
         std::arch::asm!(
-            // We need to back up all non-scratch registers (rbx/rbp),
-            // because even callee-saved registers will only be saved as 32-bit,
-            // clobbering any 64-bit values.
+            // This function is marked as clobber_abi("system") so it will preserve
+            // the registers that are expected to be preserved by the system ABI.
+            // But we need to manually preserve the callee-saved registers: RBX, RBP.
+            // Even if the callee attempts to preserve them, it will only preserve
+            // them as 32-bit registers.
             // In particular getting this wrong manifests as rbp losing its high bits after this call.
             "pushq %rbx",
             "pushq %rbp",
 
-            "movq %rsp, {context64}(%rip)",  // save 64-bit stack
-            "movl %ecx, %esp",               // switch to 32-bit stack
+            // save 64-bit context
+            "movq %rsp, {context64}(%rip)", // CONTEXT64.rsp
 
-            "leaq {context32}(%rip), %rdx",
-            "movl (%rdx), %ebp", // CONTEXT32.esp
-            "movw 4(%rdx), %ds", // CONTEXT32.ds
-            "movw 6(%rdx), %fs", // CONTEXT32.fs
+            // restore 32-bit context; note esp!=ebp
+            "movl %ecx, %esp", // switch to 32-bit stack pointing at initial_esp
+            "leaq {context32}(%rip), %rcx",
+            "movl 0x0(%rcx), %ebp", // CONTEXT32.esp
+            "movw 0x4(%rcx), %ds",  // CONTEXT32.ds
+            "movw 0x6(%rcx), %fs",  // CONTEXT32.fs
 
             // Clear registers to make execution traces easier to match.
             // eax: parameter to trans32
@@ -351,11 +427,17 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
             "lcall *{trans32_m1632}(%rip)", // call 32-bit trans32
 
-            "movl %esp, {context32}(%rip)",  // save 32-bit stack
+            // 64-bit segment registers: all 0
+            "xorl %ecx, %ecx",
+            "movw %cx, %ds",
+            "movw %cx, %fs",
 
-            "leaq {context64}(%rip), %rdx",
-            "movq (%rdx), %rsp",   // CONTEXT64.rsp
-            "movw 0xa(%rdx), %fs", // CONTEXT64.fs
+            // save 32-bit context
+            "movl %esp, {context32}(%rip)", // CONTEXT32.esp
+
+            // restore 64-bit context
+            "movq {context64}(%rip), %rsp", // CONTEXT64.rsp
+            // fs_addr restored below after asm block
 
             "popq %rbp",
             "popq %rbx",
@@ -367,7 +449,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
 
             // We try to clear all registers so that traces line up across invocations,
             // so mark each one as clobbered and use them above explicitly.
-            inout("eax") func => ret,  // passed to trans32
+            inout("eax") func => x86_ret,  // passed to trans32
             inout("ecx") initial_esp as u32 => _,
             out("edx") _,
             // ebx is preserved/restored
@@ -380,7 +462,9 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
             context32 = sym CONTEXT32,
         );
 
-        ret
+        set_fs_addr_64(CONTEXT64.fs_addr as u64);
+
+        x86_ret
     }
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
