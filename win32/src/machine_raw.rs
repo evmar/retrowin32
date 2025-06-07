@@ -1,6 +1,6 @@
 use crate::{
     host,
-    machine::{MachineX, Status},
+    machine::MachineX,
     shims::Shims,
     shims_raw::{self, call_sync, retrowin32_syscall},
 };
@@ -26,7 +26,6 @@ impl MachineX<Emulator> {
             host,
             state: Default::default(),
             external_dlls: Default::default(),
-            status: Default::default(),
         }
     }
 
@@ -84,7 +83,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        self.status = Status::Exit(exit_code);
+        self.host.exit(exit_code);
     }
 
     pub async fn block(&mut self, wait: Option<u32>) {

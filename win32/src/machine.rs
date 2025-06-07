@@ -17,7 +17,6 @@ pub use crate::machine_unicorn::Machine;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct MachineX<Emu> {
-    pub status: Status,
     pub emu: Emu,
     pub memory: Memory,
     pub host: Box<dyn host::Host>,

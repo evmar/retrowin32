@@ -18,6 +18,7 @@ use win32_winapi::calling_convention::ABIReturn;
 const MAGIC_ADDR: u32 = 0xFFFF_FFF0u32;
 
 pub struct Emulator {
+    pub status: Status,
     pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
     // For now, we only support one thread, so stash the singular TEB address here.
@@ -64,8 +65,8 @@ impl MachineX<Emulator> {
         //     .unwrap();
 
         Machine {
-            status: Default::default(),
             emu: Emulator {
+                status: Default::default(),
                 unicorn,
                 shims: Shims::default(),
                 teb_addr: 0,
@@ -264,11 +265,11 @@ impl MachineX<Emulator> {
 
     pub fn run(&mut self) -> &Status {
         let mut eip: u64;
-        while self.status.is_running() {
+        while self.emu.status.is_running() {
             // self.print_trace();
             eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
             if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR as u64, 0, 0) {
-                self.status = Status::Error {
+                self.emu.status = Status::Error {
                     message: format!("unicorn: {:?}", err),
                 };
                 break;
@@ -283,7 +284,7 @@ impl MachineX<Emulator> {
                 self.syscall();
             }
         }
-        &self.status
+        &self.emu.status
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
@@ -375,7 +376,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        self.status = Status::Exit(exit_code);
+        self.emu.status = Status::Exit(exit_code);
     }
 
     pub fn teb_addr(&self) -> u32 {

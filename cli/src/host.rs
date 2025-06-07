@@ -34,6 +34,10 @@ impl Env {
 }
 
 impl win32::host::Host for Env {
+    fn exit(&self, status: u32) {
+        std::process::exit(status as i32);
+    }
+
     fn ticks(&self) -> u32 {
         self.time.ticks()
     }

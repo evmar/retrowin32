@@ -11,6 +11,7 @@ use win32_system::{dll::Handler, host, memory::Memory};
 use win32_winapi::calling_convention::ABIReturn;
 
 pub struct Emulator {
+    pub status: Status,
     pub x86: x86::X86,
     pub shims: Shims,
 
@@ -26,8 +27,8 @@ impl MachineX<Emulator> {
         let memory = Memory::new(MemImpl::new(256 << 20));
 
         Machine {
-            status: Default::default(),
             emu: Emulator {
+                status: Default::default(),
                 x86: x86::X86::new(),
                 shims: Default::default(),
                 breakpoints: Default::default(),
@@ -87,7 +88,7 @@ impl MachineX<Emulator> {
                 x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
             ) {
                 cpu.state = x86::CPUState::Running;
-                self.status = Status::Running;
+                self.emu.status = Status::Running;
             }
         }
     }
@@ -99,7 +100,7 @@ impl MachineX<Emulator> {
             x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
         ) {
             cpu.state = x86::CPUState::Running;
-            self.status = Status::Running;
+            self.emu.status = Status::Running;
         }
     }
 
@@ -113,20 +114,20 @@ impl MachineX<Emulator> {
                 if self.host.block(wait) {
                     self.unblock();
                 } else {
-                    self.status = Status::Blocked;
+                    self.emu.status = Status::Blocked;
                 }
             }
             x86::CPUState::Error(message) => {
-                self.status = Status::Error {
+                self.emu.status = Status::Error {
                     message: message.clone(),
                 };
             }
             x86::CPUState::DebugBreak => {
-                self.status = Status::DebugBreak;
+                self.emu.status = Status::DebugBreak;
             }
             state => unimplemented!("{state:?}"),
         }
-        self.status.is_running()
+        self.emu.status.is_running()
     }
 
     fn execute_block(&mut self) {
@@ -320,7 +321,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        self.status = Status::Exit(exit_code);
+        self.emu.status = Status::Exit(exit_code);
     }
 
     pub fn debug_break(&mut self) {

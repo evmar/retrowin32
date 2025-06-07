@@ -56,7 +56,7 @@ impl Emulator {
 
     #[wasm_bindgen(getter)]
     pub fn exit_code(&self) -> u32 {
-        match self.machine.status {
+        match self.machine.emu.status {
             win32::Status::Exit(code) => code,
             _ => 0,
         }
@@ -92,7 +92,7 @@ impl Emulator {
             }
         }
 
-        Ok(match &self.machine.status {
+        Ok(match &self.machine.emu.status {
             win32::Status::Running => Status::Running,
             win32::Status::Blocked => Status::Blocked,
             win32::Status::Error { message } => return Err(JsError::new(message)),

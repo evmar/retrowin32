@@ -9,7 +9,7 @@ fn run_to_entry_point(machine: &mut Machine, unpack_at: u32) -> anyhow::Result<(
     // Run until we hit the initial entry point, which means load the exe and its dlls.
     machine.break_on_startup();
     while machine.run() {}
-    if machine.status != win32::Status::DebugBreak {
+    if machine.emu.status != win32::Status::DebugBreak {
         machine.dump_state(0);
         anyhow::bail!("failed to break on startup");
     }
@@ -18,7 +18,9 @@ fn run_to_entry_point(machine: &mut Machine, unpack_at: u32) -> anyhow::Result<(
     // Run until we hit the unpack point -- let the exe's main() unpack the real exe.
     machine.add_breakpoint(unpack_at);
     while machine.run() {}
-    if machine.status != win32::Status::DebugBreak || machine.emu.x86.cpu().regs.eip != unpack_at {
+    if machine.emu.status != win32::Status::DebugBreak
+        || machine.emu.x86.cpu().regs.eip != unpack_at
+    {
         machine.dump_state(0);
         anyhow::bail!("failed to break on unpack-at point");
     }
@@ -28,7 +30,7 @@ fn run_to_entry_point(machine: &mut Machine, unpack_at: u32) -> anyhow::Result<(
     // Step one instruction to advance to the real entry point.
     // (This may be a jmp/call to the unpacked exe's entry point, or a ret to it.)
     machine.single_step();
-    if !machine.status.is_running() {
+    if !machine.emu.status.is_running() {
         machine.dump_state(0);
         anyhow::bail!("failed to step to entry point");
     }

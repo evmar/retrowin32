@@ -165,7 +165,7 @@ fn main() -> anyhow::Result<ExitCode> {
             // Break once the exe is loaded, so we can set breakpoints within it.
             machine.break_on_startup();
             while machine.run() {}
-            assert_eq!(machine.status, win32::Status::DebugBreak);
+            assert_eq!(machine.emu.status, win32::Status::DebugBreak);
             machine.unblock();
 
             while let Some(next_trace) = trace_points.pop_front() {
@@ -189,14 +189,14 @@ fn main() -> anyhow::Result<ExitCode> {
             while machine.run() {
                 if let Some(exit_after) = args.exit_after {
                     if machine.emu.x86.instr_count >= exit_after {
-                        machine.status = win32::Status::Exit(0);
+                        machine.emu.status = win32::Status::Exit(0);
                         break;
                     }
                 }
             }
         }
 
-        match &machine.status {
+        match &machine.emu.status {
             win32::Status::Exit(code) => {
                 exit_code = *code;
             }

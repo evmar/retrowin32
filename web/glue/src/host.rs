@@ -348,6 +348,10 @@ impl win32::host::FileSystem for JsHost {
 }
 
 impl win32::host::Host for JsHost {
+    fn exit(&self, _status: u32) {
+        // TODO: make use of
+    }
+
     fn ticks(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }

@@ -144,6 +144,9 @@ pub trait FileSystem {
 
 /// Interface expected of the host platform, implemented by e.g. the browser or SDL.
 pub trait Host: FileSystem {
+    /// Note: use System.exit() for process exit, which may forward to this.
+    fn exit(&self, status: u32);
+
     /// Get an arbitrary time counter, measured in milliseconds.
     fn ticks(&self) -> u32;
     fn system_time(&self) -> chrono::DateTime<chrono::Local>;
