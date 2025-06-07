@@ -27,6 +27,7 @@ done
 
 # relocation=model=dynamic-no-pic needed for disabling PIE as well.
 # --print link-args
+# TODO: try the `-C relocation-model=static` + --target trick used in build-linux-64.sh instead.
 export RUSTFLAGS="$RUSTFLAGS -C relocation-model=dynamic-no-pic $link_flag"
 
 # note: faster debug cycle if you remove 'sdl'

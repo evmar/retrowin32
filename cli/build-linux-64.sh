@@ -15,11 +15,9 @@ link_flag="-C link_arg=-Wl"
 for arg in $linker_args; do
     link_flag="$link_flag,$arg"
 done
-# We use dynamic-no-pic for a subtle reason.  We want no-pic for the retrowin32
-# binary, but the various derive crates we make require dynamic linking, so we
-# can't just build static.  That is a host vs target compilation setting issue,
-# but in the x86-64 case (as distinct from e.g. Rosetta) host and target are
-# the same CPU arch.
-export RUSTFLAGS="-C relocation-model=dynamic-no-pic $link_flag"
+export RUSTFLAGS="-C panic=abort -C relocation-model=static $link_flag"
 
-exec cargo build -p retrowin32 --no-default-features --features x86-64
+# Note: explicitly passing --target here causes Rust to obey RUSTFLAGS
+# only for the target, not the host (e.g. proc macros), which is the
+# behavior we need.
+exec cargo build --target x86_64-unknown-linux-gnu -p retrowin32 --no-default-features --features x86-64
