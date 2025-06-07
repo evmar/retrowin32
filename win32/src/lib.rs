@@ -26,5 +26,5 @@ pub use builtin_ddraw as ddraw; // exposed so debugger can poke at internal stat
 pub use builtin_kernel32 as kernel32;
 pub use kernel32::loader::Module;
 pub use machine::{Machine, Status};
-pub use win32_system::{host, trace};
+pub use win32_system::{host, memory::LOWEST_ADDRESS, trace};
 pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf};

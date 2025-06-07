@@ -35,6 +35,10 @@ impl Mapping {
     }
 }
 
+/// The lowest possible address a process can access.
+/// See discussion in resv32 for OS-related constraints.
+pub const LOWEST_ADDRESS: u32 = 0x10_000;
+
 /// The set of Mappings managed by the kernel.
 /// These get visualized in the debugger when you hover a pointer.
 #[derive(Debug)]
@@ -44,7 +48,7 @@ impl Mappings {
     pub fn new() -> Self {
         Mappings(vec![Mapping {
             addr: 0,
-            size: 0x1000,
+            size: LOWEST_ADDRESS,
             module: None,
             desc: "avoid null pointers".into(),
             flags: pe::IMAGE_SCN::empty(),

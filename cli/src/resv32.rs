@@ -1,10 +1,21 @@
-//! Code to ensure we reserve the low 4gb of memory for use in the exe.
+//! Code to ensure we reserve the low 4gb of memory for use by the exe,
+//! when running it "natively" on x86-64.
 //! See "Executable layout" in doc/x86-64.md.
 
-const PAGEZERO_END: libc::size_t = 0x1000;
-const RESV32_SIZE: libc::size_t = 0x7f00_0000 - PAGEZERO_END;
+// The lowest range of memory is reserved for catching null pointer dereferences,
+// often with OS support and constraints, so we must ensure we don't break that.
+//
+// - On Mac, the linker sets up a __PAGEZERO segment that defaults to 4gb.
+//   We tweak it smaller via the linker flags in `cli/build-rosetta.sh`.
+// - On Linux, /proc/sys/vm/mmap_min_addr is the lowest allowed by mmap, typically 64k.
+//
+// It looks like Windows itself reserves the lower 64k for the same reason, so it's
+// likely we don't need any address lower than that.
+// https://devblogs.microsoft.com/oldnewthing/20031008-00/?p=42223
 
-// Reserved area: pagezero is 0x1000, we want to reserve 4gb-0x1000,
+const RESV32_SIZE: libc::size_t = 0x7f00_0000 - win32::LOWEST_ADDRESS as libc::size_t;
+
+// Reserved area: LOWEST_ADDRESS is 0x10000, we want to reserve 4gb-0x10000,
 // but experimentally if I use constants larger than the below the resulting macho file
 // has a section sized zero, even though wine uses a larger constant in similar code (?!).
 // Possibly related to
@@ -15,7 +26,7 @@ const RESV32_SIZE: libc::size_t = 0x7f00_0000 - PAGEZERO_END;
 // the main executable, not in another crate.
 #[cfg(target_os = "macos")]
 std::arch::global_asm!(
-    ".zerofill RESV32,RESV32,_retrowin32_reserve,0x7f000000-0x1000",
+    ".zerofill RESV32,RESV32,_retrowin32_reserve,0x7f000000-0x10000",
     ".no_dead_strip _retrowin32_reserve",
 );
 
@@ -25,14 +36,14 @@ pub unsafe fn init_resv32() {
         #[cfg(target_os = "macos")]
         {
             // unmap the resv32 area created above.
-            let ptr = libc::munmap(PAGEZERO_END as *mut libc::c_void, RESV32_SIZE);
+            let ptr = libc::munmap(win32::LOWEST_ADDRESS as *mut libc::c_void, RESV32_SIZE);
             if ptr < 0 {
                 panic!("munmap: {:?}", std::io::Error::last_os_error());
             }
         }
 
         let ptr = libc::mmap(
-            PAGEZERO_END as *mut libc::c_void,
+            win32::LOWEST_ADDRESS as *mut libc::c_void,
             RESV32_SIZE,
             libc::PROT_READ | libc::PROT_WRITE | libc::PROT_EXEC,
             libc::MAP_PRIVATE | libc::MAP_ANON | libc::MAP_FIXED,
