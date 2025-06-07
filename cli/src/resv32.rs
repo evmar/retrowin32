@@ -31,6 +31,9 @@ pub unsafe fn init_resv32() {
             }
         }
 
+        let maps = std::fs::read_to_string("/proc/self/maps").unwrap();
+        println!("maps: {}", maps);
+
         let ptr = libc::mmap(
             PAGEZERO_END as *mut libc::c_void,
             RESV32_SIZE,
