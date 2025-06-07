@@ -1,7 +1,7 @@
 category = "retrowin32 test"
 title = "gdi test"
 desc = "empty window Rust GDI program"
-cmdline = "local/target/i586-pc-windows-msvc/release/gdi.exe"
+cmdline = "local/target/i686-pc-windows-msvc/release/gdi.exe"
 
 [origin]
 desc = "retrowin32"

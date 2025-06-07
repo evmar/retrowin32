@@ -42,8 +42,11 @@ build these you need some Windows headers. The
 To install it, follow their instructions. Then run it like:
 
 ```
+$ cd  # to unpack into ~
 $ xwin --accept-license --arch x86 splat
 # also pass --disable-symlinks if on a case insensitive filesystem, like Mac
 ```
 
-This will unpack the files into `~/.xwin-cache/splat`.
+This will unpack the files into `~/.xwin-cache/splat`, which is where the build
+scripts assume it can be found. See the `$XWIN` environment variable in the
+source tree otherwise.

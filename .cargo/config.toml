@@ -1,4 +1,4 @@
-[target.i586-pc-windows-msvc]
+[target.i686-pc-windows-msvc]
 linker = "rust-lld"
 
 [alias]

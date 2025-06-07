@@ -1,7 +1,7 @@
 category = "retrowin32 test"
 title = "exit test"
 desc = "tests exiting with status code"
-cmdline = "local/target/i586-pc-windows-msvc/release/errors.exe exit"
+cmdline = "local/target/i686-pc-windows-msvc/release/errors.exe exit"
 
 [origin]
 desc = "retrowin32"

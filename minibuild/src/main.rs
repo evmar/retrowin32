@@ -44,7 +44,7 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
                 "clang-cl",
                 "-fuse-ld=lld",
                 "-target",
-                "i586-pc-windows-msvc",
+                "i686-pc-windows-msvc",
                 &asm_path,
                 "/link",
                 "/dll",

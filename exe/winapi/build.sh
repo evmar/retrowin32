@@ -4,7 +4,7 @@ set -e
 
 XWIN="${XWIN:-~/.xwin-cache/splat}"
 
-clang_flags="-fuse-ld=lld -target i586-pc-windows-msvc"
+clang_flags="-fuse-ld=lld -target i686-pc-windows-msvc"
 # reproducible builds, optimize for size, no security cookies
 # note: /Zi for debug info (useful for ghidra) but it breaks build reproducibility
 cflags="/Brepro /std:c++20 /Os /GS-"
