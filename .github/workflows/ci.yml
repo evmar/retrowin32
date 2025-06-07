@@ -31,45 +31,12 @@ jobs:
 
       - run: ./misc/fmt.sh --check
 
-  build-x86-emu:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Build
-        # Use no-default-features to avoid the SDL dependency.
-        run: cargo build --no-default-features -F x86-emu -p retrowin32 --release
-
-  build-web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: Swatinem/rust-cache@v2
-      - name: Rust Setup
-        run: rustup toolchain install stable --profile minimal --no-self-update --target wasm32-unknown-unknown
-      - name: Install wasm-bindgen
-        run: cargo install --locked wasm-bindgen-cli --version 0.2.100
-      - name: Install wasm-opt
-        run: cargo install --locked wasm-opt --version 0.116.1
-      - name: Build Rust
-        run: make -C web wasm profile=lto
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23
-          cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-      - name: Install npm dependencies
-        run: cd web && npm ci
-      - name: Build TypeScript
-        run: make -C web web-check
-
-  build-unicorn:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Build
-        # Use no-default-features to avoid the SDL dependency.
-        run: cargo build --no-default-features -F x86-unicorn -p retrowin32 --release
+        run: ./cli/build-linux-64.sh
+      - name: Run simple program
+        run: ./target/x86_64-unknown-linux-gnu/debug/retrowin32 exe/winapi/winapi.exe
