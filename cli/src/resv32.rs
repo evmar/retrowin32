@@ -53,8 +53,12 @@ pub unsafe fn init_resv32() {
         if (ptr as i64) < 0 {
             panic!("mmap: {:?}", std::io::Error::last_os_error());
         }
-        if ptr as usize != PAGEZERO_END {
-            panic!("unable to mmap at {PAGEZERO_END:x}, got {:x}", ptr as usize);
+        if ptr as usize != win32::LOWEST_ADDRESS as usize {
+            panic!(
+                "unable to mmap at {addr:x}, got {ptr:x}",
+                addr = win32::LOWEST_ADDRESS,
+                ptr = ptr as usize
+            );
         }
     }
 }

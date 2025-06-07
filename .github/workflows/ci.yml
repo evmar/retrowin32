@@ -73,3 +73,17 @@ jobs:
       - name: Build
         # Use no-default-features to avoid the SDL dependency.
         run: cargo build --no-default-features -F x86-unicorn -p retrowin32 --release
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: ./cli/build-linux-64.sh
+      - name: Run simple program
+        run: ./target/x86_64-unknown-linux-gnu/debug/retrowin32 exe/winapi/winapi.exe
+
+      # run: |
+      #   sudo apt install -y gdb
+      #   gdb -ex r -ex bt --args ./target/x86_64-unknown-linux-gnu/debug/retrowin32 exe/winapi/winapi.exe
