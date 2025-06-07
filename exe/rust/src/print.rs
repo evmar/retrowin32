@@ -44,12 +44,18 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     () => { $crate::println!("") };
-    ($($arg:tt)*) => {
+    ($fmt:expr) => { {
         {
             use ::core::fmt::Write;
             let mut stdout = $crate::print::Stdout;
-            stdout.write_fmt(format_args!($($arg)*)).ok();
-            stdout.write_char('\n').ok();
+            stdout.write_str(concat!($fmt, '\n')).ok();
+        }
+    }};
+    ($fmt:expr, $($args:tt)*) => {
+        {
+            use ::core::fmt::Write;
+            let mut stdout = $crate::print::Stdout;
+            stdout.write_fmt(format_args!(concat!($fmt, '\n'), $($args)*)).ok();
         }
     };
 }
