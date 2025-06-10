@@ -36,7 +36,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - name: Info
+        run: |
+          cat /proc/sys/vm/mmap_min_addr
       - name: Build
         run: ./cli/build-linux-64.sh
       - name: Run simple program
-        run: ./target/x86_64-unknown-linux-gnu/debug/retrowin32 exe/winapi/winapi.exe
+        run: gdb -ex r -ex bt --args ./target/x86_64-unknown-linux-gnu/debug/retrowin32 exe/winapi/winapi.exe
