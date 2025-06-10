@@ -1,7 +1,8 @@
 //! Code to ensure we reserve the low 4gb of memory for use in the exe.
 //! See "Executable layout" in doc/x86-64.md.
 
-const PAGEZERO_END: libc::size_t = 0x1000;
+// On Linux, /proc/sys/vm/mmap_min_addr is typically 0x10_0000 (64k)
+const PAGEZERO_END: libc::size_t = 0x10_000;
 const RESV32_SIZE: libc::size_t = 0x7f00_0000 - PAGEZERO_END;
 
 // Reserved area: pagezero is 0x1000, we want to reserve 4gb-0x1000,
@@ -30,6 +31,9 @@ pub unsafe fn init_resv32() {
                 panic!("munmap: {:?}", std::io::Error::last_os_error());
             }
         }
+
+        let maps = std::fs::read_to_string("/proc/self/maps").unwrap();
+        println!("maps: {}", maps);
 
         let ptr = libc::mmap(
             PAGEZERO_END as *mut libc::c_void,
