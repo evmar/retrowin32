@@ -72,6 +72,12 @@ impl WndClasses {
             _ => None,
         }
     }
+
+    pub fn unregister(&mut self, name: &str) -> bool {
+        let len = self.vec.len();
+        self.vec.retain(|c| c.borrow().name != name);
+        len != self.vec.len()
+    }
 }
 
 fn button_class() -> WndClass {
@@ -258,5 +264,5 @@ pub fn SetClassLongA(
 
 #[win32_derive::dllexport]
 pub fn UnregisterClassA(sys: &dyn System, lpClassName: Option<&str>, hInstance: HINSTANCE) -> bool {
-    todo!()
+    get_state(sys).wndclasses.unregister(lpClassName.unwrap())
 }
