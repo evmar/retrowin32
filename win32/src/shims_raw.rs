@@ -9,6 +9,7 @@
 
 use crate::{Machine, shims::Shims};
 use builtin_kernel32 as kernel32;
+#[allow(unused_imports)]
 use memory::{Extensions, ExtensionsMut, Mem};
 use win32_system::dll::Handler;
 use win32_winapi::calling_convention::ABIReturn;
@@ -22,15 +23,14 @@ pub struct Context32 {
     pub esp: u32,
     pub ds: u16,
     pub fs: u16,
-    /// Used for Windows APIs that require a pointer to the TEB.
-    #[cfg(target_os = "linux")]
+    /// This is not used when transitioning, but is just context for builtin
+    /// DLLs that want a pointer to the TEB.
     pub fs_addr: u32,
 }
 static mut CONTEXT32: Context32 = Context32 {
     esp: 0,
     ds: 0,
     fs: 0,
-    #[cfg(target_os = "linux")]
     fs_addr: 0,
 };
 
@@ -39,37 +39,19 @@ static mut CONTEXT32: Context32 = Context32 {
 #[derive(Debug)]
 pub struct Context64 {
     pub rsp: u64,
-    #[cfg(target_os = "linux")]
-    pub fs_addr: u64,
     // Segment registers in 64-bit mode are always 0.
+    // When returning to 64-bit mode, we use a syscall to restore the address fs pointed to
+    // before we left 64-bit mode.
+    pub fs_addr: u64,
 }
-static mut CONTEXT64: Context64 = Context64 {
-    rsp: 0,
-    #[cfg(target_os = "linux")]
-    fs_addr: 0,
-};
+static mut CONTEXT64: Context64 = Context64 { rsp: 0, fs_addr: 0 };
 
 pub unsafe fn init_thread(mem: Mem, thread: &kernel32::thread::NewThread) {
-    #[cfg(not(target_os = "linux"))]
-    {
-        // Set up fs to point at the TEB.
-        // NOTE: OSX seems extremely sensitive to the values used here, where like
-        // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-        let fs = crate::ldt::add_entry(thread.thread.teb, 0xFFF, false);
-        std::arch::asm!(
-            "mov fs, {fs:x}",
-            fs = in(reg) fs
-        );
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let fs_sel = init_fs(mem, thread.stack_pointer - 0x1000, thread.thread.teb as u32);
-        unsafe {
-            CONTEXT32.esp = thread.stack_pointer;
-            CONTEXT32.fs_addr = thread.thread.teb;
-            CONTEXT32.fs = fs_sel;
-        }
+    let fs_sel = init_fs(mem, thread.stack_pointer - 0x1000, thread.thread.teb as u32);
+    unsafe {
+        CONTEXT32.esp = thread.stack_pointer;
+        CONTEXT32.fs_addr = thread.thread.teb;
+        CONTEXT32.fs = fs_sel;
     }
 }
 
@@ -228,35 +210,33 @@ impl Shims {
     pub fn init() {
         unsafe {
             CONTEXT64.fs_addr = get_fs_addr_64();
-        }
-        let code32_selector = {
             #[cfg(target_os = "linux")]
-            {
+            let cs = {
                 // See doc/x86-64.md's discussion of segmentation for where these constants come from.
-                let cs = {
-                    const GDT_ENTRY_DEFAULT_USER32_CS: u16 = 4;
-                    (GDT_ENTRY_DEFAULT_USER32_CS << 3) | 0b011
-                };
-                let ds = {
+
+                CONTEXT32.ds = {
                     const GDT_ENTRY_DEFAULT_USER_DS: u16 = 5;
                     (GDT_ENTRY_DEFAULT_USER_DS << 3) | 0b011
                 };
-                unsafe { CONTEXT32.ds = ds };
-                cs
-            }
+
+                const GDT_ENTRY_DEFAULT_USER32_CS: u16 = 4;
+                (GDT_ENTRY_DEFAULT_USER32_CS << 3) | 0b011
+            };
 
             #[cfg(not(target_os = "linux"))]
-            {
-                let code32_selector = crate::ldt::init();
-                todo!("context32 init");
-                code32_selector
-            }
-        };
+            let cs = {
+                // Rosetta doesn't appear to care about ds/es, but at one point we got this working
+                // on native x86, which does need them.
+                let data_sel = crate::ldt::add_entry(0, 0xFFFF_FFFF, false);
+                CONTEXT32.ds = data_sel;
+                // TODO: es?
 
-        let trans32_addr = trans32 as u64;
-        assert!(trans32_addr < 0x1_0000_0000);
-        unsafe {
-            TRANS32_M1632 = ((code32_selector as u64) << 32) | trans32_addr;
+                crate::ldt::add_entry(0, 0xFFFF_FFFF, true)
+            };
+
+            let trans32_addr = trans32 as u64;
+            assert!(trans32_addr < 0x1_0000_0000);
+            TRANS32_M1632 = ((cs as u64) << 32) | trans32_addr;
         }
     }
 
@@ -271,24 +251,40 @@ impl Shims {
 
 /// Set the address fs points to, 64-bit mode only.
 fn set_fs_addr_64(fs_addr: u64) {
-    const ARCH_SET_FS: u64 = 0x1002;
-    let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_SET_FS, fs_addr) };
-    if ret != 0 {
-        let err = std::io::Error::last_os_error();
-        panic!("SYS_arch_prctl(ARCH_SET_FS) failed: {err}");
+    #[cfg(target_os = "linux")]
+    {
+        const ARCH_SET_FS: u64 = 0x1002;
+        let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_SET_FS, fs_addr) };
+        if ret != 0 {
+            let err = std::io::Error::last_os_error();
+            panic!("SYS_arch_prctl(ARCH_SET_FS) failed: {err}");
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        _ = fs_addr; // TODO
     }
 }
 
 /// Get the address fs points to, 64-bit mode only.
 fn get_fs_addr_64() -> u64 {
-    let mut fs: u64 = 0;
-    const ARCH_GET_FS: u64 = 0x1003;
-    let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_GET_FS, &raw mut fs) };
-    if ret != 0 {
-        let err = std::io::Error::last_os_error();
-        panic!("SYS_arch_prctl(ARCH_GET_FS) failed: {err}");
+    #[cfg(target_os = "linux")]
+    {
+        let mut fs: u64 = 0;
+        const ARCH_GET_FS: u64 = 0x1003;
+        let ret = unsafe { libc::syscall(libc::SYS_arch_prctl, ARCH_GET_FS, &raw mut fs) };
+        if ret != 0 {
+            let err = std::io::Error::last_os_error();
+            panic!("SYS_arch_prctl(ARCH_GET_FS) failed: {err}");
+        }
+        fs
     }
-    fs
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        0 // TODO
+    }
 }
 
 pub fn get_fs_addr_32() -> u32 {
@@ -297,6 +293,7 @@ pub fn get_fs_addr_32() -> u32 {
 
 /// Set up a segment selector for the FS segment.
 /// Returns a segment selector that points at fs_addr.
+#[cfg(target_os = "linux")]
 fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
     // see alloc_fs_sel in wine
 
@@ -360,6 +357,13 @@ fn init_fs(mem: Mem, scratch_addr: u32, fs_addr: u32) -> u16 {
         user_desc.entry_number as u16
     };
     (gdt_index << 3) | 0b011 // selector: index << 3 | RPL
+}
+
+#[cfg(not(target_os = "linux"))]
+fn init_fs(_mem: Mem, _scratch_addr: u32, fs_addr: u32) -> u16 {
+    // NOTE: OSX seems extremely sensitive to the values used here, where like
+    // using a span size that is not exactly 0xFFF causes the entry to be rejected.
+    crate::ldt::add_entry(fs_addr, 0xFFF, false)
 }
 
 pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {

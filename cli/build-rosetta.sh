@@ -11,7 +11,7 @@ linker_args=""
 #   (see discussion in resv32.rs):
 linker_args="$linker_args -segalign 0x10000 -pagezero_size 0x10000"
 # - Put all our own content above 3gb:
-linker_args="$linker_args -image_base 0xc0001000"
+linker_args="$linker_args -image_base 0xc0010000"
 # - Disable PIE, required for moving image base:
 linker_args="$linker_args -no_pie -no_fixup_chains"
 # - Put our RESV32 section at 0x10000 to ensure nothing like malloc claims
