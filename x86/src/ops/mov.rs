@@ -137,6 +137,15 @@ pub fn movzx_r16_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 /// cmov: Conditional Move
+pub fn cmovae_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    if !cpu.flags.contains(Flags::CF) {
+        x.set(y);
+    }
+}
+
+/// cmov: Conditional Move
 pub fn cmovb_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
