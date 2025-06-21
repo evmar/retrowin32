@@ -74,14 +74,14 @@ pub type LPRGNDATA = *mut _RGNDATA;
 #[derive(Copy, Clone)]
 pub struct IUnknownVtbl {
     pub QueryInterface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IUnknown,
             riid: *const IID,
             ppvObject: *mut *mut ::core::ffi::c_void,
         ) -> HRESULT,
     >,
-    pub AddRef: ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IUnknown) -> ULONG>,
-    pub Release: ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IUnknown) -> ULONG>,
+    pub AddRef: ::core::option::Option<unsafe extern "system" fn(This: *mut IUnknown) -> ULONG>,
+    pub Release: ::core::option::Option<unsafe extern "system" fn(This: *mut IUnknown) -> ULONG>,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -93,7 +93,7 @@ pub type LPDIRECTDRAWSURFACE = *mut IDirectDrawSurface;
 pub type LPDIRECTDRAWPALETTE = *mut IDirectDrawPalette;
 pub type LPDIRECTDRAWCLIPPER = *mut IDirectDrawClipper;
 pub type LPDDSURFACEDESC = *mut _DDSURFACEDESC;
-unsafe extern "stdcall" {
+unsafe extern "system" {
     pub fn DirectDrawCreate(
         lpGUID: *mut GUID,
         lplpDD: *mut LPDIRECTDRAW,
@@ -101,10 +101,10 @@ unsafe extern "stdcall" {
     ) -> HRESULT;
 }
 pub type LPDDENUMMODESCALLBACK = ::core::option::Option<
-    unsafe extern "stdcall" fn(arg1: LPDDSURFACEDESC, arg2: LPVOID) -> HRESULT,
+    unsafe extern "system" fn(arg1: LPDDSURFACEDESC, arg2: LPVOID) -> HRESULT,
 >;
 pub type LPDDENUMSURFACESCALLBACK = ::core::option::Option<
-    unsafe extern "stdcall" fn(
+    unsafe extern "system" fn(
         arg1: LPDIRECTDRAWSURFACE,
         arg2: LPDDSURFACEDESC,
         arg3: LPVOID,
@@ -382,19 +382,18 @@ pub struct IDirectDraw {
 #[derive(Copy, Clone)]
 pub struct IDirectDrawVtbl {
     pub QueryInterface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             riid: *const IID,
             ppvObj: *mut LPVOID,
         ) -> HRESULT,
     >,
-    pub AddRef: ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDraw) -> ULONG>,
-    pub Release:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDraw) -> ULONG>,
+    pub AddRef: ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDraw) -> ULONG>,
+    pub Release: ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDraw) -> ULONG>,
     pub Compact:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDraw) -> HRESULT>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDraw) -> HRESULT>,
     pub CreateClipper: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: DWORD,
             arg2: *mut LPDIRECTDRAWCLIPPER,
@@ -402,7 +401,7 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub CreatePalette: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: DWORD,
             arg2: LPPALETTEENTRY,
@@ -411,7 +410,7 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub CreateSurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: LPDDSURFACEDESC,
             arg2: *mut LPDIRECTDRAWSURFACE,
@@ -419,14 +418,14 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub DuplicateSurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: LPDIRECTDRAWSURFACE,
             arg2: *mut LPDIRECTDRAWSURFACE,
         ) -> HRESULT,
     >,
     pub EnumDisplayModes: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: DWORD,
             arg2: LPDDSURFACEDESC,
@@ -435,7 +434,7 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub EnumSurfaces: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: DWORD,
             arg2: LPDDSURFACEDESC,
@@ -444,45 +443,45 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub FlipToGDISurface:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDraw) -> HRESULT>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDraw) -> HRESULT>,
     pub GetCaps: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: LPDDCAPS,
             arg2: LPDDCAPS,
         ) -> HRESULT,
     >,
     pub GetDisplayMode: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: LPDDSURFACEDESC) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: LPDDSURFACEDESC) -> HRESULT,
     >,
     pub GetFourCCCodes: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: LPDWORD, arg2: LPDWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: LPDWORD, arg2: LPDWORD) -> HRESULT,
     >,
     pub GetGDISurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: *mut LPDIRECTDRAWSURFACE,
         ) -> HRESULT,
     >,
     pub GetMonitorFrequency: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: LPDWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: LPDWORD) -> HRESULT,
     >,
     pub GetScanLine: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: LPDWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: LPDWORD) -> HRESULT,
     >,
     pub GetVerticalBlankStatus: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: LPBOOL) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: LPBOOL) -> HRESULT,
     >,
     pub Initialize: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: *mut GUID) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: *mut GUID) -> HRESULT,
     >,
     pub RestoreDisplayMode:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDraw) -> HRESULT>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDraw) -> HRESULT>,
     pub SetCooperativeLevel: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: HWND, arg2: DWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: HWND, arg2: DWORD) -> HRESULT,
     >,
     pub SetDisplayMode: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDraw,
             arg1: DWORD,
             arg2: DWORD,
@@ -490,7 +489,7 @@ pub struct IDirectDrawVtbl {
         ) -> HRESULT,
     >,
     pub WaitForVerticalBlank: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDraw, arg1: DWORD, arg2: HANDLE) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDraw, arg1: DWORD, arg2: HANDLE) -> HRESULT,
     >,
 }
 #[repr(C)]
@@ -502,21 +501,21 @@ pub struct IDirectDrawPalette {
 #[derive(Copy, Clone)]
 pub struct IDirectDrawPaletteVtbl {
     pub QueryInterface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawPalette,
             riid: *const IID,
             ppvObj: *mut LPVOID,
         ) -> HRESULT,
     >,
     pub AddRef:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawPalette) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawPalette) -> ULONG>,
     pub Release:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawPalette) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawPalette) -> ULONG>,
     pub GetCaps: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawPalette, arg1: LPDWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawPalette, arg1: LPDWORD) -> HRESULT,
     >,
     pub GetEntries: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawPalette,
             arg1: DWORD,
             arg2: DWORD,
@@ -525,7 +524,7 @@ pub struct IDirectDrawPaletteVtbl {
         ) -> HRESULT,
     >,
     pub Initialize: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawPalette,
             arg1: LPDIRECTDRAW,
             arg2: DWORD,
@@ -533,7 +532,7 @@ pub struct IDirectDrawPaletteVtbl {
         ) -> HRESULT,
     >,
     pub SetEntries: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawPalette,
             arg1: DWORD,
             arg2: DWORD,
@@ -551,18 +550,18 @@ pub struct IDirectDrawClipper {
 #[derive(Copy, Clone)]
 pub struct IDirectDrawClipperVtbl {
     pub QueryInterface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawClipper,
             riid: *const IID,
             ppvObj: *mut LPVOID,
         ) -> HRESULT,
     >,
     pub AddRef:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawClipper) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawClipper) -> ULONG>,
     pub Release:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawClipper) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawClipper) -> ULONG>,
     pub GetClipList: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawClipper,
             arg1: LPRECT,
             arg2: LPRGNDATA,
@@ -570,27 +569,27 @@ pub struct IDirectDrawClipperVtbl {
         ) -> HRESULT,
     >,
     pub GetHWnd: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawClipper, arg1: *mut HWND) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawClipper, arg1: *mut HWND) -> HRESULT,
     >,
     pub Initialize: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawClipper,
             arg1: LPDIRECTDRAW,
             arg2: DWORD,
         ) -> HRESULT,
     >,
     pub IsClipListChanged: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawClipper, arg1: *mut BOOL) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawClipper, arg1: *mut BOOL) -> HRESULT,
     >,
     pub SetClipList: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawClipper,
             arg1: LPRGNDATA,
             arg2: DWORD,
         ) -> HRESULT,
     >,
     pub SetHWnd: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawClipper,
             arg1: DWORD,
             arg2: HWND,
@@ -606,27 +605,27 @@ pub struct IDirectDrawSurface {
 #[derive(Copy, Clone)]
 pub struct IDirectDrawSurfaceVtbl {
     pub QueryInterface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             riid: *const IID,
             ppvObj: *mut LPVOID,
         ) -> HRESULT,
     >,
     pub AddRef:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawSurface) -> ULONG>,
     pub Release:
-        ::core::option::Option<unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface) -> ULONG>,
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawSurface) -> ULONG>,
     pub AddAttachedSurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDIRECTDRAWSURFACE,
         ) -> HRESULT,
     >,
     pub AddOverlayDirtyRect: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: LPRECT) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LPRECT) -> HRESULT,
     >,
     pub Blt: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPRECT,
             arg2: LPDIRECTDRAWSURFACE,
@@ -636,7 +635,7 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub BltBatch: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDDBLTBATCH,
             arg2: DWORD,
@@ -644,7 +643,7 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub BltFast: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: DWORD,
@@ -654,21 +653,21 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub DeleteAttachedSurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: LPDIRECTDRAWSURFACE,
         ) -> HRESULT,
     >,
     pub EnumAttachedSurfaces: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPVOID,
             arg2: LPDDENUMSURFACESCALLBACK,
         ) -> HRESULT,
     >,
     pub EnumOverlayZOrders: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: LPVOID,
@@ -676,75 +675,74 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub Flip: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDIRECTDRAWSURFACE,
             arg2: DWORD,
         ) -> HRESULT,
     >,
     pub GetAttachedSurface: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDDSCAPS,
             arg2: *mut LPDIRECTDRAWSURFACE,
         ) -> HRESULT,
     >,
     pub GetBltStatus: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
     >,
     pub GetCaps: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: LPDDSCAPS) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LPDDSCAPS) -> HRESULT,
     >,
     pub GetClipper: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: *mut LPDIRECTDRAWCLIPPER,
         ) -> HRESULT,
     >,
     pub GetColorKey: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: LPDDCOLORKEY,
         ) -> HRESULT,
     >,
     pub GetDC: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: *mut HDC) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: *mut HDC) -> HRESULT,
     >,
     pub GetFlipStatus: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
     >,
     pub GetOverlayPosition: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPLONG,
             arg2: LPLONG,
         ) -> HRESULT,
     >,
     pub GetPalette: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: *mut LPDIRECTDRAWPALETTE,
         ) -> HRESULT,
     >,
     pub GetPixelFormat: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: LPDDPIXELFORMAT) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LPDDPIXELFORMAT) -> HRESULT,
     >,
     pub GetSurfaceDesc: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: LPDDSURFACEDESC) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LPDDSURFACEDESC) -> HRESULT,
     >,
     pub Initialize: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDIRECTDRAW,
             arg2: LPDDSURFACEDESC,
         ) -> HRESULT,
     >,
-    pub IsLost: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface) -> HRESULT,
-    >,
+    pub IsLost:
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawSurface) -> HRESULT>,
     pub Lock: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPRECT,
             arg2: LPDDSURFACEDESC,
@@ -753,42 +751,37 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub ReleaseDC: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: HDC) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: HDC) -> HRESULT,
     >,
-    pub Restore: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface) -> HRESULT,
-    >,
+    pub Restore:
+        ::core::option::Option<unsafe extern "system" fn(This: *mut IDirectDrawSurface) -> HRESULT>,
     pub SetClipper: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDIRECTDRAWCLIPPER,
         ) -> HRESULT,
     >,
     pub SetColorKey: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: LPDDCOLORKEY,
         ) -> HRESULT,
     >,
     pub SetOverlayPosition: ::core::option::Option<
-        unsafe extern "stdcall" fn(
-            This: *mut IDirectDrawSurface,
-            arg1: LONG,
-            arg2: LONG,
-        ) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LONG, arg2: LONG) -> HRESULT,
     >,
     pub SetPalette: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPDIRECTDRAWPALETTE,
         ) -> HRESULT,
     >,
     pub Unlock: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: LPVOID) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: LPVOID) -> HRESULT,
     >,
     pub UpdateOverlay: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: LPRECT,
             arg2: LPDIRECTDRAWSURFACE,
@@ -798,10 +791,10 @@ pub struct IDirectDrawSurfaceVtbl {
         ) -> HRESULT,
     >,
     pub UpdateOverlayDisplay: ::core::option::Option<
-        unsafe extern "stdcall" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
+        unsafe extern "system" fn(This: *mut IDirectDrawSurface, arg1: DWORD) -> HRESULT,
     >,
     pub UpdateOverlayZOrder: ::core::option::Option<
-        unsafe extern "stdcall" fn(
+        unsafe extern "system" fn(
             This: *mut IDirectDrawSurface,
             arg1: DWORD,
             arg2: LPDIRECTDRAWSURFACE,
