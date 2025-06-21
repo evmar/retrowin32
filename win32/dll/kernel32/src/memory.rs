@@ -101,7 +101,8 @@ pub fn HeapReAlloc(sys: &dyn System, hHeap: u32, dwFlags: u32, lpMem: u32, dwByt
     let mem = memory.mem();
     let old_size = heap.size(mem, lpMem);
     let new_addr = heap.alloc(mem, dwBytes);
-    mem.copy(lpMem, new_addr, old_size);
+    let copy_size = old_size.min(dwBytes);
+    mem.copy(lpMem, new_addr, copy_size);
     heap.free(mem, lpMem);
     new_addr
 }
