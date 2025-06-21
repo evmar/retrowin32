@@ -22,7 +22,10 @@ fn run_thread(params: &ThreadParams) {
         let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
         println!(
             "thread_id={thread_id} name={name:?} tls={tls} i={i}",
-            name = params.name
+            thread_id = thread_id,
+            name = params.name,
+            tls = tls,
+            i = i,
         );
         unsafe { Sleep(1000 / params.steps) };
     }
@@ -30,7 +33,9 @@ fn run_thread(params: &ThreadParams) {
     let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
     println!(
         "thread_id={thread_id} name={name:?} tls={tls} returning",
+        thread_id = thread_id,
         name = params.name,
+        tls = tls,
     );
 }
 

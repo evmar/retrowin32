@@ -89,5 +89,9 @@ pub extern "C" fn mainCRTStartup() {
         println!("roundtripping {i}", i = i + 1);
         roundtrip(&*buf);
     }
-    println!("roundtripped {} bytes {reps} times", buf.len());
+    println!(
+        "roundtripped {bytes} bytes {reps} times",
+        bytes = buf.len(),
+        reps = reps
+    );
 }

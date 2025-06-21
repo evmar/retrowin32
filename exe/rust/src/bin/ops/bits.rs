@@ -19,8 +19,8 @@ fn bs_test() {
             bsf = 1;
             bsr = 1;
         }
-        println!("bsf {value:x}: {bsf:x}");
-        println!("bsr {value:x}: {bsr:x}");
+        println!("bsf {value:x}: {bsf:x}", value = value, bsf = bsf);
+        println!("bsr {value:x}: {bsr:x}", value = value, bsr = bsr);
     }
 }
 

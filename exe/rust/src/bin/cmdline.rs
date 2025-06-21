@@ -14,7 +14,11 @@ pub unsafe extern "C" fn mainCRTStartup() {
 
     let ret = unsafe { GetModuleFileNameA(0, buf.as_mut_ptr(), buf.len() as u32) };
     let filename = CStr::from_bytes_until_nul(&buf).unwrap();
-    println!("GetModuleFileNameA: {ret} {:?}", filename.to_str().unwrap());
+    println!(
+        "GetModuleFileNameA: {ret} {filename:?}",
+        ret = ret,
+        filename = filename.to_str().unwrap()
+    );
 
     let cmdline = unsafe { CStr::from_ptr(GetCommandLineA() as *const _) };
     println!("GetCommandLineA: {:?}", cmdline.to_str().unwrap());
