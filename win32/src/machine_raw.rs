@@ -29,6 +29,10 @@ impl MachineX<Emulator> {
         machine
     }
 
+    pub fn dump_state(&self, _eip_offset: usize) {
+        todo!();
+    }
+
     pub fn mem(&self) -> Mem {
         self.memory.mem()
     }

@@ -16,6 +16,7 @@ mod resv32;
 
 use anyhow::anyhow;
 use std::process::ExitCode;
+use win32::Machine;
 
 #[derive(argh::FromArgs)]
 /// win32 emulator.
@@ -156,7 +157,7 @@ fn main() -> anyhow::Result<ExitCode> {
         log::LevelFilter::Info
     });
 
-    if let Some(dir) = args.chdir {
+    if let Some(dir) = &args.chdir {
         std::env::set_current_dir(dir).unwrap();
     }
 
@@ -169,108 +170,99 @@ fn main() -> anyhow::Result<ExitCode> {
     if args.break_on_startup {
         machine.break_on_startup();
     }
-    machine.set_external_dlls(args.external_dll);
+    machine.set_external_dlls(std::mem::take(&mut args.external_dll));
     machine.set_audio(args.audio);
     machine.start_exe(cmdline, None);
 
-    let exit_code: u32;
+    let status = run_emu(args, &mut machine)?;
+    let exit_code = match status {
+        win32::Status::Exit(code) => code,
+        win32::Status::Error { message } => {
+            log::error!("{}", message);
+            machine.dump_state(0);
+            1
+        }
+        _ => unreachable!(),
+    };
+    Ok(ExitCode::from(exit_code as u8))
+}
 
-    #[cfg(feature = "x86-64")]
-    {
-        exit_code = 0; // TODO: exit code path never hit
-    }
-
-    #[cfg(feature = "x86-emu")]
-    {
-        let start = std::time::Instant::now();
-        if args.trace_blocks {
-            let mut seen_blocks = std::collections::HashSet::new();
-            while machine.run() {
-                let regs = &machine.emu.x86.cpu().regs;
-                if seen_blocks.contains(&regs.eip) {
-                    continue;
-                }
-                machine.print_trace();
-                seen_blocks.insert(regs.eip);
+#[cfg(feature = "x86-emu")]
+fn run_emu(args: Args, machine: &mut Machine) -> anyhow::Result<win32::Status> {
+    let start = std::time::Instant::now();
+    if args.trace_blocks {
+        let mut seen_blocks = std::collections::HashSet::new();
+        while machine.run() {
+            let regs = &machine.emu.x86.cpu().regs;
+            if seen_blocks.contains(&regs.eip) {
+                continue;
             }
-        } else if let Some(mut trace_points) = args.trace_points {
-            // Break once the exe is loaded, so we can set breakpoints within it.
-            machine.break_on_startup();
-            while machine.run() {}
-            assert_eq!(machine.emu.status, win32::Status::DebugBreak);
+            machine.print_trace();
+            seen_blocks.insert(regs.eip);
+        }
+    } else if let Some(mut trace_points) = args.trace_points {
+        // Break once the exe is loaded, so we can set breakpoints within it.
+        machine.break_on_startup();
+        while machine.run() {}
+        assert_eq!(machine.emu.status, win32::Status::DebugBreak);
+        machine.unblock();
+
+        while let Some(next_trace) = trace_points.pop_front() {
+            machine.add_breakpoint(next_trace);
+            loop {
+                // Ignore errors here because we will hit breakpoints.
+                machine.run();
+                if machine.emu.x86.cpu().regs.eip == next_trace {
+                    break;
+                }
+            }
+            machine.clear_breakpoint(next_trace);
             machine.unblock();
 
-            while let Some(next_trace) = trace_points.pop_front() {
-                machine.add_breakpoint(next_trace);
-                loop {
-                    // Ignore errors here because we will hit breakpoints.
-                    machine.run();
-                    if machine.emu.x86.cpu().regs.eip == next_trace {
-                        break;
-                    }
-                }
-                machine.clear_breakpoint(next_trace);
-                machine.unblock();
-
-                machine.print_trace();
-            }
-        } else if let Some(unpack_at) = args.unpack_at {
-            unpack::unpack(&mut machine, unpack_at)?;
-            return Ok(ExitCode::from(0));
-        } else {
-            while machine.run() {
-                if let Some(exit_after) = args.exit_after {
-                    if machine.emu.x86.instr_count >= exit_after {
-                        machine.emu.status = win32::Status::Exit(0);
-                        break;
-                    }
-                }
-            }
-        }
-
-        match &machine.emu.status {
-            win32::Status::Exit(code) => {
-                exit_code = *code;
-            }
-            win32::Status::Error { message } => {
-                log::error!("{}", message);
-                machine.dump_state(0);
-                exit_code = 1;
-            }
-            _ => unreachable!(),
-        }
-
-        let millis = start.elapsed().as_millis() as usize;
-        if millis > 0 {
-            eprintln!(
-                "{} instrs in {} ms: {}m/s",
-                machine.emu.x86.instr_count,
-                millis,
-                (machine.emu.x86.instr_count / millis) / 1000
-            );
-            eprintln!("icache: {}", machine.emu.x86.icache.stats());
-        }
-    }
-
-    #[cfg(feature = "x86-unicorn")]
-    {
-        if let Some(_trace_points) = args.trace_points {
             machine.print_trace();
-            todo!();
-        } else {
-            match machine.run() {
-                win32::Status::Exit(code) => {
-                    exit_code = *code;
+        }
+    } else if let Some(unpack_at) = args.unpack_at {
+        unpack::unpack(machine, unpack_at)?;
+        return Ok(win32::Status::Exit(0));
+    } else {
+        while machine.run() {
+            if let Some(exit_after) = args.exit_after {
+                if machine.emu.x86.instr_count >= exit_after {
+                    machine.emu.status = win32::Status::Exit(0);
+                    break;
                 }
-                win32::Status::Error { message } => {
-                    log::error!("{}", message);
-                    machine.dump_state();
-                    exit_code = 1;
-                }
-                _ => unreachable!(),
             }
         }
     }
 
-    Ok(ExitCode::from(exit_code as u8))
+    let millis = start.elapsed().as_millis() as usize;
+    if millis > 0 {
+        eprintln!(
+            "{} instrs in {} ms: {}m/s",
+            machine.emu.x86.instr_count,
+            millis,
+            (machine.emu.x86.instr_count / millis) / 1000
+        );
+        eprintln!("icache: {}", machine.emu.x86.icache.stats());
+    }
+
+    Ok(std::mem::take(&mut machine.emu.status))
+}
+
+#[cfg(feature = "x86-64")]
+fn run_emu(_args: Args, _machine: &mut Machine) -> anyhow::Result<win32::Status> {
+    // start_exe synchronously runs the process to completion;
+    // we shouldn't get here.
+    unreachable!();
+}
+
+#[cfg(feature = "x86-unicorn")]
+fn run_emu(args: Args, machine: &mut Machine) -> anyhow::Result<win32::Status> {
+    if let Some(_trace_points) = args.trace_points {
+        machine.print_trace();
+        todo!();
+    } else {
+        machine.run();
+    }
+    Ok(std::mem::take(&mut machine.emu.status))
 }

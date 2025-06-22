@@ -369,7 +369,7 @@ impl MachineX<Emulator> {
         );
     }
 
-    pub fn dump_state(&self) {
+    pub fn dump_state(&self, _eip_offset: usize) {
         self.dump_regs();
         println!("stack:");
         self.dump_stack();
