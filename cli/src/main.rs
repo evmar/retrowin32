@@ -15,8 +15,7 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
-use std::{borrow::Cow, process::ExitCode};
-use win32::host::FileSystem as _;
+use std::process::ExitCode;
 
 #[derive(argh::FromArgs)]
 /// win32 emulator.
@@ -34,17 +33,18 @@ struct Args {
     win32_trace: Option<String>,
 
     /// log CPU state upon each new basic block
-    #[argh(switch)]
     #[cfg(feature = "x86-emu")]
+    #[argh(switch)]
     trace_blocks: bool,
 
     /// log CPU state first time each point reached
+    #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
 
     /// exit after executing this many instructions
-    #[argh(option)]
     #[cfg(feature = "x86-emu")]
+    #[argh(option)]
     exit_after: Option<usize>,
 
     /// dump exe file at state when jumping from this instruction
@@ -69,6 +69,7 @@ struct Args {
     cmdline: Vec<String>,
 }
 
+#[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
 fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
     let mut trace_points = std::collections::VecDeque::new();
     for mut addr in param.split(&[',', ' ']) {
@@ -89,13 +90,66 @@ fn parse_hex(param: &str) -> Result<u32, String> {
     u32::from_str_radix(param, 16).map_err(|_| format!("bad hex {param:?}"))
 }
 
+/// Convert a unix command line to a Windows form.
+fn command_line_to_windows(
+    host: &dyn win32::host::Host,
+    cmdline: Vec<String>,
+) -> anyhow::Result<String> {
+    let mut cmdline = cmdline;
+    if cmdline.is_empty() {
+        anyhow::bail!("specify command line");
+    }
+
+    // Convert first argument to full path to exe.
+    let cwd = host
+        .current_dir()
+        .map_err(|e| anyhow!("failed to get current dir: {e:?}"))?;
+    cmdline[0] = cwd
+        .join(&cmdline[0])
+        .normalize()
+        .to_str()
+        .ok_or_else(|| anyhow!("invalid command line"))?
+        .to_owned();
+
+    // Quote any arguments with spaces etc.
+    for arg in &mut cmdline {
+        escape_arg(arg);
+    }
+
+    Ok(cmdline.join(" "))
+}
+
+fn escape_arg(arg: &mut String) {
+    // TODO: correct escaping here:
+    // https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
+
+    if !arg.contains(&['"', ' ', '\t', '\n']) {
+        return;
+    }
+
+    let mut escaped = String::with_capacity(arg.len() + 2);
+    escaped.push('"');
+    for c in arg.chars() {
+        match c {
+            '"' => {
+                escaped.push('\\');
+                escaped.push(c);
+            }
+            _ => escaped.push(c),
+        }
+    }
+    escaped.push('"');
+    *arg = escaped;
+}
+
 fn main() -> anyhow::Result<ExitCode> {
     #[cfg(feature = "x86-64")]
     unsafe {
+        // Initialize memory as early as possible, ideally before before any heap allocations.
         resv32::init_resv32();
     }
 
-    let args: Args = argh::from_env();
+    let mut args: Args = argh::from_env();
     logging::init(if args.debug {
         log::LevelFilter::Debug
     } else {
@@ -109,25 +163,11 @@ fn main() -> anyhow::Result<ExitCode> {
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
 
     let host = host::new_host();
-    let mut cmdline = args.cmdline.clone();
-    let cwd = host
-        .current_dir()
-        .map_err(|e| anyhow!("failed to get current dir: {e:?}"))?;
-    cmdline[0] = cwd
-        .join(&cmdline[0])
-        .normalize()
-        .to_string_lossy()
-        .into_owned();
-    let cmdline = cmdline
-        .iter()
-        .map(|s| escape_arg(s))
-        .collect::<Vec<_>>()
-        .join(" ");
+    let cmdline = command_line_to_windows(&host, std::mem::take(&mut args.cmdline))?;
     let mut machine = win32::Machine::new(Box::new(host));
 
     #[cfg(feature = "x86-64")]
     {
-        assert!(args.trace_points.is_none());
         unsafe {
             let ptr: *mut win32::Machine = &mut machine;
             machine.emu.shims.set_machine_hack(ptr);
@@ -241,24 +281,4 @@ fn main() -> anyhow::Result<ExitCode> {
     }
 
     Ok(ExitCode::from(exit_code as u8))
-}
-
-fn escape_arg(arg: &str) -> Cow<str> {
-    if arg.contains(['"', ' ', '\t', '\n'].as_ref()) {
-        let mut escaped = String::with_capacity(arg.len() + 2);
-        escaped.push('"');
-        for c in arg.chars() {
-            match c {
-                '"' => {
-                    escaped.push('\\');
-                    escaped.push(c);
-                }
-                _ => escaped.push(c),
-            }
-        }
-        escaped.push('"');
-        Cow::Owned(escaped)
-    } else {
-        Cow::Borrowed(arg)
-    }
 }
