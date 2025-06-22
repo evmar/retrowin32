@@ -11,6 +11,7 @@ use crate::{Machine, shims::Shims};
 use builtin_kernel32 as kernel32;
 #[allow(unused_imports)]
 use memory::{Extensions, ExtensionsMut, Mem};
+use std::pin::Pin;
 use win32_system::dll::Handler;
 use win32_winapi::calling_convention::ABIReturn;
 
@@ -207,8 +208,10 @@ pub fn retrowin32_syscall() -> Vec<u8> {
 }
 
 impl Shims {
-    pub fn init() {
+    pub fn init(machine: Pin<&mut Machine>) {
         unsafe {
+            MACHINE = machine.get_unchecked_mut();
+
             CONTEXT64.fs_addr = get_fs_addr_64();
             #[cfg(target_os = "linux")]
             let cs = {
@@ -237,14 +240,6 @@ impl Shims {
             let trans32_addr = trans32 as u64;
             assert!(trans32_addr < 0x1_0000_0000);
             TRANS32_M1632 = ((cs as u64) << 32) | trans32_addr;
-        }
-    }
-
-    /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
-    /// way after all the initialization happens...
-    pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine) {
-        unsafe {
-            MACHINE = machine;
         }
     }
 }

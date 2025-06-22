@@ -6,6 +6,7 @@ use crate::{
 };
 use builtin_kernel32 as kernel32;
 use memory::{Extensions, Mem, MemImpl};
+use std::pin::Pin;
 use win32_system::memory::Memory;
 
 #[derive(Default)]
@@ -16,17 +17,16 @@ pub struct Emulator {
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>) -> Self {
-        let memory = Memory::new(MemImpl::default());
-        Shims::init();
-
-        Machine {
+    pub fn new(host: Box<dyn host::Host>) -> Pin<Box<Self>> {
+        let mut machine = Box::pin(Machine {
             emu: Default::default(),
-            memory,
+            memory: Memory::new(MemImpl::default()),
             host,
             state: Default::default(),
             external_dlls: Default::default(),
-        }
+        });
+        Shims::init(machine.as_mut());
+        machine
     }
 
     pub fn mem(&self) -> Mem {

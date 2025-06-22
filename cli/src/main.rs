@@ -166,14 +166,6 @@ fn main() -> anyhow::Result<ExitCode> {
     let cmdline = command_line_to_windows(&host, std::mem::take(&mut args.cmdline))?;
     let mut machine = win32::Machine::new(Box::new(host));
 
-    #[cfg(feature = "x86-64")]
-    {
-        unsafe {
-            let ptr: *mut win32::Machine = &mut machine;
-            machine.emu.shims.set_machine_hack(ptr);
-        }
-    }
-
     if args.break_on_startup {
         machine.break_on_startup();
     }
