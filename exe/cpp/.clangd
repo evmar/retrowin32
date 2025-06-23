@@ -1,0 +1,7 @@
+CompileFlags:
+  Compiler: clang-cl
+  Add: [/std:c++20, /winsysroot, /Users/evmar/.xwin-cache/splat]
+
+Diagnostics:
+  ClangTidy:
+    Remove: misc-definitions-in-headers
