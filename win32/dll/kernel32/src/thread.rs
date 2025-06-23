@@ -208,7 +208,6 @@ pub async fn CreateThread(
             stack_size,
             retrowin32_thread_main,
             &[
-                0,              // return address
                 lpStartAddress, // entry point
                 lpParameter,    // parameter
             ],

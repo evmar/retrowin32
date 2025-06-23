@@ -1,6 +1,6 @@
 CompileFlags:
   Compiler: clang-cl
-  Add: [/std:c++20, /winsysroot, /Users/evmar/.xwin-cache/splat]
+  Add: [-target, i686-pc-windows-msvc, /std:c++20, /winsysroot, /Users/evmar/.xwin-cache/splat]
 
 Diagnostics:
   ClangTidy:
