@@ -22,6 +22,18 @@ struct fmt {
         return *this;
     }
     fmt& dec(int value) {
+        if (value < 0) {
+            ch('-');
+            value = -value;
+        }
+        int start = ofs;
+        do {
+            ch('0' + value % 10);
+            value /= 10;
+        } while (value);
+        for (int end = ofs; end > start + 1; ) {
+            std::swap(buf[start++], buf[--end]);
+        }
         return *this;
     }
     fmt& nl() {
