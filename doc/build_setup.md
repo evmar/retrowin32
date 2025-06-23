@@ -13,8 +13,8 @@ If you're making Windows API changes or see build errors about missing
 [the Clang toolchain](https://releases.llvm.org/download.html). See
 [win32/README.md](../win32/README.md).
 
-If you are building the various helper test programs or see build errors about a
-missing `kernel32.lib`, you need the Windows SDK (see below for setup).
+If you are building the various helper test programs found under `exe/`, see the
+[README there](../exe/README.md).
 
 ## SDL
 
@@ -32,21 +32,3 @@ Debian/Ubuntu:
 ```
 $ sudo apt install libsdl2-dev
 ```
-
-### Windows SDK, aka XWIN
-
-The retrowin32 tree includes test programs that produce win32 exe files. To
-build these you need some Windows headers. The
-[xwin tool](https://github.com/Jake-Shadle/xwin) automates downloading these.
-
-To install it, follow their instructions. Then run it like:
-
-```
-$ cd  # to unpack into ~
-$ xwin --accept-license --arch x86 splat
-# also pass --disable-symlinks if on a case insensitive filesystem, like Mac
-```
-
-This will unpack the files into `~/.xwin-cache/splat`, which is where the build
-scripts assume it can be found. See the `$XWIN` environment variable in the
-source tree otherwise.
