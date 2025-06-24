@@ -80,7 +80,7 @@ impl Mappings {
 
     pub fn alloc(&mut self, size: u32, desc: String, mem: &mut MemImpl) -> &Mapping {
         let size = round_up_to_page_granularity(size);
-        if size > 32 << 20 {
+        if size > 256 << 20 {
             panic!("new mapping {:?} too large: {size:x} bytes", desc);
         }
         let addr = self.find_space(size);
