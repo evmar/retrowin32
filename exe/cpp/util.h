@@ -46,8 +46,20 @@ struct fmt {
     }
 };
 
-size_t strlen(const char* str) {
+static size_t strlen(const char* str) {
     int len = 0;
     while (*str++) len++;
     return len;
+}
+
+static int memcmp(const void* ptr1, const void* ptr2, size_t num) {
+    const uint8_t* p1 = static_cast<const uint8_t*>(ptr1);
+    const uint8_t* p2 = static_cast<const uint8_t*>(ptr2);
+
+    for (size_t i = 0; i < num; i++) {
+        if (p1[i] != p2[i]) {
+            return p1[i] - p2[i];
+        }
+    }
+    return 0;
 }
