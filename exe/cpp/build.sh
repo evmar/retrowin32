@@ -12,7 +12,7 @@ link_flags="/subsystem:console ddraw.lib gdi32.lib kernel32.lib user32.lib"
 # https://devblogs.microsoft.com/cppblog/introducing-the-universal-crt/
 link_flags="$link_flags libcmt.lib libvcruntime.lib libucrt.lib"
 
-for src in cmdline.cc ddraw.cc errors.cc gdi.cc metrics.cc thread.cc; do
+for src in cmdline.cc ddraw.cc dib.cc errors.cc gdi.cc metrics.cc thread.cc; do
     echo $src
     clang-cl $clang_flags $cflags $sdk_flags $src /link $link_flags
 done

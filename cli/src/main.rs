@@ -182,7 +182,7 @@ fn main() -> anyhow::Result<ExitCode> {
             machine.dump_state(0);
             1
         }
-        _ => unreachable!(),
+        _ => unreachable!("{status:?}"),
     };
     Ok(ExitCode::from(exit_code as u8))
 }
