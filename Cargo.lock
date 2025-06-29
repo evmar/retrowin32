@@ -3,12 +3,6 @@
 version = 4
 
 [[package]]
-name = "adler"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
-
-[[package]]
 name = "android-tzdata"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -342,18 +336,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 
 [[package]]
-name = "ddraw-sys"
-version = "0.1.0"
-
-[[package]]
-name = "exe"
-version = "0.1.0"
-dependencies = [
- "ddraw-sys",
- "windows-sys",
-]
-
-[[package]]
 name = "extended"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -568,15 +550,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "glob",
-]
-
-[[package]]
-name = "miniz_oxide"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d811f3e15f28568be3407c8e7fdb6514c1cda3cb30683f15b6a1a1dc4ea14a7"
-dependencies = [
- "adler",
 ]
 
 [[package]]
@@ -1088,13 +1061,4 @@ dependencies = [
  "serde",
  "tsify",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "zip"
-version = "0.1.0"
-dependencies = [
- "exe",
- "miniz_oxide",
- "windows-sys",
 ]
