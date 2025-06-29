@@ -2,9 +2,6 @@
 resolver = "2"
 members = [
   "cli",
-  "exe/rust",
-  "exe/rust/ddraw-sys",
-  "exe/zip",
   "minibuild",
   "pe",
   "web/glue",

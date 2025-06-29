@@ -1,3 +1,0 @@
-[build]
-target = "i686-pc-windows-msvc"
-rustflags = ["-C", "target-cpu=pentium", "-C", "panic=abort"]
