@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use minibuild::*;
 
 fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
@@ -63,6 +65,85 @@ fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn build_exe_cpp(b: &B) -> anyhow::Result<()> {
+    let xwin = {
+        let xwin = std::env::var("XWIN");
+        match xwin {
+            Ok(xwin) => xwin,
+            Err(_) => {
+                let home = std::env::var("HOME")?;
+                home + "/.xwin-cache/splat"
+            }
+        }
+    };
+    let sdk_flags = ["/winsysroot", &xwin];
+
+    let clang_flags = [
+        "-fuse-ld=lld",
+        "-flto",
+        "-target",
+        "i686-pc-windows-msvc",
+        "-mno-sse",
+        "-mno-sse2",
+    ];
+
+    let cflags = [
+        "/std:c++20",
+        // reproducible builds
+        "/Brepro",
+        // optimize for size
+        "/Os",
+        // no security cookies
+        "/GS-",
+        "/MT",
+        // note: /Zi for debug info (useful for ghidra) but it breaks build reproducibility
+    ];
+
+    // https://devblogs.microsoft.com/cppblog/introducing-the-universal-crt/
+    let link_flags = [
+        "/subsystem:console",
+        "ddraw.lib",
+        "gdi32.lib",
+        "kernel32.lib",
+        "user32.lib",
+        "libcmt.lib",
+        "libvcruntime.lib",
+        "libucrt.lib",
+    ];
+
+    let srcs = [
+        "cmdline.cc",
+        "ddraw.cc",
+        "dib.cc",
+        "errors.cc",
+        "gdi.cc",
+        "metrics.cc",
+        "thread.cc",
+    ];
+    for src in srcs {
+        b.task(src, |b| {
+            let src_path = PathBuf::from(format!("exe/cpp/{src}"));
+            let util_path = Path::new("exe/cpp/util.h");
+            let exe_path = src_path.with_extension("exe");
+            b.files(&[src_path.as_ref(), util_path], &[&exe_path], |b| {
+                b.cmd(
+                    &[
+                        ["clang-cl"].as_slice(),
+                        &clang_flags,
+                        &cflags,
+                        &sdk_flags,
+                        &[src_path.to_str().unwrap(), "/Fe:exe/cpp/"],
+                        &["/link"],
+                        &link_flags,
+                    ]
+                    .concat(),
+                )
+            })
+        })?;
+    }
+    Ok(())
+}
+
 fn main() -> anyhow::Result<()> {
     let dlls = [
         "advapi32",
@@ -93,6 +174,8 @@ fn main() -> anyhow::Result<()> {
         }
         Ok(())
     })?;
+    // TODO: this prints 'up to date' twice
+    b.task("exe/cpp test programs", |b| build_exe_cpp(b))?;
 
     Ok(())
 }
