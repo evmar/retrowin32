@@ -1,6 +1,6 @@
 use minibuild::*;
 
-fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
+fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
     let dll_dir = format!("win32/dll/{dll}");
     let asm_path = format!("{dll_dir}/{dll}.s");
     let def_path = format!("{dll_dir}/{dll}.def");
@@ -86,7 +86,7 @@ fn main() -> anyhow::Result<()> {
         "winmm",
     ];
 
-    let mut b = B::default();
+    let b = B::default();
     b.task("dlls", |b| {
         for dll in dlls {
             b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;

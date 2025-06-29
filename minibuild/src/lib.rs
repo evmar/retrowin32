@@ -78,9 +78,9 @@ pub struct B {
 
 impl B {
     pub fn task(
-        &mut self,
+        &self,
         desc: impl Into<String>,
-        f: impl FnOnce(&mut B) -> anyhow::Result<()>,
+        f: impl FnOnce(&B) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         let desc = if self.desc.is_empty() {
             desc.into()
@@ -101,10 +101,10 @@ impl B {
     }
 
     pub fn files<I: AsRef<Path>, O: AsRef<Path>>(
-        &mut self,
+        &self,
         ins: &[I],
         outs: &[O],
-        f: impl FnOnce(&mut B) -> anyhow::Result<()>,
+        f: impl FnOnce(&B) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         let ins = ins.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
         let outs = outs.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
@@ -118,7 +118,7 @@ impl B {
         Ok(())
     }
 
-    pub fn cmd(&mut self, argv: &[&str]) -> anyhow::Result<()> {
+    pub fn cmd(&self, argv: &[&str]) -> anyhow::Result<()> {
         self.task(argv[0], |_| {
             if VERBOSE {
                 overprint(&format!("$ {}\n", argv.join(" ")));
