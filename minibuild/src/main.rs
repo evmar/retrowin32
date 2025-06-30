@@ -65,6 +65,34 @@ fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn build_dlls(b: &B) -> anyhow::Result<()> {
+    let dlls = [
+        "advapi32",
+        "bass",
+        "comctl32",
+        "ddraw",
+        "dinput",
+        "dsound",
+        "gdi32",
+        "kernel32",
+        "ntdll",
+        "ole32",
+        "oleaut32",
+        "retrowin32_test",
+        "shlwapi",
+        "ucrtbase",
+        "vcruntime140",
+        "version",
+        "user32",
+        "wininet",
+        "winmm",
+    ];
+    for dll in dlls {
+        b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;
+    }
+    Ok(())
+}
+
 fn build_exe_cpp(b: &B) -> anyhow::Result<()> {
     let xwin = {
         let xwin = std::env::var("XWIN");
@@ -145,37 +173,9 @@ fn build_exe_cpp(b: &B) -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
-    let dlls = [
-        "advapi32",
-        "bass",
-        "comctl32",
-        "ddraw",
-        "dinput",
-        "dsound",
-        "gdi32",
-        "kernel32",
-        "ntdll",
-        "ole32",
-        "oleaut32",
-        "retrowin32_test",
-        "shlwapi",
-        "ucrtbase",
-        "vcruntime140",
-        "version",
-        "user32",
-        "wininet",
-        "winmm",
-    ];
-
-    let b = B::default();
-    b.task("dlls", |b| {
-        for dll in dlls {
-            b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;
-        }
+    B::run(|b| {
+        b.task("dlls", build_dlls)?;
+        b.task("exe/cpp test programs", build_exe_cpp)?;
         Ok(())
-    })?;
-    // TODO: this prints 'up to date' twice
-    b.task("exe/cpp test programs", |b| build_exe_cpp(b))?;
-
-    Ok(())
+    })
 }

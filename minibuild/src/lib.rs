@@ -77,6 +77,12 @@ pub struct B {
 }
 
 impl B {
+    pub fn run(f: impl FnOnce(&B) -> anyhow::Result<()>) -> anyhow::Result<()> {
+        f(&mut B::default())?;
+        overprint("up to date\n");
+        Ok(())
+    }
+
     pub fn task(
         &self,
         desc: impl Into<String>,
@@ -94,9 +100,6 @@ impl B {
         };
         overprint(&b.desc);
         f(&mut b)?;
-        if self.indent == 0 {
-            overprint("up to date\n");
-        }
         Ok(())
     }
 
