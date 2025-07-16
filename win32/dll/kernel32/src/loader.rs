@@ -116,7 +116,10 @@ fn load_section(
 }
 
 /// Load the exports section of a module, gathering addresses of exported symbols.
-fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
+fn load_exports(file: &pe::File, image: &[u8], image_base: u32) -> Option<Exports> {
+    let dir = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT)?;
+    let exports_data = dir.as_slice(image)?;
+
     let dir = pe::read_exports(exports_data);
 
     let mut fns = Vec::new();
@@ -136,11 +139,11 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
         names.insert(name.to_vec(), addr);
     }
 
-    Exports {
+    Some(Exports {
         ordinal_base: dir.Base,
         fns,
         names,
-    }
+    })
 }
 
 async fn load_imports(sys: &mut dyn System, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
@@ -217,6 +220,36 @@ pub fn normalize_module_name(name: &str) -> String {
     name
 }
 
+fn apply_relocs(file: &pe::File, memory: &mut Memory, base: u32) {
+    if base == file.opt_header.ImageBase {
+        return;
+    }
+
+    let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) else {
+        return;
+    };
+    let image = memory.mem().slice(base..);
+    let Some(sec) = relocs.as_slice(image) else {
+        return;
+    };
+
+    // Warning: apply_relocs wants to mutate arbitrary memory, which violates Rust aliasing rules.
+    // It has started silently failing in release builds in the past...
+    pe::apply_relocs(
+        file.opt_header.ImageBase,
+        base,
+        sec,
+        |addr| {
+            let addr = base + addr;
+            memory.mem().get_pod::<u32>(addr)
+        },
+        |addr, val| {
+            let addr = base + addr;
+            memory.mem().put_pod::<u32>(addr, val);
+        },
+    );
+}
+
 /// Load an exe or dll without resolving its imports.
 fn load_one_module(
     memory: &mut Memory,
@@ -231,44 +264,14 @@ fn load_one_module(
         load_section(memory, &module_name, base, buf, sec);
     }
 
-    if base != file.opt_header.ImageBase {
-        if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
-            let image = memory.mem().slice(base..);
-            if let Some(sec) = relocs.as_slice(image) {
-                // Warning: apply_relocs wants to mutate arbitrary memory, which violates Rust aliasing rules.
-                // It has started silently failing in release builds in the past...
-                pe::apply_relocs(
-                    file.opt_header.ImageBase,
-                    base,
-                    sec,
-                    |addr| {
-                        let addr = base + addr;
-                        memory.mem().get_pod::<u32>(addr)
-                    },
-                    |addr, val| {
-                        let addr = base + addr;
-                        memory.mem().put_pod::<u32>(addr, val);
-                    },
-                );
-            }
+    apply_relocs(file, memory, base);
+
+    let exports = load_exports(file, memory.mem().slice(base..), base).unwrap_or_default();
+    for (name, &addr) in exports.names.iter() {
+        if let Some(name) = name.try_ascii() {
+            memory.labels.insert(addr, format!("{module_name}!{name}"));
         }
     }
-
-    let image = memory.mem().slice(base..);
-    let exports = if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        let section = dir
-            .as_slice(image)
-            .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
-        let exports = load_exports(base, image, section);
-        for (name, &addr) in exports.names.iter() {
-            if let Some(name) = name.try_ascii() {
-                memory.labels.insert(addr, format!("{module_name}!{name}"));
-            }
-        }
-        exports
-    } else {
-        Exports::default()
-    };
 
     let resources = file
         .data_directory
