@@ -118,6 +118,10 @@ fn load_section(
 /// Load the exports section of a module, gathering addresses of exported symbols.
 fn load_exports(file: &pe::File, image: &[u8], image_base: u32) -> Option<Exports> {
     let dir = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT)?;
+    if dir.VirtualAddress > image.len() as u32 {
+        // Crinkler generates these, possibly?  cdak demo triggers it.
+        return None;
+    }
     let exports_data = dir.as_slice(image)?;
 
     let dir = pe::read_exports(exports_data);
