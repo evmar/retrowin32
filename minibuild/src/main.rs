@@ -169,13 +169,33 @@ fn build_exe_cpp(b: &B) -> anyhow::Result<()> {
             })
         })?;
     }
+
+    b.task("exe/ops", |b| {
+        let srcs = ["fpu.cc", "math.cc", "ops.cc", "util.cc"].map(|src| format!("exe/ops/{src}"));
+        b.files(&srcs, &["exe/ops/ops.exe"], |b| {
+            b.cmd(
+                &[
+                    ["clang-cl"].as_slice(),
+                    &clang_flags,
+                    &cflags,
+                    &sdk_flags,
+                    srcs.each_ref().map(|src| src.as_str()).as_slice(),
+                    &["/Fe:exe/ops/ops.exe"],
+                    &["/link"],
+                    &link_flags,
+                ]
+                .concat(),
+            )
+        })
+    })?;
+
     Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
     B::run(|b| {
         b.task("dlls", build_dlls)?;
-        b.task("exe/cpp test programs", build_exe_cpp)?;
+        b.task("test exes", build_exe_cpp)?;
         Ok(())
     })
 }

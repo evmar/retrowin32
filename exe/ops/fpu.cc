@@ -1,7 +1,7 @@
 #include "util.h"
 
-extern "C" int _fltused;
-extern "C" int _fltused = 0;
+// __attribute__((used) appears necessary to preserve this symbol past -flto.
+extern "C" __attribute__((used)) int _fltused = 0;
 
 namespace {
 
