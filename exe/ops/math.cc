@@ -217,6 +217,35 @@ void test_ror() {
   ror(0x06, 2);
 }
 
+void rcl(uint8_t x, uint8_t y) {
+  printv("rcl %x,%x => ", x, y);
+  uint32_t flags = 0;
+  __asm {
+    clear_flags()
+    stc
+    mov cl, y
+    rcl x, cl
+    get_flags()
+  }
+  if (y != 1 && y != 0) {
+    // Result is undefined for shift != 0 or 1.
+    flags &= ~CPUFLAG_OF;
+  }
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_rcl() {
+  rcl(0xa0, 0);
+  rcl(0xa0, 1);
+  rcl(0xa0, 2);
+
+  rcl(0xa1, 0);
+  rcl(0xa1, 1);
+  rcl(0xa1, 2);
+}
+
 } // namespace
 
 void math_tests() {
@@ -227,5 +256,6 @@ void math_tests() {
   test_sar();
   test_shl();
   test_rol();
+  test_rcl();
   test_ror();
 }
