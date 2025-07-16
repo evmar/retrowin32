@@ -12,6 +12,4 @@ void printv(const char *fmt...);
 void print_flags(uint32_t flags);
 
 #define clear_flags() __asm push 0 __asm popfd
-#define get_flags()                                                            \
-  uint32_t flags = 0;                                                          \
-  __asm pushfd __asm pop flags;
+#define get_flags()   __asm pushfd __asm pop flags
