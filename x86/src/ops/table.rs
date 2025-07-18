@@ -210,6 +210,11 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Ror_rm8_imm8 as usize] = Some(ror_rm8_imm8);
     tab[iced_x86::Code::Ror_rm8_1 as usize] = Some(ror_rm8_imm8);
     tab[iced_x86::Code::Ror_rm8_CL as usize] = Some(ror_rm8_cl);
+    tab[iced_x86::Code::Rcl_rm32_CL as usize] = Some(rcl_rm32_cl);
+    tab[iced_x86::Code::Rcl_rm32_imm8 as usize] = Some(rcl_rm32_imm8);
+    tab[iced_x86::Code::Rcl_rm8_CL as usize] = Some(rcl_rm8_cl);
+    tab[iced_x86::Code::Rcl_rm8_imm8 as usize] = Some(rcl_rm8_imm8);
+    tab[iced_x86::Code::Rcl_rm8_1 as usize] = Some(rcl_rm8_1);
 
     tab[iced_x86::Code::Xor_rm32_r32 as usize] = Some(xor_rm32_rm32);
     tab[iced_x86::Code::Xor_r32_rm32 as usize] = Some(xor_rm32_rm32);
