@@ -98,6 +98,13 @@ pub fn jno(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+/// jnp: Jump if Condition Is Met
+pub fn jnp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    if !cpu.flags.contains(Flags::PF) {
+        cpu.jmp(mem, instr.near_branch32());
+    }
+}
+
 /// jns: Jump if Condition Is Met
 pub fn jns(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     if !cpu.flags.contains(Flags::SF) {
