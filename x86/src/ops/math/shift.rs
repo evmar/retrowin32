@@ -23,6 +23,7 @@ fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
         x.shr(I::bits() - 1).is_one() ^ (x.shr(I::bits() - 2) & I::one()).is_one(),
     );
     flags.set(Flags::ZF, val.is_zero());
+    flags.set(Flags::PF, val.low_byte().count_ones() % 2 == 0);
 
     val
 }
@@ -81,7 +82,9 @@ fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
         // "OF flag is set if a sign change occurred"
         flags.set(Flags::OF, (val >> 31) != ((val >> 30) & 1));
     }
-    x.set((val << count) | (y >> (32 - count)));
+    let result = (val << count) | (y >> (32 - count));
+    x.set(result);
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
 }
 
 /// shld: Double Precision Shift Left
@@ -117,6 +120,7 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
 
     // Note: OF state undefined for shifts > 1 bit.
     flags.set(Flags::OF, x.high_bit().is_one());
+    flags.set(Flags::PF, val.low_byte().count_ones() % 2 == 0);
     val
 }
 
@@ -180,7 +184,9 @@ fn shrd(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
         // "OF flag is set if a sign change occurred"
         flags.set(Flags::OF, (val >> 31) != (y & 1));
     }
-    x.set((val >> count) | (y << (32 - count)));
+    let result = (val >> count) | (y << (32 - count));
+    x.set(result);
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
 }
 
 /// shrd: Double Precision Shift Right
@@ -212,6 +218,7 @@ fn sar<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
 
     flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 

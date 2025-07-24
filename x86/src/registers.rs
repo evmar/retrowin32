@@ -8,6 +8,8 @@ bitflags! {
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
+        /// parity
+        const PF = 1 << 2;
         /// zero
         const ZF = 1 << 6;
         /// sign
@@ -29,6 +31,9 @@ impl Flags {
         let mut s = String::new();
         if self.contains(Flags::CF) {
             s.push_str(" CF");
+        }
+        if self.contains(Flags::PF) {
+            s.push_str(" PF");
         }
         if self.contains(Flags::ZF) {
             s.push_str(" ZF");

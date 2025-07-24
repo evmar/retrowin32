@@ -11,6 +11,7 @@ pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::OF, false);
     flags.set(Flags::CF, false);
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -90,6 +91,7 @@ fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     flags.remove(Flags::OF | Flags::CF);
     flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -164,6 +166,7 @@ fn xor<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     flags.remove(Flags::CF);
     flags.set(Flags::ZF, result.is_zero());
     flags.set(Flags::SF, result.high_bit().is_one());
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -230,6 +233,7 @@ fn dec<I: Int + num_traits::WrappingSub>(x: I, flags: &mut Flags) -> I {
     flags.set(Flags::OF, result.is_zero());
     flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -258,6 +262,7 @@ fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
     flags.set(Flags::OF, result.is_zero());
     flags.set(Flags::SF, result.high_bit().is_one());
     flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -281,11 +286,12 @@ pub fn inc_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 /// neg: Two's Complement Negation
 fn neg<I: Int + OverflowingSub>(x: I, flags: &mut Flags) -> I {
-    let (res, of) = I::zero().overflowing_sub(&x);
-    flags.set(Flags::ZF, res.is_zero());
-    flags.set(Flags::CF, !res.is_zero());
+    let (result, of) = I::zero().overflowing_sub(&x);
+    flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::CF, !result.is_zero());
     flags.set(Flags::OF, of);
-    res
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
+    result
 }
 
 /// neg: Two's Complement Negation
@@ -309,6 +315,7 @@ pub fn neg_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 /// not: One's Complement Negation
 pub fn not_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
+    // Note: affects no CPU flags.
     x.set(!x.get())
 }
 

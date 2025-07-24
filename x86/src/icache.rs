@@ -51,7 +51,7 @@ impl BasicBlock {
                     return None;
                 }
             }
-            let op = crate::ops::decode(&instr, &ops).unwrap_or_else(|| {
+            let op = crate::ops::decode(&instr).unwrap_or_else(|| {
                 todo!(
                     "{ip:x} {instr} ({code:?})",
                     ip = decoder.ip() as u32,

@@ -502,7 +502,7 @@ pub fn fucomp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn fcomi_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.st0();
     let y = *cpu.fpu.get(instr.op1_register());
-    //cpu.flags.set(Flags::PF, false);
+    cpu.flags.set(Flags::PF, false);
     if x > y {
         cpu.flags.set(Flags::ZF, false);
         cpu.flags.set(Flags::CF, false);

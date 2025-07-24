@@ -3,10 +3,16 @@
 pub(crate) trait Int: num_traits::PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
+
     fn high_bit(&self) -> Self {
         *self >> (Self::bits() - 1)
     }
+
+    fn low_byte(&self) -> u8 {
+        self.as_usize() as u8
+    }
 }
+
 impl Int for u64 {
     fn as_usize(self) -> usize {
         unimplemented!()
@@ -15,6 +21,7 @@ impl Int for u64 {
         64
     }
 }
+
 impl Int for u32 {
     fn as_usize(self) -> usize {
         self as usize
@@ -23,6 +30,7 @@ impl Int for u32 {
         32
     }
 }
+
 impl Int for u16 {
     fn as_usize(self) -> usize {
         self as usize
@@ -31,6 +39,7 @@ impl Int for u16 {
         16
     }
 }
+
 impl Int for u8 {
     fn as_usize(self) -> usize {
         self as usize

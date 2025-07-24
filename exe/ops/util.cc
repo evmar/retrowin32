@@ -85,6 +85,8 @@ void printv(const char *fmt...) {
 void print_flags(uint32_t flags) {
   if ((flags & 1) != 0)
     print(" CF");
+  if ((flags & (1 << 2)) != 0)
+    print(" PF");
   if ((flags & (1 << 6)) != 0)
     print(" ZF");
   if ((flags & (1 << 7)) != 0)

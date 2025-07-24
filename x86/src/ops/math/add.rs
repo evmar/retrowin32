@@ -19,6 +19,7 @@ fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, z: I, flags
     //   1  1  0
     let of = ((x ^ !y) & (x ^ result)).high_bit().is_one();
     flags.set(Flags::OF, of);
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -156,44 +157,44 @@ mod tests {
             assert_eq!(exp, format!("{:02X}{}", res, flags.debug_str()));
         }
 
-        expect_add(0x00, 0x00, false, "00 ZF");
+        expect_add(0x00, 0x00, false, "00 PF ZF");
         expect_add(0x01, 0x01, false, "02");
         expect_add(0x7F, 0x01, false, "80 SF OF");
-        expect_add(0x80, 0x80, false, "00 CF ZF OF");
-        expect_add(0xFF, 0x01, false, "00 CF ZF");
-        expect_add(0xFF, 0x00, false, "FF SF");
-        expect_add(0x00, 0xFF, false, "FF SF");
-        expect_add(0x80, 0x7F, false, "FF SF");
+        expect_add(0x80, 0x80, false, "00 CF PF ZF OF");
+        expect_add(0xFF, 0x01, false, "00 CF PF ZF");
+        expect_add(0xFF, 0x00, false, "FF PF SF");
+        expect_add(0x00, 0xFF, false, "FF PF SF");
+        expect_add(0x80, 0x7F, false, "FF PF SF");
 
         // with carry
         expect_add(0x00, 0x00, true, "01");
-        expect_add(0x01, 0x01, true, "03");
-        expect_add(0x7F, 0x01, true, "81 SF OF");
-        expect_add(0x7F, 0x7F, true, "FF SF OF");
+        expect_add(0x01, 0x01, true, "03 PF");
+        expect_add(0x7F, 0x01, true, "81 PF SF OF");
+        expect_add(0x7F, 0x7F, true, "FF PF SF OF");
         expect_add(0x80, 0x80, true, "01 CF OF");
         expect_add(0xFF, 0x01, true, "01 CF");
-        expect_add(0xFF, 0x00, true, "00 CF ZF");
-        expect_add(0x00, 0xFF, true, "00 CF ZF");
-        expect_add(0x80, 0x7F, true, "00 CF ZF");
+        expect_add(0xFF, 0x00, true, "00 CF PF ZF");
+        expect_add(0x00, 0xFF, true, "00 CF PF ZF");
+        expect_add(0x80, 0x7F, true, "00 CF PF ZF");
 
         // carry only
         expect_add(0xFF, 0xFF, false, "FE CF SF");
-        expect_add(0xFF, 0xFF, true, "FF CF SF");
+        expect_add(0xFF, 0xFF, true, "FF CF PF SF");
 
         // overflow only
         expect_add(0x7F, 0x01, false, "80 SF OF");
-        expect_add(0x7F, 0x01, true, "81 SF OF");
+        expect_add(0x7F, 0x01, true, "81 PF SF OF");
 
         // zero result
-        expect_add(0x00, 0x00, false, "00 ZF");
-        expect_add(0xFF, 0x01, false, "00 CF ZF");
-        expect_add(0xFF, 0x00, true, "00 CF ZF");
-        expect_add(0x00, 0xFF, true, "00 CF ZF");
+        expect_add(0x00, 0x00, false, "00 PF ZF");
+        expect_add(0xFF, 0x01, false, "00 CF PF ZF");
+        expect_add(0xFF, 0x00, true, "00 CF PF ZF");
+        expect_add(0x00, 0xFF, true, "00 CF PF ZF");
 
         // negative result
         expect_add(0x80, 0x00, false, "80 SF");
-        expect_add(0x80, 0x00, true, "81 SF");
-        expect_add(0x80, 0x80, false, "00 CF ZF OF");
+        expect_add(0x80, 0x00, true, "81 PF SF");
+        expect_add(0x80, 0x80, false, "00 CF PF ZF OF");
         expect_add(0x80, 0x80, true, "01 CF OF");
     }
 }

@@ -20,6 +20,7 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     //   1  0  0
     let of = ((x ^ y) & (x ^ result)).high_bit().is_one();
     flags.set(Flags::OF, of);
+    flags.set(Flags::PF, result.low_byte().count_ones() % 2 == 0);
     result
 }
 
@@ -158,21 +159,21 @@ mod tests {
             assert_eq!(exp, format!("{:02X}{}", res, flags.debug_str()));
         }
 
-        expect_sub(0x00, 0x00, false, "00 ZF");
-        expect_sub(0x01, 0x01, false, "00 ZF");
-        expect_sub(0x01, 0x01, true, "FF CF SF");
+        expect_sub(0x00, 0x00, false, "00 PF ZF");
+        expect_sub(0x01, 0x01, false, "00 PF ZF");
+        expect_sub(0x01, 0x01, true, "FF CF PF SF");
         expect_sub(0x80, 0x01, false, "7F OF");
         expect_sub(0x80, 0x00, true, "7F OF");
-        expect_sub(0x80, 0x01, true, "7E OF");
-        expect_sub(0x80, 0x80, false, "00 ZF");
-        expect_sub(0x80, 0x80, true, "FF CF SF");
-        expect_sub(0x00, 0x01, false, "FF CF SF");
+        expect_sub(0x80, 0x01, true, "7E PF OF");
+        expect_sub(0x80, 0x80, false, "00 PF ZF");
+        expect_sub(0x80, 0x80, true, "FF CF PF SF");
+        expect_sub(0x00, 0x01, false, "FF CF PF SF");
         expect_sub(0x00, 0x01, true, "FE CF SF");
         expect_sub(0x7F, 0xFF, false, "80 CF SF OF");
         expect_sub(0x7F, 0xFF, true, "7F CF");
         expect_sub(0xFF, 0x01, false, "FE SF");
         expect_sub(0xFF, 0x01, true, "FD SF");
-        expect_sub(0xFF, 0xFF, false, "00 ZF");
-        expect_sub(0xFF, 0xFF, true, "FF CF SF");
+        expect_sub(0xFF, 0xFF, false, "00 PF ZF");
+        expect_sub(0xFF, 0xFF, true, "FF CF PF SF");
     }
 }

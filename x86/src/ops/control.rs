@@ -114,10 +114,7 @@ pub fn jo(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 /// jp: Jump if Condition Is Met
 pub fn jp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    // Note: the decoder ensures we only see a jp directly after a sahf,
-    // so we know the PF flag directly depends on ax.
-    let pf = ((cpu.regs.get32(Register::EAX) >> 10) & 1) == 1;
-    if pf {
+    if cpu.flags.contains(Flags::PF) {
         cpu.jmp(mem, instr.near_branch32());
     }
 }

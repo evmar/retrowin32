@@ -555,15 +555,7 @@ impl Op {
 }
 
 /// Decode a single instruction, returning the function that implements it.
-/// ops is the list of operations that precede this instruction.
-pub fn decode(instr: &Instruction, ops: &[Op]) -> Option<Op> {
-    // The implementation of 'jp' requires a specific instruction to precede it.
-    match instr.mnemonic() {
-        iced_x86::Mnemonic::Jp => {
-            assert!(ops.last().unwrap().instr.code() == iced_x86::Code::Sahf);
-        }
-        _ => {}
-    }
+pub fn decode(instr: &Instruction) -> Option<Op> {
     Some(Op {
         imp: OP_TAB[instr.code() as usize]?,
         instr: instr.clone(),

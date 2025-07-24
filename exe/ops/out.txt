@@ -1,38 +1,38 @@
 add 3,5 => 8
-add 3,fd => 0 CF ZF
+add 3,fd => 0 CF PF ZF
 add 3,fb => fe SF
-adc (CF=1) ff,0 => 0 CF ZF
+adc (CF=1) ff,0 => 0 CF PF ZF
 adc (CF=1) ff,1 => 1 CF
 adc (CF=1) ff,fe => fe CF SF
-adc (CF=1) ff,ff => ff CF SF
-sbb (CF=1) 0,0 => ff CF SF
+adc (CF=1) ff,ff => ff CF PF SF
+sbb (CF=1) 0,0 => ff CF PF SF
 sbb (CF=1) 0,1 => fe CF SF
 sbb (CF=1) 0,fe => 1 CF
-sbb (CF=1) 0,ff => 0 CF ZF
+sbb (CF=1) 0,ff => 0 CF PF ZF
 shr 3,0 => 3
 shr 3,1 => 1 CF
-shr 3,2 => 0 CF ZF
+shr 3,2 => 0 CF PF ZF
 shr 80,1 => 40 OF
 shr 80,2 => 20
 shr 81,1 => 40 CF OF
 shr 81,2 => 20
 sar 3,1 => 1 CF
-sar 3,2 => 0 CF ZF
-sar 80,1 => c0 SF
+sar 3,2 => 0 CF PF ZF
+sar 80,1 => c0 PF SF
 sar 80,2 => e0 SF
-sar 81,1 => c0 CF SF
+sar 81,1 => c0 CF PF SF
 sar 81,2 => e0 SF
 sar 82,1 => c1 SF
 sar 82,2 => e0 CF SF
 sar 3,0 => 3
-sar 3,1 => 6
-sar 3,2 => c
-sar 80,1 => 0 CF ZF OF
-sar 80,2 => 0 ZF
+sar 3,1 => 6 PF
+sar 3,2 => c PF
+sar 80,1 => 0 CF PF ZF OF
+sar 80,2 => 0 PF ZF
 sar d1,1 => a2 CF SF
-sar d1,2 => 44 CF
+sar d1,2 => 44 CF PF
 sar e2,1 => c4 CF SF
-sar e2,2 => 88 CF SF
+sar e2,2 => 88 CF PF SF
 rol 80,0 => 80
 rol 80,1 => 1 CF OF
 rol 80,2 => 2
