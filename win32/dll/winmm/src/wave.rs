@@ -200,12 +200,6 @@ pub fn waveOutOpen(
     dwInstance: u32,
     fdwOpen: WaveOutOpenFlags,
 ) -> MMRESULT {
-    if !get_state(sys).audio_enabled {
-        // Note that pocoman doesn't call waveOutGetNumDevs, but just directly calls
-        // waveOutOpen and decides whether to do sound based on whether it succeeds.
-        return MMRESULT::MMSYSERR_NOTENABLED;
-    }
-
     let host_ready = Event::new(Some("winmm host ready".into()), false, true);
 
     let fmt = pwfx.unwrap();
