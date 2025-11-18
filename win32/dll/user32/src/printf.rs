@@ -60,6 +60,13 @@ pub fn printf(
                     let str = mem.slicez(addr);
                     write!(out, "{}", std::str::from_utf8(str)?)?;
                 }
+                b'x' => write!(
+                    out,
+                    "{:width$.precision$x}",
+                    args.pop::<u32>(mem),
+                    width = width,
+                    precision = precision
+                )?,
                 _ => todo!("format string character {:?}", c as char),
             }
         } else {
