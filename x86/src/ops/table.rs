@@ -529,6 +529,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Bswap_r32 as usize] = Some(bswap_r32);
     tab[iced_x86::Code::Xlat_m8 as usize] = Some(xlat_m8);
     tab[iced_x86::Code::Bts_rm32_r32 as usize] = Some(bts_rm32_r32);
+    tab[iced_x86::Code::Bts_rm16_imm8 as usize] = Some(bts_rm16_imm8);
     tab[iced_x86::Code::Tzcnt_r32_rm32 as usize] = Some(tzcnt_r32_rm32);
 
     tab[iced_x86::Code::Cpuid as usize] = Some(cpuid);
