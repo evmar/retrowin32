@@ -7,7 +7,7 @@
 
 set -e
 
-linker_args="-Ttext-segment=0x7f000000"
+linker_args="--image-base=0x7f000000"
 # It appears the rest gets laid out immediately after.
 # All we really care about is it not being earlier.
 #linker_args="$linker_args -Trodata-segment=0x7f400000"
