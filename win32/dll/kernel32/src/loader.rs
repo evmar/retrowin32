@@ -448,9 +448,9 @@ fn find_dll(sys: &dyn System, filename: &str) -> anyhow::Result<Vec<u8>> {
     let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
     for path in &dll_paths {
         let path = WindowsPath::new(path);
-        let buf = read_file(sys.host(), path)?;
-        if !buf.is_empty() {
-            return Ok(buf);
+        match read_file(sys.host(), path) {
+            Ok(buf) if !buf.is_empty() => return Ok(buf),
+            _ => continue,
         }
     }
     anyhow::bail!("{filename:?} not found in {dll_paths:?}");
