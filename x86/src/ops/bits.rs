@@ -25,6 +25,15 @@ pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(x.get() | mask);
 }
 
+/// bts: Bit Test and Set
+pub fn bts_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8() % 16;
+    let x = rm16(cpu, mem, instr);
+    let mask = 1u16 << y;
+    cpu.flags.set(Flags::CF, x.get() & mask != 0);
+    x.set(x.get() | mask);
+}
+
 /// btr: Bit Test and Reset
 pub fn btr_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8() % 32;
