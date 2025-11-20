@@ -278,6 +278,7 @@ name = "builtin-winmm"
 version = "0.1.0"
 dependencies = [
  "bitflags 2.9.0",
+ "builtin-user32",
  "log",
  "memory",
  "win32-derive",

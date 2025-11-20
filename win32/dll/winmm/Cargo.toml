@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bitflags = { workspace = true }
+builtin-user32 = { path = "../user32" }
 log = { workspace = true }
 memory = { workspace = true }
 win32-derive = { workspace = true }
