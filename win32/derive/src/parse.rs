@@ -329,7 +329,7 @@ fn parse_vtable(name: &syn::Ident, item: &syn::ItemMacro) -> syn::Result<Option<
 }
 
 /// Parse a const looking for dllexport attributes.
-fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData>> {
+fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData<'_>>> {
     let Some(meta) = find_dllexport(&item.attrs)? else {
         return Ok(None);
     };

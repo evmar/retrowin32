@@ -14,7 +14,7 @@ impl Default for State {
 }
 
 #[inline]
-fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+fn get_state(sys: &dyn System) -> std::cell::RefMut<'_, State> {
     generic_get_state::<State>(sys)
 }
 

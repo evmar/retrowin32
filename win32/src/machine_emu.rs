@@ -40,7 +40,7 @@ impl MachineX<Emulator> {
         }
     }
 
-    pub fn mem(&self) -> Mem {
+    pub fn mem(&self) -> Mem<'_> {
         self.memory.mem()
     }
 

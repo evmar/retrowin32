@@ -13,7 +13,7 @@ pub struct ResourceHandle(Range<u32>);
 type State = Handles<HRSRC, ResourceHandle>;
 
 #[inline]
-pub fn get_state(sys: &dyn System) -> std::cell::RefMut<State> {
+pub fn get_state(sys: &dyn System) -> std::cell::RefMut<'_, State> {
     generic_get_state::<State>(sys)
 }
 

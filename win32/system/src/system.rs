@@ -15,7 +15,7 @@ use win32_winapi::{ERROR, HANDLE, HMODULE};
 // TODO: I'd like to make the various Future-returning APIs to just return a future, but because we
 // make System a trait object we use the workaround from https://github.com/dtolnay/async-trait.
 pub trait System {
-    fn mem(&self) -> Mem;
+    fn mem(&self) -> Mem<'_>;
     fn memory(&self) -> &crate::memory::Memory;
     // TODO: this is ugly, and only needed in a few places, revisit.
     fn memory_mut(&mut self) -> &mut crate::memory::Memory;
@@ -84,7 +84,7 @@ pub trait System {
     ) -> &dyn std::any::Any;
 }
 
-pub fn generic_get_state<T>(sys: &dyn System) -> std::cell::RefMut<T>
+pub fn generic_get_state<T>(sys: &dyn System) -> std::cell::RefMut<'_, T>
 where
     T: 'static + Default,
 {

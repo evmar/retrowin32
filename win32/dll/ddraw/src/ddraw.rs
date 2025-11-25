@@ -221,7 +221,7 @@ impl Default for State {
 }
 
 #[inline]
-pub fn get_state(sys: &dyn System) -> RefMut<State> {
+pub fn get_state(sys: &dyn System) -> RefMut<'_, State> {
     generic_get_state::<State>(sys)
 }
 
