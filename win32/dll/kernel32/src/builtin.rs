@@ -6152,6 +6152,30 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn VirtualUnlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
+            let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
+                    kernel32::memory::VirtualUnlock_pos,
+                    "kernel32/memory",
+                    "VirtualUnlock",
+                    &[("lpAddress", &lpAddress), ("dwSize", &dwSize)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::memory::VirtualUnlock(sys, lpAddress, dwSize);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn WaitForMultipleObjects(
         sys: &mut dyn System,
         stack_args: u32,
@@ -6832,7 +6856,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 247usize] = [
+const SHIMS: [Shim; 248usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7728,6 +7752,10 @@ const SHIMS: [Shim; 247usize] = [
     Shim {
         name: "VirtualQuery",
         func: Handler::Sync(wrappers::VirtualQuery),
+    },
+    Shim {
+        name: "VirtualUnlock",
+        func: Handler::Sync(wrappers::VirtualUnlock),
     },
     Shim {
         name: "WaitForMultipleObjects",
