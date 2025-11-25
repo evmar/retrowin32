@@ -359,6 +359,12 @@ pub fn GlobalFree(sys: &dyn System, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GlobalSize(sys: &dyn System, hMem: u32) -> u32 {
+    let memory = sys.memory();
+    memory.process_heap.size(memory.mem(), hMem)
+}
+
+#[win32_derive::dllexport]
 pub fn GlobalFlags(sys: &dyn System, hMem: u32) -> u32 {
     0 // stub
 }

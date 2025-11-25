@@ -3324,6 +3324,29 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn GlobalSize(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
+        unsafe {
+            let mem = sys.mem().detach();
+            let hMem = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
+                    kernel32::memory::GlobalSize_pos,
+                    "kernel32/memory",
+                    "GlobalSize",
+                    &[("hMem", &hMem)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::memory::GlobalSize(sys, hMem);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn GlobalUnlock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         use kernel32::memory::*;
         unsafe {
@@ -6785,7 +6808,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 245usize] = [
+const SHIMS: [Shim; 246usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7265,6 +7288,10 @@ const SHIMS: [Shim; 245usize] = [
     Shim {
         name: "GlobalReAlloc",
         func: Handler::Sync(wrappers::GlobalReAlloc),
+    },
+    Shim {
+        name: "GlobalSize",
+        func: Handler::Sync(wrappers::GlobalSize),
     },
     Shim {
         name: "GlobalUnlock",
