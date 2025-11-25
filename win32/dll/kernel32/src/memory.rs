@@ -392,6 +392,11 @@ pub fn VirtualProtect(
 }
 
 #[win32_derive::dllexport]
+pub fn VirtualLock(sys: &dyn System, lpAddress: u32, dwSize: u32) -> bool {
+    true // success
+}
+
+#[win32_derive::dllexport]
 pub fn GetProcessHeap(sys: &dyn System) -> u32 {
     sys.memory().process_heap.addr
 }

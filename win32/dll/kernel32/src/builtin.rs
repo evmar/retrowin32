@@ -6061,6 +6061,30 @@ mod wrappers {
             result.into()
         }
     }
+    pub unsafe fn VirtualLock(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+        use kernel32::memory::*;
+        unsafe {
+            let mem = sys.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
+            let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if trace::enabled("kernel32/memory") {
+                trace::Record::new(
+                    kernel32::memory::VirtualLock_pos,
+                    "kernel32/memory",
+                    "VirtualLock",
+                    &[("lpAddress", &lpAddress), ("dwSize", &dwSize)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = kernel32::memory::VirtualLock(sys, lpAddress, dwSize);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        }
+    }
     pub unsafe fn VirtualProtect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         use kernel32::memory::*;
         unsafe {
@@ -6808,7 +6832,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 246usize] = [
+const SHIMS: [Shim; 247usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -7692,6 +7716,10 @@ const SHIMS: [Shim; 246usize] = [
     Shim {
         name: "VirtualFree",
         func: Handler::Sync(wrappers::VirtualFree),
+    },
+    Shim {
+        name: "VirtualLock",
+        func: Handler::Sync(wrappers::VirtualLock),
     },
     Shim {
         name: "VirtualProtect",
