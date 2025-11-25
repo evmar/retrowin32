@@ -198,7 +198,7 @@ impl Memory {
         self.imp.len()
     }
 
-    pub fn mem(&self) -> Mem {
+    pub fn mem(&self) -> Mem<'_> {
         self.imp.mem()
     }
 

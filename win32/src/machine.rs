@@ -54,7 +54,7 @@ where
 }
 
 impl System for Machine {
-    fn mem(&self) -> memory::Mem {
+    fn mem(&self) -> memory::Mem<'_> {
         self.mem()
     }
     fn memory(&self) -> &Memory {

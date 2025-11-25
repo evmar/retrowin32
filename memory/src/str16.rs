@@ -27,7 +27,7 @@ impl Str16 {
         })
     }
 
-    pub fn from_nul_term_ptr(mem: Mem, addr: u32) -> Option<&Self> {
+    pub fn from_nul_term_ptr(mem: Mem<'_>, addr: u32) -> Option<&Self> {
         if addr == 0 {
             return None;
         }

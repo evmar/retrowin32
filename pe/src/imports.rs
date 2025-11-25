@@ -98,7 +98,7 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
 }
 
 impl ILTEntry {
-    pub fn as_import_symbol(self, image: &[u8]) -> ImportSymbol {
+    pub fn as_import_symbol(self, image: &[u8]) -> ImportSymbol<'_> {
         let entry = self.0;
         if entry & (1 << 31) != 0 {
             let ordinal = entry & 0xFFFF;

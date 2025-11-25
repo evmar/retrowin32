@@ -24,7 +24,7 @@ impl Env {
         }
     }
 
-    pub fn ensure_gui(&self) -> RefMut<GUI> {
+    pub fn ensure_gui(&self) -> RefMut<'_, GUI> {
         let mut gui = self.gui.borrow_mut();
         if gui.is_none() {
             *gui = Some(GUI::new(self.time.clone()).unwrap());

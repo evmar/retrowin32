@@ -22,7 +22,7 @@ impl BoxMem {
         self.0.len() as u32
     }
 
-    pub fn mem(&self) -> Mem {
+    pub fn mem(&self) -> Mem<'_> {
         Mem::from_slice(&self.0)
     }
 
