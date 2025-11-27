@@ -97,6 +97,43 @@ pub fn fild_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         .push(mem.get_pod::<i16>(x86_addr(cpu, instr)) as f64);
 }
 
+/// fbld: Load Binary Coded Decimal
+pub fn fbld_m80bcd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    // Read 10 bytes (80 bits) from memory
+    let bcd_bytes = mem.get_pod::<[u8; 10]>(x86_addr(cpu, instr));
+
+    // Extract sign bit from byte 9 (bit 7)
+    let is_negative = (bcd_bytes[9] & 0x80) != 0;
+
+    // Convert BCD digits to a decimal value
+    // Bytes 0-8 contain 18 BCD digits (2 digits per byte)
+    let mut value: f64 = 0.0;
+    let mut multiplier: f64 = 1.0;
+
+    // Process bytes 0-8 (each byte contains 2 BCD digits)
+    for i in 0..9 {
+        let byte = bcd_bytes[i];
+        let low_digit = (byte & 0x0F) as f64;
+        let high_digit = ((byte >> 4) & 0x0F) as f64;
+
+        // Low nibble is the less significant digit
+        value += low_digit * multiplier;
+        multiplier *= 10.0;
+
+        // High nibble is the more significant digit
+        value += high_digit * multiplier;
+        multiplier *= 10.0;
+    }
+
+    // Apply sign
+    if is_negative {
+        value = -value;
+    }
+
+    // Push the value onto the FPU stack
+    cpu.fpu.push(value);
+}
+
 /// fst: Store Floating-Point Value
 pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
