@@ -2,7 +2,7 @@ use super::{KernelObject, get_state, peb_mut};
 use memory::Extensions;
 use std::{rc::Rc, sync::Arc};
 use win32_system::{Event, System, memory::Memory};
-use win32_winapi::{HANDLE, Str16};
+use win32_winapi::{ERROR, HANDLE, Str16};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
@@ -178,6 +178,11 @@ pub fn TlsSetValue(sys: &mut dyn System, dwTlsIndex: u32, lpTlsValue: u32) -> bo
 #[win32_derive::dllexport]
 pub fn TlsGetValue(sys: &mut dyn System, dwTlsIndex: u32) -> u32 {
     let teb = teb_mut(sys);
+    if dwTlsIndex as usize >= teb.TlsSlots.len() {
+        log::warn!("TlsGetValue of unknown slot {dwTlsIndex}");
+        sys.set_last_error(ERROR::INVALID_PARAMETER);
+        return 0;
+    }
     teb.TlsSlots[dwTlsIndex as usize]
 }
 
