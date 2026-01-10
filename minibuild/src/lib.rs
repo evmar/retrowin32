@@ -77,8 +77,8 @@ pub struct B {
 }
 
 impl B {
-    pub fn run(f: impl FnOnce(&B) -> anyhow::Result<()>) -> anyhow::Result<()> {
-        f(&mut B::default())?;
+    pub fn run(f: impl FnOnce(B) -> anyhow::Result<()>) -> anyhow::Result<()> {
+        f(B::default())?;
         overprint("up to date\n");
         Ok(())
     }
@@ -86,7 +86,7 @@ impl B {
     pub fn task(
         &self,
         desc: impl Into<String>,
-        f: impl FnOnce(&B) -> anyhow::Result<()>,
+        f: impl FnOnce(B) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         let desc = if self.desc.is_empty() {
             desc.into()
@@ -94,12 +94,12 @@ impl B {
             format!("{} > {}", self.desc, desc.into())
         };
 
-        let mut b = B {
+        let b = B {
             desc,
             indent: self.indent + 1,
         };
         overprint(&b.desc);
-        f(&mut b)?;
+        f(b)?;
         Ok(())
     }
 

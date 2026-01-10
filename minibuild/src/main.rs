@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use minibuild::*;
 
-fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
+fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
     let dll_dir = format!("win32/dll/{dll}");
     let asm_path = format!("{dll_dir}/{dll}.s");
     let def_path = format!("{dll_dir}/{dll}.def");
@@ -65,7 +65,7 @@ fn build_dll(b: &B, dll: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn build_dlls(b: &B) -> anyhow::Result<()> {
+fn build_dlls(b: B) -> anyhow::Result<()> {
     let dlls = [
         "advapi32",
         "bass",
@@ -93,7 +93,7 @@ fn build_dlls(b: &B) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn build_exe_cpp(b: &B) -> anyhow::Result<()> {
+fn build_exe_cpp(b: B) -> anyhow::Result<()> {
     let xwin = {
         let xwin = std::env::var("XWIN");
         match xwin {
