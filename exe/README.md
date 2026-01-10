@@ -2,7 +2,7 @@ This directory contains some win32 executables used to test retrowin32.
 
 - callback: exe that calls a testing retrowin32 API that calls back to exe
 - cpp: various Windows test programs in C++
-- ops: dump results of x86 operations
+- [`ops/`](ops/): dump results of x86 operations
 - trace: Windows exe tracer using Windows debug API
 - winapi: MSVC Windows API (no C runtime)
 - zig_hello: Zig hello world
