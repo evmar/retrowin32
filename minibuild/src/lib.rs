@@ -31,12 +31,12 @@ impl<'a> std::fmt::Display for OutOfDate<'a> {
     }
 }
 
-fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> anyhow::Result<Option<OutOfDate<'a>>> {
+fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> Option<OutOfDate<'a>> {
     let mut oldest_out: Option<(&Path, SystemTime)> = None;
     for out in outs {
         let mtime = match out.metadata() {
-            Err(err) if is_not_found(&err) => return Ok(Some(OutOfDate::MissingOutput(out))),
-            m => m?.modified()?,
+            Err(err) if is_not_found(&err) => return Some(OutOfDate::MissingOutput(out)),
+            m => m.unwrap().modified().unwrap(),
         };
         oldest_out = Some(match oldest_out {
             None => (out, mtime),
@@ -47,28 +47,27 @@ fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> anyhow::Result<Option
     let (oldest_out_name, oldest_out) = oldest_out.unwrap();
 
     for in_ in ins {
-        let mtime = in_.metadata()?.modified()?;
+        let mtime = in_.metadata().unwrap().modified().unwrap();
         if mtime > oldest_out {
-            return Ok(Some(OutOfDate::OldInput(in_, oldest_out_name)));
+            return Some(OutOfDate::OldInput(in_, oldest_out_name));
         }
     }
 
-    Ok(None)
+    None
 }
 
 #[allow(unused)]
-fn mark_up_to_date(outs: &[&Path]) -> anyhow::Result<()> {
+fn mark_up_to_date(outs: &[&Path]) {
     let now = SystemTime::now();
     for out in outs {
         let f = match File::open(out) {
             Err(err) if is_not_found(&err) => {
-                anyhow::bail!("failed to write declared output {}", out.display());
+                panic!("failed to write declared output {}", out.display());
             }
-            f => f?,
+            f => f.unwrap(),
         };
-        f.set_modified(now)?;
+        f.set_modified(now).unwrap();
     }
-    Ok(())
 }
 
 #[derive(Default)]
@@ -77,13 +76,12 @@ pub struct B {
     indent: usize,
 }
 
-pub struct Spawn(std::thread::JoinHandle<anyhow::Result<()>>);
+pub struct Spawn(std::thread::JoinHandle<()>);
 
 impl B {
-    pub fn run(f: impl FnOnce(B) -> anyhow::Result<()>) -> anyhow::Result<()> {
-        f(B::default())?;
+    pub fn run(f: impl FnOnce(B)) {
+        f(B::default());
         overprint("up to date\n");
-        Ok(())
     }
 
     fn new_task(&self, desc: String) -> B {
@@ -101,50 +99,37 @@ impl B {
         b
     }
 
-    pub fn task(
-        &self,
-        desc: impl Into<String>,
-        f: impl FnOnce(B) -> anyhow::Result<()>,
-    ) -> anyhow::Result<()> {
+    pub fn task(&self, desc: impl Into<String>, f: impl FnOnce(B)) {
         let b = self.new_task(desc.into());
-        f(b)
+        f(b);
     }
 
-    pub fn spawn(
-        &self,
-        desc: impl Into<String>,
-        f: impl FnOnce(B) -> anyhow::Result<()> + Send + 'static,
-    ) -> Spawn {
+    pub fn spawn(&self, desc: impl Into<String>, f: impl FnOnce(B) + Send + 'static) -> Spawn {
         let b = self.new_task(desc.into());
         let handle = std::thread::spawn(move || f(b));
         Spawn(handle)
     }
 
-    pub fn wait(&self, spawns: Vec<Spawn>) -> anyhow::Result<()> {
+    pub fn wait(&self, spawns: Vec<Spawn>) {
         for s in spawns {
-            s.0.join().unwrap()?;
+            s.0.join().unwrap();
         }
-        Ok(())
     }
 
-    pub fn out_of_date<I: AsRef<Path>, O: AsRef<Path>>(
-        &self,
-        ins: &[I],
-        outs: &[O],
-    ) -> anyhow::Result<bool> {
+    pub fn out_of_date<I: AsRef<Path>, O: AsRef<Path>>(&self, ins: &[I], outs: &[O]) -> bool {
         let ins = ins.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
         let outs = outs.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
-        if let Some(reason) = out_of_date(&ins, &outs)? {
+        if let Some(reason) = out_of_date(&ins, &outs) {
             if EXPLAIN {
                 overprint(&format!("{}\n", reason));
             }
-            Ok(true)
+            true
         } else {
-            Ok(false)
+            false
         }
     }
 
-    pub fn cmd(&self, argv: &[&str]) -> anyhow::Result<()> {
+    pub fn cmd(&self, argv: &[&str]) {
         self.task(argv[0], |_| {
             if VERBOSE {
                 overprint(&format!("$ {}\n", argv.join(" ")));
@@ -153,7 +138,7 @@ impl B {
             }
             let mut cmd = std::process::Command::new(argv[0]);
             cmd.args(&argv[1..]);
-            let output = cmd.output()?;
+            let output = cmd.output().unwrap();
             if !output.stdout.is_empty() {
                 println!("{}", std::str::from_utf8(&output.stdout).unwrap());
             }
@@ -162,9 +147,8 @@ impl B {
             }
             if !output.status.success() {
                 println!();
-                anyhow::bail!("command failed");
+                panic!("command failed");
             }
-            Ok(())
-        })
+        });
     }
 }

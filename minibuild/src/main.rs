@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use minibuild::*;
 
-fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
+fn build_dll(b: B, dll: &str) {
     let dll_dir = format!("win32/dll/{dll}");
     let asm_path = format!("{dll_dir}/{dll}.s");
     let def_path = format!("{dll_dir}/{dll}.def");
@@ -13,20 +13,20 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
 
         // win32-derive program sources
         // TODO: get this from cargo .d files?
-        for f in glob("win32/derive/src/*.rs")? {
-            ins.push(f?);
+        for f in glob("win32/derive/src/*.rs").unwrap() {
+            ins.push(f.unwrap());
         }
 
         // processed source files
-        for f in glob(&format!("{dll_dir}/src/**/*.rs"))? {
-            let f = f?;
+        for f in glob(&format!("{dll_dir}/src/**/*.rs")).unwrap() {
+            let f = f.unwrap();
             if f.file_name().unwrap() == "builtin.rs" {
                 continue;
             }
             ins.push(f);
         }
 
-        if b.out_of_date(&ins, &[&asm_path, &def_path])? {
+        if b.out_of_date(&ins, &[&asm_path, &def_path]) {
             b.cmd(&[
                 "cargo",
                 "run",
@@ -36,13 +36,12 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
                 "win32-derive",
                 "--",
                 &dll_dir,
-            ])?;
+            ]);
         }
-        Ok(())
-    })?;
+    });
 
     b.task("compile+link", |b| {
-        if b.out_of_date(&[&asm_path, &def_path], &[&dll_path])? {
+        if b.out_of_date(&[&asm_path, &def_path], &[&dll_path]) {
             b.cmd(&[
                 "clang-cl",
                 "-fuse-ld=lld",
@@ -59,15 +58,12 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
                 "/nodefaultlib",
                 "/subsystem:console",
                 "win32/lib/retrowin32.lib",
-            ])?;
+            ]);
         }
-        Ok(())
-    })?;
-
-    Ok(())
+    });
 }
 
-fn build_dlls(b: B) -> anyhow::Result<()> {
+fn build_dlls(b: B) {
     let dlls = [
         "advapi32",
         "bass",
@@ -93,16 +89,16 @@ fn build_dlls(b: B) -> anyhow::Result<()> {
     for dll in dlls {
         spawns.push(b.spawn(format!("{dll}.dll"), |b| build_dll(b, dll)));
     }
-    b.wait(spawns)
+    b.wait(spawns);
 }
 
-fn build_exe_cpp(b: B) -> anyhow::Result<()> {
+fn build_exe_cpp(b: B) {
     let xwin = {
         let xwin = std::env::var("XWIN");
         match xwin {
             Ok(xwin) => xwin,
             Err(_) => {
-                let home = std::env::var("HOME")?;
+                let home = std::env::var("HOME").unwrap();
                 home + "/.xwin-cache/splat"
             }
         }
@@ -156,7 +152,7 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
             let src_path = PathBuf::from(format!("exe/cpp/{src}"));
             let util_path = Path::new("exe/cpp/util.h");
             let exe_path = src_path.with_extension("exe");
-            if b.out_of_date(&[src_path.as_ref(), util_path], &[&exe_path])? {
+            if b.out_of_date(&[src_path.as_ref(), util_path], &[&exe_path]) {
                 b.cmd(
                     &[
                         ["clang-cl"].as_slice(),
@@ -168,15 +164,14 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
                         &link_flags,
                     ]
                     .concat(),
-                )?;
+                );
             }
-            Ok(())
-        })?;
+        });
     }
 
     b.task("exe/ops", |b| {
         let srcs = ["fpu.cc", "math.cc", "ops.cc", "util.cc"].map(|src| format!("exe/ops/{src}"));
-        if b.out_of_date(&srcs, &["exe/ops/ops.exe"])? {
+        if b.out_of_date(&srcs, &["exe/ops/ops.exe"]) {
             b.cmd(
                 &[
                     ["clang-cl"].as_slice(),
@@ -189,20 +184,16 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
                     &link_flags,
                 ]
                 .concat(),
-            )?;
+            );
         }
-        Ok(())
-    })?;
-
-    Ok(())
+    });
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     B::run(|b| {
         b.wait(vec![
             b.spawn("dlls", build_dlls),
             b.spawn("test exes", build_exe_cpp),
-        ])?;
-        Ok(())
+        ]);
     })
 }
