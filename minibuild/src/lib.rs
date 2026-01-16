@@ -1,4 +1,4 @@
-use std::{fs::File, io::ErrorKind, path::Path, time::SystemTime};
+use std::{io::ErrorKind, path::Path, time::SystemTime};
 
 pub use glob::glob;
 
@@ -54,20 +54,6 @@ fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> Option<OutOfDate<'a>>
     }
 
     None
-}
-
-#[allow(unused)]
-fn mark_up_to_date(outs: &[&Path]) {
-    let now = SystemTime::now();
-    for out in outs {
-        let f = match File::open(out) {
-            Err(err) if is_not_found(&err) => {
-                panic!("failed to write declared output {}", out.display());
-            }
-            f => f.unwrap(),
-        };
-        f.set_modified(now).unwrap();
-    }
 }
 
 #[derive(Default)]
