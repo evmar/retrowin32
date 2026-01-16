@@ -1,4 +1,4 @@
-use std::{io::ErrorKind, path::Path, time::SystemTime};
+use std::{path::Path, time::SystemTime};
 
 pub use glob::glob;
 
@@ -12,7 +12,7 @@ pub fn overprint(msg: &str) {
 }
 
 fn is_not_found(err: &std::io::Error) -> bool {
-    matches!(err.kind(), ErrorKind::NotFound)
+    matches!(err.kind(), std::io::ErrorKind::NotFound)
 }
 
 enum OutOfDate<'a> {
