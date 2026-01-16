@@ -111,8 +111,6 @@ impl B {
         self.task(argv[0], |_| {
             if VERBOSE {
                 overprint(&format!("$ {}\n", argv.join(" ")));
-            } else {
-                //println!(); // Show task
             }
             let mut cmd = std::process::Command::new(argv[0]);
             cmd.args(&argv[1..]);
