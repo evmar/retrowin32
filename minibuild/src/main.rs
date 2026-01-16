@@ -85,11 +85,11 @@ fn build_dlls(b: B) {
         "wininet",
         "winmm",
     ];
-    let mut spawns = Vec::new();
-    for dll in dlls {
-        spawns.push(b.spawn(format!("{dll}.dll"), |b| build_dll(b, dll)));
-    }
-    b.wait(spawns);
+    std::thread::scope(|s| {
+        for dll in dlls {
+            b.spawn(s, format!("{dll}.dll"), |b| build_dll(b, dll));
+        }
+    });
 }
 
 fn build_exe_cpp(b: B) {
@@ -191,9 +191,9 @@ fn build_exe_cpp(b: B) {
 
 fn main() {
     B::run(|b| {
-        b.wait(vec![
-            b.spawn("dlls", build_dlls),
-            b.spawn("test exes", build_exe_cpp),
-        ]);
+        std::thread::scope(|s| {
+            b.spawn(s, "dlls", build_dlls);
+            b.spawn(s, "test exes", build_exe_cpp);
+        });
     })
 }

@@ -76,8 +76,6 @@ pub struct B {
     indent: usize,
 }
 
-pub struct Spawn(std::thread::JoinHandle<()>);
-
 impl B {
     pub fn run(f: impl FnOnce(B)) {
         f(B::default());
@@ -104,16 +102,14 @@ impl B {
         f(b);
     }
 
-    pub fn spawn(&self, desc: impl Into<String>, f: impl FnOnce(B) + Send + 'static) -> Spawn {
+    pub fn spawn<'scope, 'env>(
+        &self,
+        scope: &'scope std::thread::Scope<'scope, 'env>,
+        desc: impl Into<String>,
+        f: impl FnOnce(B) + Send + 'scope,
+    ) {
         let b = self.new_task(desc.into());
-        let handle = std::thread::spawn(move || f(b));
-        Spawn(handle)
-    }
-
-    pub fn wait(&self, spawns: Vec<Spawn>) {
-        for s in spawns {
-            s.0.join().unwrap();
-        }
+        scope.spawn(move || f(b));
     }
 
     pub fn out_of_date<I: AsRef<Path>, O: AsRef<Path>>(&self, ins: &[I], outs: &[O]) -> bool {
