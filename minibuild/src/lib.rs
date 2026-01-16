@@ -59,7 +59,6 @@ fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> Option<OutOfDate<'a>>
 #[derive(Default)]
 pub struct B {
     desc: String,
-    indent: usize,
 }
 
 impl B {
@@ -75,10 +74,7 @@ impl B {
             format!("{} > {}", self.desc, desc)
         };
 
-        let b = B {
-            desc,
-            indent: self.indent + 1,
-        };
+        let b = B { desc };
         overprint(&b.desc);
         b
     }
