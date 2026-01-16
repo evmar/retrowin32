@@ -89,10 +89,11 @@ fn build_dlls(b: B) -> anyhow::Result<()> {
         "wininet",
         "winmm",
     ];
+    let mut spawns = Vec::new();
     for dll in dlls {
-        b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;
+        spawns.push(b.spawn(format!("{dll}.dll"), |b| build_dll(b, dll)));
     }
-    Ok(())
+    b.wait(spawns)
 }
 
 fn build_exe_cpp(b: B) -> anyhow::Result<()> {
@@ -198,8 +199,10 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
 
 fn main() -> anyhow::Result<()> {
     B::run(|b| {
-        b.task("dlls", build_dlls)?;
-        b.task("test exes", build_exe_cpp)?;
+        b.wait(vec![
+            b.spawn("dlls", build_dlls),
+            b.spawn("test exes", build_exe_cpp),
+        ])?;
         Ok(())
     })
 }

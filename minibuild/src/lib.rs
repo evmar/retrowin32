@@ -77,6 +77,8 @@ pub struct B {
     indent: usize,
 }
 
+pub struct Spawn(std::thread::JoinHandle<anyhow::Result<()>>);
+
 impl B {
     pub fn run(f: impl FnOnce(B) -> anyhow::Result<()>) -> anyhow::Result<()> {
         f(B::default())?;
@@ -84,15 +86,11 @@ impl B {
         Ok(())
     }
 
-    pub fn task(
-        &self,
-        desc: impl Into<String>,
-        f: impl FnOnce(B) -> anyhow::Result<()>,
-    ) -> anyhow::Result<()> {
+    fn new_task(&self, desc: String) -> B {
         let desc = if self.desc.is_empty() {
             desc.into()
         } else {
-            format!("{} > {}", self.desc, desc.into())
+            format!("{} > {}", self.desc, desc)
         };
 
         let b = B {
@@ -100,7 +98,32 @@ impl B {
             indent: self.indent + 1,
         };
         overprint(&b.desc);
-        f(b)?;
+        b
+    }
+
+    pub fn task(
+        &self,
+        desc: impl Into<String>,
+        f: impl FnOnce(B) -> anyhow::Result<()>,
+    ) -> anyhow::Result<()> {
+        let b = self.new_task(desc.into());
+        f(b)
+    }
+
+    pub fn spawn(
+        &self,
+        desc: impl Into<String>,
+        f: impl FnOnce(B) -> anyhow::Result<()> + Send + 'static,
+    ) -> Spawn {
+        let b = self.new_task(desc.into());
+        let handle = std::thread::spawn(move || f(b));
+        Spawn(handle)
+    }
+
+    pub fn wait(&self, spawns: Vec<Spawn>) -> anyhow::Result<()> {
+        for s in spawns {
+            s.0.join().unwrap()?;
+        }
         Ok(())
     }
 
@@ -126,7 +149,7 @@ impl B {
             if VERBOSE {
                 overprint(&format!("$ {}\n", argv.join(" ")));
             } else {
-                println!(); // Show task
+                //println!(); // Show task
             }
             let mut cmd = std::process::Command::new(argv[0]);
             cmd.args(&argv[1..]);
