@@ -11,10 +11,6 @@ pub fn overprint(msg: &str) {
     std::io::stdout().flush().unwrap();
 }
 
-fn is_not_found(err: &std::io::Error) -> bool {
-    matches!(err.kind(), std::io::ErrorKind::NotFound)
-}
-
 enum OutOfDate<'a> {
     MissingOutput(&'a Path),
     OldInput(&'a Path, &'a Path),
@@ -35,7 +31,9 @@ fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> Option<OutOfDate<'a>>
     let mut oldest_out: Option<(&Path, SystemTime)> = None;
     for out in outs {
         let mtime = match out.metadata() {
-            Err(err) if is_not_found(&err) => return Some(OutOfDate::MissingOutput(out)),
+            Err(err) if matches!(err.kind(), std::io::ErrorKind::NotFound) => {
+                return Some(OutOfDate::MissingOutput(out));
+            }
             m => m.unwrap().modified().unwrap(),
         };
         oldest_out = Some(match oldest_out {
