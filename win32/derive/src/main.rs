@@ -6,18 +6,7 @@ mod generate;
 mod parse;
 
 use std::path::Path;
-
 use walkdir::WalkDir;
-
-fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
-    if let Ok(old_contents) = std::fs::read(path) {
-        if old_contents == contents {
-            return Ok(());
-        }
-    }
-    std::fs::write(path, contents)?;
-    Ok(())
-}
 
 /// Parse a directory's collection of files.
 fn parse_files(dll_name: &str, root: &Path) -> anyhow::Result<Vec<(Vec<String>, syn::File)>> {
@@ -122,12 +111,13 @@ fn process_builtin_dll(dll_dir: &Path) -> anyhow::Result<()> {
     dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 
     dll::generate_dll(&dll_name, &dllexports, |name, content| {
-        write_if_changed(&dll_dir.join(name), &content)
+        std::fs::write(&dll_dir.join(name), &content)?;
+        Ok(())
     })?;
 
     let builtins_module = generate::shims_module(&dll_name, dllexports);
     let text = rustfmt(&builtins_module.to_string())?;
-    write_if_changed(&dll_dir.join("src/builtin.rs"), text.as_bytes())?;
+    std::fs::write(&dll_dir.join("src/builtin.rs"), text.as_bytes())?;
 
     Ok(())
 }
