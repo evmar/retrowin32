@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use minibuild::*;
 
+/// Given a dll name like "advapi32", generate the .s/.def sources and compile a .dll from them.
 fn build_dll(b: B, dll: &str) {
     let dll_dir = format!("win32/dll/{dll}");
     let asm_path = format!("{dll_dir}/{dll}.s");
@@ -63,6 +64,7 @@ fn build_dll(b: B, dll: &str) {
     });
 }
 
+/// Build all the "built-in" retrowin32 DLLs, derived from the Rust source in win32/.
 fn build_dlls(b: B) {
     let dlls = [
         "advapi32",
@@ -92,6 +94,7 @@ fn build_dlls(b: B) {
     });
 }
 
+/// Build various C++ test binaries found under exe/.
 fn build_exe_cpp(b: B) {
     let xwin = {
         let xwin = std::env::var("XWIN");
