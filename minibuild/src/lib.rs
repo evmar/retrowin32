@@ -56,6 +56,7 @@ fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> anyhow::Result<Option
     Ok(None)
 }
 
+#[allow(unused)]
 fn mark_up_to_date(outs: &[&Path]) -> anyhow::Result<()> {
     let now = SystemTime::now();
     for out in outs {
@@ -103,22 +104,21 @@ impl B {
         Ok(())
     }
 
-    pub fn files<I: AsRef<Path>, O: AsRef<Path>>(
+    pub fn out_of_date<I: AsRef<Path>, O: AsRef<Path>>(
         &self,
         ins: &[I],
         outs: &[O],
-        f: impl FnOnce(&B) -> anyhow::Result<()>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<bool> {
         let ins = ins.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
         let outs = outs.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
         if let Some(reason) = out_of_date(&ins, &outs)? {
             if EXPLAIN {
                 overprint(&format!("{}\n", reason));
             }
-            f(self)?;
-            mark_up_to_date(&outs)?;
+            Ok(true)
+        } else {
+            Ok(false)
         }
-        Ok(())
     }
 
     pub fn cmd(&self, argv: &[&str]) -> anyhow::Result<()> {

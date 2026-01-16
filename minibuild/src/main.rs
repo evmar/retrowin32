@@ -26,7 +26,7 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
             ins.push(f);
         }
 
-        b.files(&ins, &[&asm_path, &def_path], |b| {
+        if b.out_of_date(&ins, &[&asm_path, &def_path])? {
             b.cmd(&[
                 "cargo",
                 "run",
@@ -36,12 +36,13 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
                 "win32-derive",
                 "--",
                 &dll_dir,
-            ])
-        })
+            ])?;
+        }
+        Ok(())
     })?;
 
     b.task("compile+link", |b| {
-        b.files(&[&asm_path, &def_path], &[&dll_path], |b| {
+        if b.out_of_date(&[&asm_path, &def_path], &[&dll_path])? {
             b.cmd(&[
                 "clang-cl",
                 "-fuse-ld=lld",
@@ -58,8 +59,9 @@ fn build_dll(b: B, dll: &str) -> anyhow::Result<()> {
                 "/nodefaultlib",
                 "/subsystem:console",
                 "win32/lib/retrowin32.lib",
-            ])
-        })
+            ])?;
+        }
+        Ok(())
     })?;
 
     Ok(())
@@ -153,7 +155,7 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
             let src_path = PathBuf::from(format!("exe/cpp/{src}"));
             let util_path = Path::new("exe/cpp/util.h");
             let exe_path = src_path.with_extension("exe");
-            b.files(&[src_path.as_ref(), util_path], &[&exe_path], |b| {
+            if b.out_of_date(&[src_path.as_ref(), util_path], &[&exe_path])? {
                 b.cmd(
                     &[
                         ["clang-cl"].as_slice(),
@@ -165,14 +167,15 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
                         &link_flags,
                     ]
                     .concat(),
-                )
-            })
+                )?;
+            }
+            Ok(())
         })?;
     }
 
     b.task("exe/ops", |b| {
         let srcs = ["fpu.cc", "math.cc", "ops.cc", "util.cc"].map(|src| format!("exe/ops/{src}"));
-        b.files(&srcs, &["exe/ops/ops.exe"], |b| {
+        if b.out_of_date(&srcs, &["exe/ops/ops.exe"])? {
             b.cmd(
                 &[
                     ["clang-cl"].as_slice(),
@@ -185,8 +188,9 @@ fn build_exe_cpp(b: B) -> anyhow::Result<()> {
                     &link_flags,
                 ]
                 .concat(),
-            )
-        })
+            )?;
+        }
+        Ok(())
     })?;
 
     Ok(())
