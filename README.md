@@ -9,6 +9,9 @@ See [some demos](https://evmar.github.io/retrowin32/).
 
 ## Status
 
+**I have abandoned retrowin32 in favor of a new approach**.  See
+[my followup emulator Theseus](https://neugierig.org/software/blog/2026/04/theseus.html).
+
 Can run a few programs, including console, win32 GUI, and DirectX. Likely will
 fail if given a program I haven't worked on yet.
 
