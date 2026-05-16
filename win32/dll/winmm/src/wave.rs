@@ -1,5 +1,6 @@
 use super::{MMRESULT, get_state};
 use bitflags::bitflags;
+use builtin_user32::{MSG, dispatch_message};
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
 use win32_system::{Event, System, Wait, host};
@@ -15,6 +16,7 @@ pub struct WaveState {
 #[derive(Clone)]
 enum Notify {
     Function(u32, u32),
+    Window(HWND, u32),
 }
 
 enum MM_WOM {
@@ -97,6 +99,18 @@ pub async fn retrowin32_wave_thread_main(sys: &mut dyn System, hwo: HWAVEOUT) {
                     ],
                 )
                 .await;
+            }
+            Some(Notify::Window(hwnd, instance)) => {
+                let msg = MSG {
+                    hwnd: hwnd,
+                    message: MM_WOM::DONE as u32,
+                    wParam: instance,
+                    lParam: wave_hdr_addr,
+                    time: 0,
+                    pt_x: 0,
+                    pt_y: 0,
+                };
+                dispatch_message(sys, &msg).await;
             }
             None => {}
         }
@@ -216,12 +230,8 @@ pub fn waveOutOpen(
 
     let notify = match fdwOpen.callback {
         CALLBACK::NULL => None,
-        CALLBACK::WINDOW => {
-            let hwnd = HWND::from_raw(dwCallback);
-            log::warn!("TODO: waveOutOpen callback with window={hwnd:?}");
-            None
-        }
         CALLBACK::FUNCTION => Some(Notify::Function(dwCallback, dwInstance)),
+        CALLBACK::WINDOW => Some(Notify::Window(HWND::from_raw(dwCallback), dwInstance)),
         _ => todo!("callback {:?}", fdwOpen.callback),
     };
 

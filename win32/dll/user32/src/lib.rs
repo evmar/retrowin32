@@ -19,7 +19,7 @@ mod wndclass;
 pub use builtin::DLL;
 
 pub use menu::HMENU;
-pub use message::{MSG, WM};
+pub use message::{MSG, WM, dispatch_message};
 pub use misc::HINSTANCE;
 // Used by comctl32.
 pub use misc::{TRACKMOUSEEVENT, TrackMouseEvent};
